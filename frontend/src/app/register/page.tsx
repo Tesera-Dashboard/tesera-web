@@ -1,8 +1,12 @@
 "use client";
 
 import { useState } from "react";
+
 import { useRouter } from "next/navigation";
+
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,17 +15,20 @@ import { register, login } from "@/lib/auth";
 
 export default function RegisterPage() {
   const router = useRouter();
+
   const [companyName, setCompanyName] = useState("");
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
+
       await register(companyName, fullName, email, password);
       toast.success("Account created successfully!");
       
@@ -30,6 +37,7 @@ export default function RegisterPage() {
       router.push("/pending-verification");
     } catch (error: any) {
       toast.error(error.message || "Failed to create account");
+
     } finally {
       setIsLoading(false);
     }
@@ -53,22 +61,26 @@ export default function RegisterPage() {
             <Label htmlFor="companyName">Company Name</Label>
             <Input 
               id="companyName" 
+
               placeholder="Acme Corp" 
               required 
               value={companyName}
               onChange={(e) => setCompanyName(e.target.value)}
               disabled={isLoading}
+
             />
           </div>
           <div className="space-y-2">
             <Label htmlFor="fullName">Full Name</Label>
             <Input 
               id="fullName" 
+
               placeholder="John Doe" 
               required 
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
               disabled={isLoading}
+
             />
           </div>
           <div className="space-y-2">
@@ -76,11 +88,13 @@ export default function RegisterPage() {
             <Input 
               id="email" 
               type="email" 
+
               placeholder="m@company.com" 
               required 
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               disabled={isLoading}
+
             />
           </div>
           <div className="space-y-2">
@@ -88,6 +102,7 @@ export default function RegisterPage() {
             <Input 
               id="password" 
               type="password" 
+
               required 
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -96,6 +111,7 @@ export default function RegisterPage() {
           </div>
           <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading ? "Creating Account..." : "Create Account"}
+
           </Button>
         </form>
 
