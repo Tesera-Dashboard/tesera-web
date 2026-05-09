@@ -1,9 +1,56 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 export default function LoginPage() {
+  const router = useRouter();
+  const [email, setEmail] = useState("alice2@acme.com");
+  const [password, setPassword] = useState("supersecretpassword");
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      const res = await fetch("http://127.0.0.1:8000/api/v1/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        // Token'ı localStorage'a kaydet
+        localStorage.setItem("token", data.access_token);
+        toast.success("Giriş başarılı", {
+          description: "Yönlendiriliyorsunuz...",
+        });
+        // Yönlendir
+        router.push("/dashboard");
+      } else {
+        toast.error("Giriş başarısız", {
+          description: data.detail || "Hatalı e-posta veya şifre",
+        });
+      }
+    } catch (error) {
+      toast.error("Bağlantı hatası", {
+        description: "Sunucuya bağlanılamadı. Lütfen backend'in çalıştığından emin olun.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-muted/30 p-4">
       <div className="w-full max-w-md bg-background rounded-2xl border shadow-sm p-8 space-y-6">
@@ -17,10 +64,17 @@ export default function LoginPage() {
           </p>
         </div>
 
-        <form className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="email">Work Email</Label>
-            <Input id="email" type="email" placeholder="m@company.com" required />
+            <Input 
+              id="email" 
+              type="email" 
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="m@company.com" 
+              required 
+            />
           </div>
           <div className="space-y-2">
             <div className="flex items-center justify-between">
@@ -29,10 +83,16 @@ export default function LoginPage() {
                 Forgot password?
               </Link>
             </div>
-            <Input id="password" type="password" required />
+            <Input 
+              id="password" 
+              type="password" 
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required 
+            />
           </div>
-          <Button type="submit" className="w-full">
-            Sign In
+          <Button type="submit" className="w-full" disabled={isLoading}>
+            {isLoading ? "Signing in..." : "Sign In"}
           </Button>
         </form>
 

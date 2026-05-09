@@ -1,17 +1,16 @@
 # Active Context: Tesera
 
 ## Current Work Focus
-Phase 1: Project setup, Design system, Authentication, Landing page.
+Phase 4: AI Assistant chat interface, Agent workflow builder, Notification center.
 
 ## Recent Changes
-- Initializing the memory bank based on the `.clinerules.md` requirements and user prompt.
+- Completed Phase 3: Implemented full functionality for Orders, Inventory, and Shipments pages with mock data, shared components, and strict UI conformity.
+- Fixed Next.js routing bug from Phase 2 (moved route folders inside /dashboard/ to match sidebar links).
 
 ## Next Steps
-1. Set up the scalable folder structure (frontend and backend).
-2. Initialize Next.js project.
-3. Initialize FastAPI project.
-4. Establish the core UI architecture and design system (Tailwind + shadcn/ui).
-5. Develop the Landing Page as the first user-facing component.
+1. Set up the layout and interface for the AI Assistant (/dashboard/ai-assistant).
+2. Build the Agent Workflow drag-and-drop or list interface (/dashboard/workflows).
+3. Implement the Notification Center (/dashboard/notifications).
 
 ## Active Decisions and Considerations
 - Ensure the frontend architecture supports a robust design system with a premium, uncrowded feel.

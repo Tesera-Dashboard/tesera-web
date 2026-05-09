@@ -30,10 +30,10 @@ Frontend dev server running at http://localhost:3000
 
 ## What's Left to Build
 
-### Phase 3
-- [ ] Orders full page (list, search, filter, detail view)
-- [ ] Inventory management (table, stock alerts, reorder)
-- [ ] Shipments (tracking table, delay flags)
+### ✅ Phase 3 – Core Modules
+- Orders full page (list, search, filter, detail view)
+- Inventory management (table, stock alerts, reorder)
+- Shipments (tracking table, delay flags)
 
 ### Phase 4
 - [ ] AI Assistant chat interface
