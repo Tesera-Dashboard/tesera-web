@@ -3,8 +3,6 @@
 import { useState } from "react";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -49,12 +47,12 @@ export default function LoginPage() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="email">Work Email</Label>
-            <Input 
-              id="email" 
-              type="email" 
+            <Input
+              id="email"
+              type="email"
 
-              placeholder="m@company.com" 
-              required 
+              placeholder="m@company.com"
+              required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               disabled={isLoading}
@@ -68,11 +66,11 @@ export default function LoginPage() {
                 Forgot password?
               </Link>
             </div>
-            <Input 
-              id="password" 
-              type="password" 
+            <Input
+              id="password"
+              type="password"
 
-              required 
+              required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               disabled={isLoading}

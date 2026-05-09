@@ -28,7 +28,7 @@ export default function RegisterPage() {
 
       await register(companyName, fullName, email, password);
       toast.success("Account created successfully!");
-      
+
       // Automatically login after register
       await login(email, password);
       router.push("/pending-verification");
@@ -56,11 +56,11 @@ export default function RegisterPage() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="companyName">Company Name</Label>
-            <Input 
-              id="companyName" 
+            <Input
+              id="companyName"
 
-              placeholder="Acme Corp" 
-              required 
+              placeholder="Acme Corp"
+              required
               value={companyName}
               onChange={(e) => setCompanyName(e.target.value)}
               disabled={isLoading}
@@ -69,11 +69,11 @@ export default function RegisterPage() {
           </div>
           <div className="space-y-2">
             <Label htmlFor="fullName">Full Name</Label>
-            <Input 
-              id="fullName" 
+            <Input
+              id="fullName"
 
-              placeholder="John Doe" 
-              required 
+              placeholder="John Doe"
+              required
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
               disabled={isLoading}
@@ -82,12 +82,12 @@ export default function RegisterPage() {
           </div>
           <div className="space-y-2">
             <Label htmlFor="email">Work Email</Label>
-            <Input 
-              id="email" 
-              type="email" 
+            <Input
+              id="email"
+              type="email"
 
-              placeholder="m@company.com" 
-              required 
+              placeholder="m@company.com"
+              required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               disabled={isLoading}
@@ -96,11 +96,11 @@ export default function RegisterPage() {
           </div>
           <div className="space-y-2">
             <Label htmlFor="password">Password</Label>
-            <Input 
-              id="password" 
-              type="password" 
+            <Input
+              id="password"
+              type="password"
 
-              required 
+              required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               disabled={isLoading}
