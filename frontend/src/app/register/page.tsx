@@ -1,62 +1,43 @@
 "use client";
 
 import { useState } from "react";
+
+import { useRouter } from "next/navigation";
+
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
+import { register, login } from "@/lib/auth";
 
 export default function RegisterPage() {
   const router = useRouter();
-  const [formData, setFormData] = useState({
-    companyName: "",
-    fullName: "",
-    email: "",
-    password: "",
-  });
+
+  const [companyName, setCompanyName] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData((prev) => ({ ...prev, [e.target.id]: e.target.value }));
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      const res = await fetch("http://127.0.0.1:8000/api/v1/auth/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          company_name: formData.companyName,
-          full_name: formData.fullName,
-          email: formData.email,
-          password: formData.password,
-        }),
-      });
 
-      const data = await res.json();
+      await register(companyName, fullName, email, password);
+      toast.success("Account created successfully!");
+      
+      // Automatically login after register
+      await login(email, password);
+      router.push("/pending-verification");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to create account");
 
-      if (res.ok) {
-        toast.success("Kayıt başarılı!", {
-          description: "Şimdi giriş yapabilirsiniz.",
-        });
-        // Login sayfasına yönlendir
-        router.push("/login");
-      } else {
-        toast.error("Kayıt başarısız", {
-          description: data.detail || "Girdiğiniz e-posta adresi kullanımda olabilir.",
-        });
-      }
-    } catch (error) {
-      toast.error("Bağlantı hatası", {
-        description: "Sunucuya bağlanılamadı. Lütfen backend'in çalıştığından emin olun.",
-      });
     } finally {
       setIsLoading(false);
     }
@@ -80,20 +61,26 @@ export default function RegisterPage() {
             <Label htmlFor="companyName">Company Name</Label>
             <Input 
               id="companyName" 
-              value={formData.companyName}
-              onChange={handleChange}
+
               placeholder="Acme Corp" 
               required 
+              value={companyName}
+              onChange={(e) => setCompanyName(e.target.value)}
+              disabled={isLoading}
+
             />
           </div>
           <div className="space-y-2">
             <Label htmlFor="fullName">Full Name</Label>
             <Input 
               id="fullName" 
-              value={formData.fullName}
-              onChange={handleChange}
+
               placeholder="John Doe" 
               required 
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              disabled={isLoading}
+
             />
           </div>
           <div className="space-y-2">
@@ -101,10 +88,13 @@ export default function RegisterPage() {
             <Input 
               id="email" 
               type="email" 
-              value={formData.email}
-              onChange={handleChange}
+
               placeholder="m@company.com" 
               required 
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              disabled={isLoading}
+
             />
           </div>
           <div className="space-y-2">
@@ -112,13 +102,16 @@ export default function RegisterPage() {
             <Input 
               id="password" 
               type="password" 
-              value={formData.password}
-              onChange={handleChange}
+
               required 
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              disabled={isLoading}
             />
           </div>
           <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? "Creating..." : "Create Account"}
+            {isLoading ? "Creating Account..." : "Create Account"}
+
           </Button>
         </form>
 

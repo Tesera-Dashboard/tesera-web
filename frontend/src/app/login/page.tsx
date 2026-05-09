@@ -1,17 +1,22 @@
 "use client";
 
 import { useState } from "react";
+
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
+import { login } from "@/lib/auth";
 
 export default function LoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState("alice2@acme.com");
-  const [password, setPassword] = useState("supersecretpassword");
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -19,33 +24,12 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const res = await fetch("http://127.0.0.1:8000/api/v1/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password }),
-      });
+      await login(email, password);
+      toast.success("Successfully logged in");
+      router.push("/dashboard");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to log in");
 
-      const data = await res.json();
-
-      if (res.ok) {
-        // Token'ı localStorage'a kaydet
-        localStorage.setItem("token", data.access_token);
-        toast.success("Giriş başarılı", {
-          description: "Yönlendiriliyorsunuz...",
-        });
-        // Yönlendir
-        router.push("/dashboard");
-      } else {
-        toast.error("Giriş başarısız", {
-          description: data.detail || "Hatalı e-posta veya şifre",
-        });
-      }
-    } catch (error) {
-      toast.error("Bağlantı hatası", {
-        description: "Sunucuya bağlanılamadı. Lütfen backend'in çalıştığından emin olun.",
-      });
     } finally {
       setIsLoading(false);
     }
@@ -70,25 +54,31 @@ export default function LoginPage() {
             <Input 
               id="email" 
               type="email" 
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+
               placeholder="m@company.com" 
               required 
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              disabled={isLoading}
+
             />
           </div>
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label htmlFor="password">Password</Label>
-              <Link href="#" className="text-sm text-primary hover:underline">
+              <Link href="/forgot-password" className="text-sm text-primary hover:underline">
                 Forgot password?
               </Link>
             </div>
             <Input 
               id="password" 
               type="password" 
+
+              required 
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              required 
+              disabled={isLoading}
+
             />
           </div>
           <Button type="submit" className="w-full" disabled={isLoading}>

@@ -8,6 +8,7 @@ class UserBase(BaseModel):
     email: EmailStr
     full_name: str
     is_active: bool = True
+    is_verified: bool = False
 
 class CompanyBase(BaseModel):
     name: str
@@ -36,6 +37,20 @@ class Token(BaseModel):
 
 class TokenPayload(BaseModel):
     sub: Optional[str] = None
+    type: Optional[str] = None # To distinguish between access, reset, verify tokens
+
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    new_password: str = Field(..., min_length=8)
+
+class VerifyEmailRequest(BaseModel):
+    token: str
+
+class MsgResponse(BaseModel):
+    message: str
 
 class CompanyResponse(CompanyBase):
     id: UUID
