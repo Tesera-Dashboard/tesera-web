@@ -2,14 +2,12 @@
 
 import { useState } from "react";
 
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { toast } from "sonner";
 import { login } from "@/lib/auth";
 
 export default function LoginPage() {
