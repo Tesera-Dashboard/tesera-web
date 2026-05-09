@@ -13,6 +13,7 @@
 
 import { useMemo, useState, useCallback, useEffect } from "react";
 import { Package } from "lucide-react";
+import { fetchWithAuth } from "@/lib/api";
 
 import { Order, OrderStatus } from "@/types/order";
 
@@ -33,7 +34,7 @@ export default function OrdersPage() {
 
   // API'den siparişleri çek
   useEffect(() => {
-    fetch("http://127.0.0.1:8000/api/v1/orders")
+    fetchWithAuth("/orders")
       .then((res) => res.json())
       .then((data) => {
         setOrders(data);
@@ -74,7 +75,7 @@ export default function OrdersPage() {
 
       return matchesFilter && matchesSearch;
     });
-  }, [searchQuery, activeFilter]);
+  }, [searchQuery, activeFilter, orders]);
 
   // ── Handlers ─────────────────────────────────────────────
   // useCallback: SearchInput'un debounce'u ile uyumlu çalışır

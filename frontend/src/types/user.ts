@@ -1,0 +1,18 @@
+export interface Company {
+  id: string;
+  name: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface User {
+  id: string;
+  email: string;
+  full_name: string;
+  is_active: boolean;
+  is_verified: boolean;
+  company_id: string;
+  company?: Company;
+  created_at: string;
+  updated_at: string;
+}

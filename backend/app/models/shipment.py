@@ -1,10 +1,11 @@
-from sqlalchemy import Column, String, Boolean
+from sqlalchemy import Column, String, Boolean, ForeignKey, Uuid
 from app.core.database import Base
 
 class Shipment(Base):
     __tablename__ = "shipments"
 
     id = Column(String, primary_key=True, index=True) # e.g. "SHP-1001"
+    company_id = Column(Uuid(as_uuid=True), ForeignKey("companies.id"), nullable=False)
     orderId = Column(String, nullable=False)
     carrier = Column(String, nullable=False)
     trackingCode = Column(String, nullable=False)

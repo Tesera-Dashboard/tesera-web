@@ -4,18 +4,18 @@ import { Button } from "@/components/ui/button";
 const recommendations = [
   {
     type: "stock",
-    message: "SKU-1042 (Running Shoes – Black, Size 42) has only 3 units left. Reorder recommended.",
-    action: "View Inventory",
+    message: "İncir Reçeli stokları tükenmiş görünüyor. Yeni üretim planlaması yapılması önerilir.",
+    action: "Envanteri Gör",
   },
   {
     type: "shipment",
-    message: "Order #ORD-2891 is delayed by 2 days. Customer has not been notified.",
-    action: "Notify Customer",
+    message: "ORD-1004 nolu sipariş 2 gündür gecikmede. Müşteriye bilgi verilmesi gerekebilir.",
+    action: "Müşteriye Yaz",
   },
   {
     type: "workflow",
-    message: "12 pending orders have no assigned team member. Assign automatically?",
-    action: "Auto-assign",
+    message: "Bugün kargoya verilmesi gereken 3 yeni siparişiniz hazır bekliyor.",
+    action: "Kargoları Hazırla",
   },
 ];
 

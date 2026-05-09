@@ -5,6 +5,7 @@
 
 import { useMemo, useState, useCallback, useEffect } from "react";
 import { cn } from "@/lib/utils";
+import { fetchWithAuth } from "@/lib/api";
 
 import { Shipment, ShipmentStatus } from "@/types/shipment";
 
@@ -26,7 +27,7 @@ export default function ShipmentsPage() {
 
   // API'den kargoları çek
   useEffect(() => {
-    fetch("http://127.0.0.1:8000/api/v1/shipments")
+    fetchWithAuth("/shipments")
       .then((res) => res.json())
       .then((data) => {
         setShipments(data);
@@ -63,7 +64,7 @@ export default function ShipmentsPage() {
 
       return matchesFilter && matchesSearch;
     });
-  }, [searchQuery, activeFilter]);
+  }, [searchQuery, activeFilter, shipments]);
 
   const handleSearch = useCallback((value: string) => setSearchQuery(value), []);
 

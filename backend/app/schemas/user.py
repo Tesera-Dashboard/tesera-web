@@ -63,6 +63,7 @@ class CompanyResponse(CompanyBase):
 class UserResponse(UserBase):
     id: UUID
     company_id: UUID
+    company: Optional[CompanyResponse] = None
     created_at: datetime
     updated_at: datetime
 

@@ -11,6 +11,7 @@
 
 import { useMemo, useState, useCallback, useEffect } from "react";
 import { cn } from "@/lib/utils";
+import { fetchWithAuth } from "@/lib/api";
 
 import { InventoryItem, StockLevel } from "@/types/inventory";
 
@@ -44,7 +45,7 @@ export default function InventoryPage() {
 
   // API'den stokları çek
   useEffect(() => {
-    fetch("http://127.0.0.1:8000/api/v1/inventory")
+    fetchWithAuth("/inventory")
       .then((res) => res.json())
       .then((data) => {
         setInventoryItems(data);
@@ -86,7 +87,7 @@ export default function InventoryPage() {
 
       return matchesStock && matchesCategory && matchesSearch;
     });
-  }, [searchQuery, stockFilter, categoryFilter]);
+  }, [searchQuery, stockFilter, categoryFilter, inventoryItems]);
 
   const handleSearch = useCallback((value: string) => setSearchQuery(value), []);
 
