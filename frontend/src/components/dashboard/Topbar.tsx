@@ -1,14 +1,17 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Bell, Search, Sun, Moon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useTheme } from "next-themes";
+import { useRouter } from "next/navigation";
+import { logout, getCurrentUser } from "@/lib/auth";
+import { toast } from "sonner";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -20,6 +23,32 @@ interface TopbarProps {
 
 export function Topbar({ pageTitle }: TopbarProps) {
   const { theme, setTheme } = useTheme();
+  const router = useRouter();
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    getCurrentUser().then(data => {
+      if (data) {
+        if (!data.is_verified) {
+          router.push("/pending-verification");
+          return;
+        }
+        setUser(data);
+      } else {
+        router.push("/login");
+      }
+    });
+  }, [router]);
+
+  const handleLogout = () => {
+    logout();
+    toast.success("Logged out successfully");
+    router.push("/login");
+  };
+
+  const initials = user?.full_name 
+    ? user.full_name.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase() 
+    : "U";
 
   return (
     <header className="sticky top-0 z-40 h-16 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex items-center px-6 gap-4">
@@ -57,20 +86,23 @@ export function Topbar({ pageTitle }: TopbarProps) {
       <DropdownMenu>
         <DropdownMenuTrigger>
           <Avatar className="h-8 w-8 cursor-pointer" aria-label="User menu">
-            <AvatarFallback className="text-xs bg-primary/10 text-primary">AC</AvatarFallback>
+            <AvatarFallback className="text-xs bg-primary/10 text-primary">{initials}</AvatarFallback>
           </Avatar>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-48" align="end">
-          <DropdownMenuLabel>
-            <p className="text-sm font-medium">Acme Corp</p>
-            <p className="text-xs text-muted-foreground">admin@acme.com</p>
-          </DropdownMenuLabel>
+          <div className="px-2 py-1.5 text-sm">
+            <div className="font-medium">{user?.full_name || "Loading..."}</div>
+            <div className="text-xs text-muted-foreground">{user?.email || ""}</div>
+          </div>
           <DropdownMenuSeparator />
           <DropdownMenuItem>Profile</DropdownMenuItem>
           <DropdownMenuItem>Settings</DropdownMenuItem>
           <DropdownMenuItem>Billing</DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem className="text-destructive focus:text-destructive">
+          <DropdownMenuItem 
+            className="text-destructive focus:text-destructive cursor-pointer"
+            onClick={handleLogout}
+          >
             Log out
           </DropdownMenuItem>
         </DropdownMenuContent>
