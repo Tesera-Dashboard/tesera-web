@@ -22,11 +22,19 @@ Frontend dev server running at http://localhost:3000
 
 ### ✅ Phase 2 – Dashboard Shell
 - Collapsible Sidebar (60 route group) with active-state routing
-- Topbar with search, notifications badge, dark/light toggle, user avatar dropdown
+- Topbar with search, notifications badge, dark/light toggle, dynamic user avatar
 - Dashboard layout (`(dashboard)/layout.tsx`) with full-height sidebar + scrollable main
 - Dashboard Overview page: greeting, 4 StatCards, RecentOrders table, AIRecommendations card
 - Reusable StatCard, RecentOrders, AIRecommendations components
-- Placeholder pages for all 10 dashboard routes: orders, inventory, shipments, analytics, ai-assistant, workflows, notifications, integrations, team, settings
+- Placeholder pages for all 10 dashboard routes
+
+### ✅ Phase 2.5 – Full Authentication System
+- **Backend API (FastAPI)**: JWT-based auth, secure Bcrypt hashing, SQLite integration.
+- **Database Schema**: `Company` and `User` models configured with `is_verified` flags.
+- **Frontend Integration**: Hooked up `/login` and `/register` with live `fetch` API wrappers (`src/lib/auth.ts`).
+- **Real Email SMTP**: Live automated email sender (`smtplib`) for Verification & Password Resets via `.env`.
+- **Route Protection**: Unverified users are blocked from `/dashboard` and forcefully redirected to `/pending-verification`.
+- **Auth UI Pages**: Added `/forgot-password`, `/reset-password`, `/verify-email`, and `/pending-verification` flows.
 
 ## What's Left to Build
 
@@ -56,6 +64,10 @@ Frontend dev server running at http://localhost:3000
 - `/` — Landing page
 - `/login` — Company login
 - `/register` — Company registration
+- `/forgot-password` — Password recovery
+- `/reset-password` — Password reset form
+- `/verify-email` — Email verification handler
+- `/pending-verification` — Awaiting email verification screen
 - `/dashboard` — Overview
 - `/dashboard/orders` — Orders
 - `/dashboard/inventory` — Inventory
