@@ -17,6 +17,20 @@ Tesera automates:
 - **Backend:** FastAPI, Python, PostgreSQL, Redis, Celery.
 - **AI Layer:** OpenAI-compatible APIs, agent-based workflows, tool calling, RAG.
 
+### API Documentation
+API documentation is available automatically once the backend is running:
+- **Swagger UI**: `http://localhost:8000/docs`
+- **ReDoc**: `http://localhost:8000/redoc`
+
+### Test Simulator (Mock Data)
+Tesera includes a built-in interactive simulator to help you generate mock data and test the platform's features without manual data entry.
+
+1. Navigate to **Test Simülatörü** from the sidebar (`/dashboard/test`).
+2. **Toplu Veri (Seed):** Click this button to populate the database with random mock data (4 inventory items, 3 orders, 2 shipments). You can click this multiple times; it generates unique IDs each time.
+3. **Rastgele Ürün Ekle:** Instantly adds a random product to your inventory with randomized stock and pricing.
+4. **Sipariş Simülatörü:** Displays your current inventory. Click "Sipariş Et" next to any product to simulate a customer order for that item.
+5. **Kargo Operasyonları:** Displays all active shipments. You can act as the carrier by updating their status to "Yolda" (In Transit), "Teslim Edildi" (Delivered), or trigger a "Gecikme" (Delay) to see how the UI reacts.
+
 ### Database Structure
 
 Currently, the backend runs on **SQLite** (`tesera.db`) to enable rapid local development without requiring a Dockerized PostgreSQL setup. This can be easily swapped to PostgreSQL in production by modifying the `DATABASE_URL` in `.env` / `core/config.py`.

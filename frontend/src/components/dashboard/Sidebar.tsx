@@ -17,23 +17,46 @@ import {
   Users,
   Settings,
   ChevronLeft,
+  Package,
+  FlaskConical,
 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 
-const navItems = [
-  { label: "Overview", href: "/dashboard", icon: LayoutDashboard },
-  { label: "AI Assistant", href: "/dashboard/ai-assistant", icon: Bot },
-  { label: "Orders", href: "/dashboard/orders", icon: ShoppingCart },
-  { label: "Inventory", href: "/dashboard/inventory", icon: Box },
-  { label: "Shipments", href: "/dashboard/shipments", icon: Truck },
-  { label: "Workflows", href: "/dashboard/workflows", icon: Workflow },
-  { label: "Analytics", href: "/dashboard/analytics", icon: BarChart3 },
-  { label: "Notifications", href: "/dashboard/notifications", icon: Bell },
-  { label: "Integrations", href: "/dashboard/integrations", icon: Plug },
-  { label: "Team", href: "/dashboard/team", icon: Users },
-  { label: "Settings", href: "/dashboard/settings", icon: Settings },
+const navGroups = [
+  {
+    label: "Core",
+    items: [
+      { label: "Overview", href: "/dashboard", icon: LayoutDashboard },
+      { label: "AI Assistant", href: "/dashboard/ai-assistant", icon: Bot },
+      { label: "Orders", href: "/dashboard/orders", icon: ShoppingCart },
+      { label: "Inventory", href: "/dashboard/inventory", icon: Box },
+      { label: "Shipments", href: "/dashboard/shipments", icon: Truck },
+      { label: "Workflows", href: "/dashboard/workflows", icon: Workflow },
+    ]
+  },
+  {
+    label: "Insights",
+    items: [
+      { label: "Analytics", href: "/dashboard/analytics", icon: BarChart3 },
+      { label: "Notifications", href: "/dashboard/notifications", icon: Bell },
+    ]
+  },
+  {
+    label: "Management",
+    items: [
+      { label: "Integrations", href: "/dashboard/integrations", icon: Plug },
+      { label: "Team", href: "/dashboard/team", icon: Users },
+      { label: "Settings", href: "/dashboard/settings", icon: Settings },
+    ]
+  },
+  {
+    label: "Dev Tools",
+    items: [
+      { label: "Test Simülatörü", href: "/dashboard/test", icon: FlaskConical },
+    ]
+  }
 ];
 
 export function Sidebar() {
@@ -78,28 +101,45 @@ export function Sidebar() {
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 overflow-y-auto py-4 px-2">
-        <ul className="space-y-0.5">
-          {navItems.map(({ label, href, icon: Icon }) => {
-            const isActive = pathname === href || (href !== "/dashboard" && pathname.startsWith(href));
-            return (
-              <li key={href}>
-                <Link
-                  href={href}
-                  className={cn(
-                    "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors duration-150",
-                    isActive
-                      ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                      : "text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
-                  )}
-                  title={collapsed ? label : undefined}
-                >
-                  <Icon className="h-4 w-4 shrink-0" />
-                  {!collapsed && <span>{label}</span>}
-                </Link>
-              </li>
-            );
-          })}
+      <nav className="flex-1 overflow-y-auto py-6 px-2">
+        <ul className="space-y-6">
+          {navGroups.map((group, index) => (
+            <li key={index} className="flex flex-col gap-1">
+              {!collapsed && (
+                <div className="px-3 mb-1 text-xs font-semibold text-sidebar-foreground/50 uppercase tracking-wider">
+                  {group.label}
+                </div>
+              )}
+              {collapsed && index !== 0 && (
+                <div className="flex justify-center mb-2 mt-4">
+                  <div className="w-6 h-px bg-sidebar-border"></div>
+                </div>
+              )}
+              <ul className="space-y-0.5">
+                {group.items.map(({ label, href, icon: Icon }) => {
+                  const isActive = pathname === href || (href !== "/dashboard" && pathname.startsWith(href));
+                  return (
+                    <li key={href}>
+                      <Link
+                        href={href}
+                        className={cn(
+                          "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors duration-150",
+                          isActive
+                            ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                            : "text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground",
+                          collapsed && "justify-center px-0"
+                        )}
+                        title={collapsed ? label : undefined}
+                      >
+                        <Icon className="h-5 w-5 shrink-0" />
+                        {!collapsed && <span>{label}</span>}
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </li>
+          ))}
         </ul>
       </nav>
 

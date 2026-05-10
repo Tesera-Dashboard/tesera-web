@@ -12,6 +12,7 @@
 import { useMemo, useState, useCallback, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { fetchWithAuth } from "@/lib/api";
+import { Plus } from "lucide-react";
 
 import { InventoryItem, StockLevel } from "@/types/inventory";
 
@@ -20,6 +21,8 @@ import { SearchInput } from "@/components/shared/SearchInput";
 import { StockAlert } from "@/components/inventory/StockAlert";
 import { InventoryTable } from "@/components/inventory/InventoryTable";
 import { ReorderDialog } from "@/components/inventory/ReorderDialog";
+import { ProductSheet } from "@/components/inventory/ProductSheet";
+import { Button } from "@/components/ui/button";
 
 // Stok seviyesi filtreleri
 type StockFilter = StockLevel | "Tümü";
@@ -37,8 +40,9 @@ export default function InventoryPage() {
   // ── State tanımları ────────────────────────────────────────
   const [searchQuery, setSearchQuery]       = useState("");
   const [stockFilter, setStockFilter]       = useState<StockFilter>("Tümü");
-  const [categoryFilter, setCategoryFilter] = useState("Tümü");
   const [reorderItem, setReorderItem]       = useState<InventoryItem | null>(null);
+  const [editItem, setEditItem]             = useState<InventoryItem | null>(null);
+  const [isProductSheetOpen, setIsProductSheetOpen] = useState(false);
 
   const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -63,31 +67,22 @@ export default function InventoryPage() {
     outCount: inventoryItems.filter((i) => i.status === "Tükendi").length,
   }), [inventoryItems]);
 
-  // ── Benzersiz kategoriler (filtre dropdown için) ──────────
-  const categories = useMemo(() => {
-    const cats = Array.from(new Set(inventoryItems.map((i) => i.category)));
-    return ["Tümü", ...cats.sort()];
-  }, [inventoryItems]);
-
   // ── Filtreli envanter listesi ─────────────────────────────
   const filteredItems = useMemo(() => {
     return inventoryItems.filter((item) => {
       // 1. Stok durumu filtresi
       const matchesStock = stockFilter === "Tümü" || item.status === stockFilter;
 
-      // 2. Kategori filtresi
-      const matchesCategory = categoryFilter === "Tümü" || item.category === categoryFilter;
-
-      // 3. Arama: ürün adı veya SKU'da geçiyor mu?
+      // 2. Arama: ürün adı veya SKU'da geçiyor mu?
       const q = searchQuery.toLowerCase();
       const matchesSearch =
         q === "" ||
         item.name.toLowerCase().includes(q) ||
         item.sku.toLowerCase().includes(q);
 
-      return matchesStock && matchesCategory && matchesSearch;
+      return matchesStock && matchesSearch;
     });
-  }, [searchQuery, stockFilter, categoryFilter, inventoryItems]);
+  }, [searchQuery, stockFilter, inventoryItems]);
 
   const handleSearch = useCallback((value: string) => setSearchQuery(value), []);
 
@@ -95,43 +90,29 @@ export default function InventoryPage() {
     <div className="space-y-5 max-w-7xl mx-auto">
 
       {/* Sayfa başlığı */}
-      <PageHeader
-        title="Envanter"
-        description={`${filteredItems.length} ürün listeleniyor`}
-      />
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <PageHeader
+          title="Envanter"
+          description={`${filteredItems.length} ürün listeleniyor`}
+        />
+        <Button onClick={() => { setEditItem(null); setIsProductSheetOpen(true); }} className="h-10">
+          <Plus className="mr-2 h-4 w-4" />
+          Yeni Ürün Ekle
+        </Button>
+      </div>
 
       {/* Stok uyarı banner'ları */}
       <StockAlert lowCount={lowCount} outCount={outCount} />
 
-      {/* Arama + Filtreler */}
-      <div className="flex flex-col gap-3">
-        {/* Üst satır: arama + kategori dropdown */}
-        <div className="flex flex-col sm:flex-row gap-3">
-          <SearchInput
-            placeholder="Ürün adı veya SKU ara..."
-            onSearch={handleSearch}
-            className="sm:w-72"
-          />
+      {/* Arama + Filtreler (Tek satır layout) */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        <SearchInput
+          placeholder="Ürün adı veya SKU ara..."
+          onSearch={handleSearch}
+          className="sm:w-72"
+        />
 
-          {/* Kategori filtresi — native select */}
-          <select
-            value={categoryFilter}
-            onChange={(e) => setCategoryFilter(e.target.value)}
-            className={cn(
-              "h-9 px-3 pr-8 rounded-lg border bg-background text-sm",
-              "text-foreground outline-none",
-              "focus:ring-2 focus:ring-primary/30 focus:border-primary",
-              "transition-all duration-150 cursor-pointer"
-            )}
-          >
-            {categories.map((cat) => (
-              <option key={cat} value={cat}>{cat}</option>
-            ))}
-          </select>
-        </div>
-
-        {/* Alt satır: Stok durumu filtre butonları */}
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 items-center">
           {STOCK_FILTERS.map((filter) => {
             const isActive = stockFilter === filter;
             return (
@@ -140,7 +121,7 @@ export default function InventoryPage() {
                 data-active={isActive}
                 onClick={() => setStockFilter(filter)}
                 className={cn(
-                  "h-8 px-3 rounded-lg text-xs font-medium border transition-all duration-150",
+                  "h-9 px-3 rounded-lg text-xs font-medium border transition-all duration-150",
                   "text-muted-foreground hover:text-foreground hover:border-foreground/30",
                   isActive && "text-white border-transparent",
                   isActive && filter === "Tümü"     && "bg-primary border-primary",
@@ -160,12 +141,26 @@ export default function InventoryPage() {
       <InventoryTable
         items={filteredItems}
         onReorder={setReorderItem}
+        onEdit={(item) => { setEditItem(item); setIsProductSheetOpen(true); }}
+        onDelete={(item) => {
+          if (confirm(`${item.name} ürününü silmek istediğinize emin misiniz?`)) {
+            // Demo delete behavior
+            setInventoryItems(prev => prev.filter(i => i.id !== item.id));
+          }
+        }}
       />
 
       {/* Yeniden sipariş dialog */}
       <ReorderDialog
         item={reorderItem}
         onClose={() => setReorderItem(null)}
+      />
+
+      {/* Ürün Ekle / Düzenle Sheet */}
+      <ProductSheet
+        isOpen={isProductSheetOpen}
+        onClose={() => setIsProductSheetOpen(false)}
+        item={editItem}
       />
 
     </div>

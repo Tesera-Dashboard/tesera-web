@@ -45,10 +45,14 @@ Frontend dev server running at http://localhost:3000
 
 ## What's Left to Build
 
-### ✅ Phase 3 – Core Modules
-- Orders full page (list, search, filter, detail view)
-- Inventory management (table, stock alerts, reorder)
-- Shipments (tracking table, delay flags)
+### 🚧 Phase 3 – Core Modules (Review & Refinement)
+- [x] **ERD Verification**: Review existing Phase 3 models (Order, Inventory, Shipment) against the ERD.
+- [x] **Backend & Mock Data**: Verify SQLite DB connectivity and create a script/endpoint to seed initial mock data for orders, inventory, and shipments.
+- [x] **UI Consistency**: Standardize table designs, filters, and page layouts across `/dashboard/orders`, `/dashboard/inventory`, and `/dashboard/shipments` so they have a cohesive look and feel.
+- [x] **Inventory Management**: Add "New Product" functionality using the `shadcn` Sheet component on the Inventory page.
+- [x] **Testing Simulators**: 
+    - Build `/test/orders` to list inventory products and simulate order creation.
+    - Build `/test/shipments` to act as a carrier interface for testing shipment status updates.
 
 ### Phase 4
 - [ ] AI Assistant chat interface
