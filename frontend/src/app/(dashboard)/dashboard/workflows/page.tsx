@@ -85,8 +85,8 @@ export default function WorkflowsPage() {
       });
 
       if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.detail || "İş akışı oluşturulamadı");
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.detail || errorData.message || "İş akışı oluşturulamadı");
       }
 
       toast.success("İş akışı başarıyla oluşturuldu");
@@ -143,8 +143,8 @@ export default function WorkflowsPage() {
       });
 
       if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.detail || "İş akışı silinemedi");
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.detail || errorData.message || "İş akışı silinemedi");
       }
 
       toast.success("İş akışı başarıyla silindi");
@@ -165,8 +165,8 @@ export default function WorkflowsPage() {
       });
 
       if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.detail || "İş akışı güncellenemedi");
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.detail || errorData.message || "İş akışı güncellenemedi");
       }
 
       toast.success(workflow.is_active ? "İş akışı devre dışı bırakıldı" : "İş akışı aktif edildi");
@@ -195,8 +195,8 @@ export default function WorkflowsPage() {
       });
 
       if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.detail || "İş akışı güncellenemedi");
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.detail || errorData.message || "İş akışı güncellenemedi");
       }
 
       toast.success("İş akışı başarıyla güncellendi");
