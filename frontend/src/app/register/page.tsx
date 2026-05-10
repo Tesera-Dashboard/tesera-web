@@ -48,19 +48,19 @@ export default function RegisterPage() {
           <Link href="/" className="inline-block mb-4">
             <Image src="/logo.png" alt="Tesera Logo" width={600} height={200} className="w-[240px] md:w-[280px] h-auto object-contain dark:invert" priority />
           </Link>
-          <h1 className="text-2xl font-semibold tracking-tight">Create your account</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Hesabınızı oluşturun</h1>
           <p className="text-sm text-muted-foreground">
-            Start your free trial. No credit card required.
+            Ücretsiz denemenizi başlatın. Kredi kartı gerekmez.
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="companyName">Company Name</Label>
+            <Label htmlFor="companyName">Şirket Adı</Label>
             <Input
               id="companyName"
 
-              placeholder="Acme Corp"
+              placeholder="Şirket A.Ş."
               required
               value={companyName}
               onChange={(e) => setCompanyName(e.target.value)}
@@ -69,11 +69,11 @@ export default function RegisterPage() {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="fullName">Full Name</Label>
+            <Label htmlFor="fullName">Ad Soyad</Label>
             <Input
               id="fullName"
 
-              placeholder="John Doe"
+              placeholder="Ahmet Yılmaz"
               required
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
@@ -82,12 +82,12 @@ export default function RegisterPage() {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="email">Work Email</Label>
+            <Label htmlFor="email">İş E-postası</Label>
             <Input
               id="email"
               type="email"
 
-              placeholder="m@company.com"
+              placeholder="isim@sirket.com"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -96,7 +96,7 @@ export default function RegisterPage() {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">Şifre</Label>
             <Input
               id="password"
               type="password"
@@ -108,27 +108,27 @@ export default function RegisterPage() {
             />
           </div>
           <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? "Creating Account..." : "Create Account"}
+            {isLoading ? "Hesap Oluşturuluyor..." : "Hesap Oluştur"}
 
           </Button>
         </form>
 
         <div className="text-center text-sm text-muted-foreground">
-          By clicking continue, you agree to our{" "}
+          Devam ederek şunları kabul etmiş olursunuz:{" "}
           <Link href="/terms" className="underline hover:text-primary">
-            Terms of Service
+            Kullanım Koşulları
           </Link>{" "}
-          and{" "}
+          ve{" "}
           <Link href="/privacy" className="underline hover:text-primary">
-            Privacy Policy
+            Gizlilik Politikası
           </Link>
           .
         </div>
 
         <div className="text-center text-sm">
-          Already have an account?{" "}
+          Zaten hesabınız var mı?{" "}
           <Link href="/login" className="text-primary hover:underline">
-            Sign in
+            Giriş yap
           </Link>
         </div>
       </div>

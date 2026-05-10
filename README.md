@@ -22,14 +22,14 @@ API documentation is available automatically once the backend is running:
 - **Swagger UI**: `http://localhost:8000/docs`
 - **ReDoc**: `http://localhost:8000/redoc`
 
-### Test Simulator (Mock Data)
-Tesera includes a built-in interactive simulator to help you generate mock data and test the platform's features without manual data entry.
+### Test Simülatörü (Mock Veri)
+Tesera, manuel veri girişi yapmadan mock veri oluşturmanıza ve platformun özelliklerini test etmenize yardımcı olan yerleşik, etkileşimli bir simülatör içerir.
 
-1. Navigate to **Test Simülatörü** from the sidebar (`/dashboard/test`).
-2. **Toplu Veri (Seed):** Click this button to populate the database with random mock data (4 inventory items, 3 orders, 2 shipments). You can click this multiple times; it generates unique IDs each time.
-3. **Rastgele Ürün Ekle:** Instantly adds a random product to your inventory with randomized stock and pricing.
-4. **Sipariş Simülatörü:** Displays your current inventory. Click "Sipariş Et" next to any product to simulate a customer order for that item.
-5. **Kargo Operasyonları:** Displays all active shipments. You can act as the carrier by updating their status to "Yolda" (In Transit), "Teslim Edildi" (Delivered), or trigger a "Gecikme" (Delay) to see how the UI reacts.
+1. Yan menüden **Test Simülatörü** sayfasına gidin (`/dashboard/test`).
+2. **Toplu Veri (Seed):** Veritabanını rastgele mock verilerle (4 envanter ürünü, 3 sipariş, 2 kargo) doldurmak için bu butona tıklayın. Bu butona birden fazla kez tıklayabilirsiniz; her seferinde benzersiz ID'ler üretir.
+3. **Rastgele Ürün Ekle:** Envanterinize rastgele stok ve fiyatlandırma ile anında yeni bir ürün ekler.
+4. **Sipariş Simülatörü:** Mevcut envanterinizi görüntüler. İlgili ürün için bir müşteri siparişi simüle etmek üzere ürünün yanındaki "Sipariş Et" butonuna tıklayın.
+5. **Kargo Operasyonları:** Tüm aktif kargoları görüntüler. Taşıyıcı rolünü üstlenerek durumlarını "Yolda", "Teslim Edildi" olarak güncelleyebilir veya arayüzün nasıl tepki verdiğini görmek için "Gecikme" durumunu tetikleyebilirsiniz.
 
 ### Database Structure
 

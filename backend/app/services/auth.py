@@ -59,7 +59,7 @@ def send_email(email_to: str, subject: str, html_content: str):
         return
 
     msg = EmailMessage()
-    msg.set_content("Please enable HTML to view this email.")
+    msg.set_content("Bu e-postayı görüntülemek için lütfen HTML'i etkinleştirin.")
     msg.add_alternative(html_content, subtype='html')
     msg['Subject'] = subject
     msg['From'] = f"{settings.EMAILS_FROM_NAME} <{settings.EMAILS_FROM_EMAIL}>"
@@ -84,19 +84,19 @@ def send_verification_email(email: str, token: str):
             <img src="{settings.FRONTEND_URL}/logo.png" alt="Tesera" style="height: 40px; width: auto;" />
         </div>
         <div style="padding: 32px; color: #374151;">
-            <h2 style="color: #111827; margin-top: 0; font-size: 24px;">Welcome to Tesera!</h2>
-            <p style="font-size: 16px; line-height: 1.5; margin-bottom: 24px;">Thank you for signing up. Please verify your email address to activate your account and access your dashboard.</p>
+            <h2 style="color: #111827; margin-top: 0; font-size: 24px;">Tesera'ya Hoş Geldiniz!</h2>
+            <p style="font-size: 16px; line-height: 1.5; margin-bottom: 24px;">Kayıt olduğunuz için teşekkür ederiz. Hesabınızı etkinleştirmek ve panelinize erişmek için lütfen e-posta adresinizi doğrulayın.</p>
             <div style="text-align: center; margin: 32px 0;">
-                <a href="{link}" style="background-color: #fa7f05; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: bold; font-size: 16px; display: inline-block;">Verify Email Address</a>
+                <a href="{link}" style="background-color: #fa7f05; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: bold; font-size: 16px; display: inline-block;">E-posta Adresini Doğrula</a>
             </div>
-            <p style="font-size: 14px; color: #6b7280; line-height: 1.5; margin-bottom: 0;">If you did not create an account, you can safely ignore this email.</p>
+            <p style="font-size: 14px; color: #6b7280; line-height: 1.5; margin-bottom: 0;">Eğer bu hesabı siz oluşturmadıysanız, bu e-postayı güvenle görmezden gelebilirsiniz.</p>
         </div>
         <div style="background-color: #f9fafb; padding: 16px; text-align: center; border-top: 1px solid #eaeaec; font-size: 12px; color: #9ca3af;">
-            &copy; Tesera. All rights reserved.
+            &copy; Tesera. Tüm hakları saklıdır.
         </div>
     </div>
     """
-    send_email(email, "Verify your Tesera Account", html)
+    send_email(email, "Tesera Hesabınızı Doğrulayın", html)
 
 def send_reset_password_email(email: str, token: str):
     link = f"{settings.FRONTEND_URL}/reset-password?token={token}"
@@ -106,16 +106,16 @@ def send_reset_password_email(email: str, token: str):
             <img src="{settings.FRONTEND_URL}/logo.png" alt="Tesera" style="height: 40px; width: auto;" />
         </div>
         <div style="padding: 32px; color: #374151;">
-            <h2 style="color: #111827; margin-top: 0; font-size: 24px;">Reset Your Password</h2>
-            <p style="font-size: 16px; line-height: 1.5; margin-bottom: 24px;">We received a request to reset your password. Click the button below to choose a new one:</p>
+            <h2 style="color: #111827; margin-top: 0; font-size: 24px;">Şifrenizi Sıfırlayın</h2>
+            <p style="font-size: 16px; line-height: 1.5; margin-bottom: 24px;">Şifrenizi sıfırlamak için bir istek aldık. Yeni bir şifre belirlemek için aşağıdaki butona tıklayın:</p>
             <div style="text-align: center; margin: 32px 0;">
-                <a href="{link}" style="background-color: #fa7f05; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: bold; font-size: 16px; display: inline-block;">Reset Password</a>
+                <a href="{link}" style="background-color: #fa7f05; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: bold; font-size: 16px; display: inline-block;">Şifreyi Sıfırla</a>
             </div>
-            <p style="font-size: 14px; color: #6b7280; line-height: 1.5; margin-bottom: 0;">If you did not request a password reset, please ignore this email.</p>
+            <p style="font-size: 14px; color: #6b7280; line-height: 1.5; margin-bottom: 0;">Eğer şifre sıfırlama isteğinde bulunmadıysanız, lütfen bu e-postayı dikkate almayın.</p>
         </div>
         <div style="background-color: #f9fafb; padding: 16px; text-align: center; border-top: 1px solid #eaeaec; font-size: 12px; color: #9ca3af;">
-            &copy; Tesera. All rights reserved.
+            &copy; Tesera. Tüm hakları saklıdır.
         </div>
     </div>
     """
-    send_email(email, "Reset your Tesera Password", html)
+    send_email(email, "Tesera Şifrenizi Sıfırlayın", html)

@@ -35,17 +35,17 @@ function VerifyEmailContent() {
   }, [token]);
 
   if (status === "loading") {
-    return <p className="text-sm text-center">Verifying your email, please wait...</p>;
+    return <p className="text-sm text-center">E-postanız doğrulanıyor, lütfen bekleyin...</p>;
   }
 
   if (status === "success") {
     return (
       <div className="text-center space-y-4">
         <div className="p-4 bg-emerald-500/10 text-emerald-600 rounded-lg">
-          <p className="text-sm font-medium">Your email has been successfully verified.</p>
+          <p className="text-sm font-medium">E-postanız başarıyla doğrulandı.</p>
         </div>
         <Button className="w-full" onClick={() => router.push("/login")}>
-          Continue to Login
+          Giriş Ekranına İlerle
         </Button>
       </div>
     );
@@ -57,7 +57,7 @@ function VerifyEmailContent() {
         <p className="text-sm font-medium">{errorMessage}</p>
       </div>
       <Button variant="outline" className="w-full" onClick={() => router.push("/login")}>
-        Back to Login
+        Giriş Ekranına Dön
       </Button>
     </div>
   );
@@ -71,10 +71,10 @@ export default function VerifyEmailPage() {
           <Link href="/" className="inline-block mb-4">
             <Image src="/logo.png" alt="Tesera Logo" width={600} height={200} className="w-[240px] md:w-[280px] h-auto object-contain dark:invert" priority />
           </Link>
-          <h1 className="text-2xl font-semibold tracking-tight">Email Verification</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">E-posta Doğrulama</h1>
         </div>
 
-        <Suspense fallback={<p className="text-sm text-center">Loading...</p>}>
+        <Suspense fallback={<p className="text-sm text-center">Yükleniyor...</p>}>
           <VerifyEmailContent />
         </Suspense>
       </div>

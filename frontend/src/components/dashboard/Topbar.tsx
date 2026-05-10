@@ -42,7 +42,7 @@ export function Topbar({ pageTitle }: TopbarProps) {
 
   const handleLogout = () => {
     logout();
-    toast.success("Logged out successfully");
+    toast.success("Başarıyla çıkış yapıldı");
     router.push("/login");
   };
 
@@ -53,13 +53,13 @@ export function Topbar({ pageTitle }: TopbarProps) {
   return (
     <header className="sticky top-0 z-40 h-16 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex items-center px-6 gap-4">
       {/* Title */}
-      <h1 className="text-base font-semibold mr-auto">{pageTitle ?? "Dashboard"}</h1>
+      <h1 className="text-base font-semibold mr-auto">{pageTitle ?? "Panel"}</h1>
 
       {/* Search */}
       <div className="relative hidden md:block w-56">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
         <Input
-          placeholder="Search..."
+          placeholder="Ara..."
           className="pl-9 h-8 text-sm bg-muted/50 border-0 focus-visible:ring-1"
         />
       </div>
@@ -91,19 +91,19 @@ export function Topbar({ pageTitle }: TopbarProps) {
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-48" align="end">
           <div className="px-2 py-1.5 text-sm">
-            <div className="font-medium">{user?.full_name || "Loading..."}</div>
+            <div className="font-medium">{user?.full_name || "Yükleniyor..."}</div>
             <div className="text-xs text-muted-foreground">{user?.email || ""}</div>
           </div>
           <DropdownMenuSeparator />
-          <DropdownMenuItem>Profile</DropdownMenuItem>
-          <DropdownMenuItem>Settings</DropdownMenuItem>
-          <DropdownMenuItem>Billing</DropdownMenuItem>
+          <DropdownMenuItem>Profil</DropdownMenuItem>
+          <DropdownMenuItem>Ayarlar</DropdownMenuItem>
+          <DropdownMenuItem>Faturalandırma</DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem 
             className="text-destructive focus:text-destructive cursor-pointer"
             onClick={handleLogout}
           >
-            Log out
+            Çıkış Yap
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

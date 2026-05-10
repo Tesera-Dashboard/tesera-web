@@ -49,9 +49,9 @@ export default function PendingVerificationPage() {
         </div>
         
         <div className="space-y-2">
-          <h1 className="text-2xl font-semibold tracking-tight">Check your email</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">E-postanızı kontrol edin</h1>
           <p className="text-sm text-muted-foreground">
-            We have sent a verification link to your email address. Please click the link to activate your account.
+            E-posta adresinize bir doğrulama bağlantısı gönderdik. Hesabınızı etkinleştirmek için lütfen bağlantıya tıklayın.
           </p>
         </div>
 
@@ -62,19 +62,19 @@ export default function PendingVerificationPage() {
             disabled={isLoading || countdown > 0}
           >
             {isLoading 
-              ? "Sending..." 
+              ? "Gönderiliyor..." 
               : countdown > 0 
-                ? `Resend available in ${countdown}s` 
-                : "Resend Verification Email"
+                ? `${countdown} saniye içinde tekrar gönderilebilir` 
+                : "Doğrulama E-postasını Tekrar Gönder"
             }
           </Button>
 
           <div className="flex flex-col space-y-2">
             <Link href="/dashboard" className="text-sm text-primary hover:underline">
-              I have already verified
+              Hesabımı zaten doğruladım
             </Link>
             <button onClick={handleLogout} className="text-sm text-muted-foreground hover:underline">
-              Log out
+              Çıkış Yap
             </button>
           </div>
         </div>

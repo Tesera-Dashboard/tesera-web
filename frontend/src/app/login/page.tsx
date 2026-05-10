@@ -41,20 +41,20 @@ export default function LoginPage() {
           <Link href="/" className="inline-block mb-4">
             <Image src="/logo.png" alt="Tesera Logo" width={600} height={200} className="w-[240px] md:w-[280px] h-auto object-contain dark:invert" priority />
           </Link>
-          <h1 className="text-2xl font-semibold tracking-tight">Welcome back</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Tekrar Hoş Geldiniz</h1>
           <p className="text-sm text-muted-foreground">
-            Enter your email to sign in to your company workspace
+            Şirket çalışma alanınıza giriş yapmak için e-postanızı girin
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email">Work Email</Label>
+            <Label htmlFor="email">İş E-postası</Label>
             <Input
               id="email"
               type="email"
 
-              placeholder="m@company.com"
+              placeholder="isim@sirket.com"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -64,9 +64,9 @@ export default function LoginPage() {
           </div>
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">Şifre</Label>
               <Link href="/forgot-password" className="text-sm text-primary hover:underline">
-                Forgot password?
+                Şifremi unuttum
               </Link>
             </div>
             <Input
@@ -81,14 +81,14 @@ export default function LoginPage() {
             />
           </div>
           <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? "Signing in..." : "Sign In"}
+            {isLoading ? "Giriş yapılıyor..." : "Giriş Yap"}
           </Button>
         </form>
 
         <div className="text-center text-sm">
-          Don&apos;t have an account?{" "}
+          Hesabınız yok mu?{" "}
           <Link href="/register" className="text-primary hover:underline">
-            Start Free Trial
+            Ücretsiz Başla
           </Link>
         </div>
       </div>

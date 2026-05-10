@@ -26,7 +26,7 @@ export function AIRecommendations() {
         <div className="h-7 w-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
           <Bot className="h-3.5 w-3.5" />
         </div>
-        <h3 className="font-semibold text-sm">AI Recommendations</h3>
+        <h3 className="font-semibold text-sm">YZ Önerileri</h3>
       </div>
 
       <div className="space-y-3">

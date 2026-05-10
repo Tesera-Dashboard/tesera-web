@@ -26,33 +26,33 @@ import { Separator } from "@/components/ui/separator";
 
 const navGroups = [
   {
-    label: "Core",
+    label: "Temel",
     items: [
-      { label: "Overview", href: "/dashboard", icon: LayoutDashboard },
-      { label: "AI Assistant", href: "/dashboard/ai-assistant", icon: Bot },
-      { label: "Orders", href: "/dashboard/orders", icon: ShoppingCart },
-      { label: "Inventory", href: "/dashboard/inventory", icon: Box },
-      { label: "Shipments", href: "/dashboard/shipments", icon: Truck },
-      { label: "Workflows", href: "/dashboard/workflows", icon: Workflow },
+      { label: "Genel Bakış", href: "/dashboard", icon: LayoutDashboard },
+      { label: "YZ Asistanı", href: "/dashboard/ai-assistant", icon: Bot },
+      { label: "Siparişler", href: "/dashboard/orders", icon: ShoppingCart },
+      { label: "Envanter", href: "/dashboard/inventory", icon: Box },
+      { label: "Kargolar", href: "/dashboard/shipments", icon: Truck },
+      { label: "İş Akışları", href: "/dashboard/workflows", icon: Workflow },
     ]
   },
   {
-    label: "Insights",
+    label: "İçgörüler",
     items: [
-      { label: "Analytics", href: "/dashboard/analytics", icon: BarChart3 },
-      { label: "Notifications", href: "/dashboard/notifications", icon: Bell },
+      { label: "Analitik", href: "/dashboard/analytics", icon: BarChart3 },
+      { label: "Bildirimler", href: "/dashboard/notifications", icon: Bell },
     ]
   },
   {
-    label: "Management",
+    label: "Yönetim",
     items: [
-      { label: "Integrations", href: "/dashboard/integrations", icon: Plug },
-      { label: "Team", href: "/dashboard/team", icon: Users },
-      { label: "Settings", href: "/dashboard/settings", icon: Settings },
+      { label: "Entegrasyonlar", href: "/dashboard/integrations", icon: Plug },
+      { label: "Ekip", href: "/dashboard/team", icon: Users },
+      { label: "Ayarlar", href: "/dashboard/settings", icon: Settings },
     ]
   },
   {
-    label: "Dev Tools",
+    label: "Geliştirici Araçları",
     items: [
       { label: "Test Simülatörü", href: "/dashboard/test", icon: FlaskConical },
     ]

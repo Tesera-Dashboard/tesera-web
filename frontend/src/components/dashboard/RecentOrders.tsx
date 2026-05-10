@@ -35,20 +35,20 @@ export function RecentOrders() {
   return (
     <div className="bg-card border rounded-2xl overflow-hidden">
       <div className="px-5 py-4 border-b flex items-center justify-between">
-        <h3 className="font-semibold text-sm">Recent Orders</h3>
+        <h3 className="font-semibold text-sm">Son Siparişler</h3>
         <a href="/dashboard/orders" className="text-xs text-primary hover:underline font-medium">
-          View all
+          Tümünü gör
         </a>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b bg-muted/30">
-              <th className="text-left px-5 py-3 text-xs font-medium text-muted-foreground">Order</th>
-              <th className="text-left px-5 py-3 text-xs font-medium text-muted-foreground">Customer</th>
-              <th className="text-left px-5 py-3 text-xs font-medium text-muted-foreground hidden md:table-cell">Product</th>
-              <th className="text-left px-5 py-3 text-xs font-medium text-muted-foreground">Status</th>
-              <th className="text-right px-5 py-3 text-xs font-medium text-muted-foreground">Amount</th>
+              <th className="text-left px-5 py-3 text-xs font-medium text-muted-foreground">Sipariş</th>
+              <th className="text-left px-5 py-3 text-xs font-medium text-muted-foreground">Müşteri</th>
+              <th className="text-left px-5 py-3 text-xs font-medium text-muted-foreground hidden md:table-cell">Ürün</th>
+              <th className="text-left px-5 py-3 text-xs font-medium text-muted-foreground">Durum</th>
+              <th className="text-right px-5 py-3 text-xs font-medium text-muted-foreground">Tutar</th>
             </tr>
           </thead>
           <tbody>

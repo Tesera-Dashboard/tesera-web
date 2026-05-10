@@ -34,7 +34,7 @@ export default function UnifiedTestSimulator() {
       toast.success(data.message);
       loadData();
     } catch (err: any) {
-      toast.error(`Seed failed: ${err.message}`);
+      toast.error(`Seed başarısız: ${err.message}`);
     }
     setLoadingSeed(false);
   };

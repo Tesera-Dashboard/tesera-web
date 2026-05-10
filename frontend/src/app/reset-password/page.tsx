@@ -53,7 +53,7 @@ function ResetPasswordForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="password">New Password</Label>
+        <Label htmlFor="password">Yeni Şifre</Label>
         <Input 
           id="password" 
           type="password" 
@@ -64,7 +64,7 @@ function ResetPasswordForm() {
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="confirmPassword">Confirm New Password</Label>
+        <Label htmlFor="confirmPassword">Yeni Şifreyi Onayla</Label>
         <Input 
           id="confirmPassword" 
           type="password" 
@@ -75,11 +75,11 @@ function ResetPasswordForm() {
         />
       </div>
       <Button type="submit" className="w-full" disabled={isLoading || !token}>
-        {isLoading ? "Resetting..." : "Reset Password"}
+        {isLoading ? "Sıfırlanıyor..." : "Şifreyi Sıfırla"}
       </Button>
       {!token && (
         <p className="text-xs text-destructive text-center mt-2">
-          Missing reset token. Please check your email link.
+          Sıfırlama token'ı eksik. Lütfen e-posta bağlantınızı kontrol edin.
         </p>
       )}
     </form>
@@ -94,20 +94,20 @@ export default function ResetPasswordPage() {
           <Link href="/" className="inline-block mb-4">
             <Image src="/logo.png" alt="Tesera Logo" width={600} height={200} className="w-[240px] md:w-[280px] h-auto object-contain dark:invert" priority />
           </Link>
-          <h1 className="text-2xl font-semibold tracking-tight">Reset Password</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Şifreyi Sıfırla</h1>
           <p className="text-sm text-muted-foreground">
-            Enter your new password below.
+            Yeni şifrenizi aşağıya girin.
           </p>
         </div>
 
-        <Suspense fallback={<p className="text-sm text-center">Loading...</p>}>
+        <Suspense fallback={<p className="text-sm text-center">Yükleniyor...</p>}>
           <ResetPasswordForm />
         </Suspense>
 
         <div className="text-center text-sm">
-          Remember your password?{" "}
+          Şifrenizi hatırladınız mı?{" "}
           <Link href="/login" className="text-primary hover:underline">
-            Back to sign in
+            Giriş ekranına dön
           </Link>
         </div>
       </div>

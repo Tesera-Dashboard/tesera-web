@@ -36,29 +36,29 @@ export default function ForgotPasswordPage() {
           <Link href="/" className="inline-block mb-4">
             <Image src="/logo.png" alt="Tesera Logo" width={600} height={200} className="w-[240px] md:w-[280px] h-auto object-contain dark:invert" priority />
           </Link>
-          <h1 className="text-2xl font-semibold tracking-tight">Forgot Password</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Şifremi Unuttum</h1>
           <p className="text-sm text-muted-foreground">
-            Enter your email to receive a password reset link.
+            Şifre sıfırlama bağlantısı almak için e-postanızı girin.
           </p>
         </div>
 
         {isSent ? (
           <div className="space-y-4 text-center">
             <div className="p-4 bg-muted/50 rounded-lg">
-              <p className="text-sm">We&apos;ve sent an email to <strong>{email}</strong> with a link to reset your password.</p>
+              <p className="text-sm">Şifrenizi sıfırlamanız için <strong>{email}</strong> adresine bir bağlantı gönderdik.</p>
             </div>
             <Button variant="outline" className="w-full" onClick={() => setIsSent(false)}>
-              Try another email
+              Başka bir e-posta dene
             </Button>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Work Email</Label>
+              <Label htmlFor="email">İş E-postası</Label>
               <Input 
                 id="email" 
                 type="email" 
-                placeholder="m@company.com" 
+                placeholder="isim@sirket.com" 
                 required 
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -66,15 +66,15 @@ export default function ForgotPasswordPage() {
               />
             </div>
             <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "Sending link..." : "Send Reset Link"}
+              {isLoading ? "Bağlantı gönderiliyor..." : "Sıfırlama Bağlantısı Gönder"}
             </Button>
           </form>
         )}
 
         <div className="text-center text-sm">
-          Remember your password?{" "}
+          Şifrenizi hatırladınız mı?{" "}
           <Link href="/login" className="text-primary hover:underline">
-            Back to sign in
+            Giriş ekranına dön
           </Link>
         </div>
       </div>

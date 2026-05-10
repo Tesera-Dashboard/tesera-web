@@ -44,6 +44,13 @@ Frontend dev server running at http://localhost:3000
 - **Backend Email Templates**: Restructured SMTP emails into modern HTML formats encapsulating the frontend's `logo.png` and `#fa7f05` brand color.
 - **Landing Page Polish**: Upgraded the "Features" section by replacing default icons with high-quality custom illustrations (`object-contain`), transforming them into large, centered, modern UI cards with hover animations.
 
+### ✅ Phase 2.7 – Full Turkish Localization
+- **Landing Page**: Fully translated all static content to Turkish (Hero, Problem, Features, Pricing, FAQ, CTA, Footer).
+- **Authentication Flow**: Translated all login, register, password reset, and email verification pages. Updated form labels, placeholders, and Sonner toast messages.
+- **Backend Email Templates**: Localized the HTML bodies and subject lines for verification and password reset emails sent by FastAPI.
+- **Dashboard & Components**: Translated the Sidebar, Topbar, page headers, tables (Recent Orders, Shipments, Inventory), and metric cards to Turkish.
+- **Test Simulator**: Translated the entire Unified Test Simulator page and updated the `README.md` instructions accordingly.
+
 ## What's Left to Build
 
 ### 🚧 Phase 3 – Core Modules (Review & Refinement)
