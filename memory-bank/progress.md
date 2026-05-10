@@ -36,6 +36,13 @@ Frontend dev server running at http://localhost:3000
 - **Route Protection**: Unverified users are blocked from `/dashboard` and forcefully redirected to `/pending-verification`.
 - **Auth UI Pages**: Added `/forgot-password`, `/reset-password`, `/verify-email`, and `/pending-verification` flows.
 
+### ✅ Phase 2.6 – Branding & Re-styling
+- **Color Palette Update**: Switched base theme to `#fa7f05` (Orange) for primary and `#35ada3` (Teal) for secondary.
+- **Logo Integration (`next/image`)**: Completely replaced text-based logos with `logo.png` across all areas (Navbar, Footer, Sidebar, and Auth pages) with carefully adjusted max widths to accommodate horizontal layout.
+- **Dynamic Sidebar**: Added `mini-logo.png` fallback that appears when the dashboard sidebar is collapsed.
+- **Hero Enhancements**: Embedded large animated `mini-logo.png` into the Landing page hero section.
+- **Backend Email Templates**: Restructured SMTP emails into modern HTML formats encapsulating the frontend's `logo.png` and `#fa7f05` brand color.
+
 ## What's Left to Build
 
 ### ✅ Phase 3 – Core Modules
