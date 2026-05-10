@@ -72,6 +72,7 @@ Frontend dev server running at http://localhost:3000
 - [x] **Markdown Rendering**: AI responses rendered via `react-markdown` + `remark-gfm` with Tailwind Typography (`prose`) support for headings, lists, code blocks, links, and tables.
 - [x] **Layout Fix**: Chat area uses full viewport height (`h-full -m-6`) to eliminate extra top/bottom padding and scroll.
 - [x] **Test Simulator Integration**: Added **Module 5 – YZ Asistanı Testi** to the Unified Test Simulator for quickly verifying the API connection without navigating away.
+- [x] **Dashboard AI Recommendations**: `GET /ai/recommendations` endpoint queries LLM with current company data and returns 3 actionable recommendations (type, message, action). Frontend `AIRecommendations` component fetches live suggestions with loading state, refresh button, and static fallback on error. Action buttons are fully clickable and route to the relevant dashboard pages: *Sipariş Ver* → Inventory, *Siparişleri Hazırla* → Orders, *Gecikme Nedenini Gör* → Shipments.
 - [ ] Agent workflow builder
 - [ ] Notification center
 

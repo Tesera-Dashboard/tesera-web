@@ -58,6 +58,19 @@ class AIConversationSummary(BaseModel):
 class AIConversationDetail(AIConversationSummary):
     messages: List[AIMessageResponse]
 
+    class Config:
+        from_attributes = True
+
+
+class RecommendationItem(BaseModel):
+    type: str
+    message: str
+    action: str
+
+
+class RecommendationsResponse(BaseModel):
+    recommendations: List[RecommendationItem]
+
 
 class LLMProviderError(Exception):
     def __init__(self, provider: str, status_code: int, detail: str):
@@ -327,3 +340,69 @@ def delete_conversation(
     db.delete(conversation)
     db.commit()
     return {"message": "Konuşma silindi."}
+
+
+@router.get("/recommendations", response_model=RecommendationsResponse)
+def get_recommendations(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    if not settings.GROK_API_KEY and not settings.OPENROUTER_API_KEY:
+        raise HTTPException(
+            status_code=503,
+            detail="YZ Asistanı şu anda kullanılamıyor. Lütfen backend .env dosyasına GROK_API_KEY veya OPENROUTER_API_KEY ekleyin."
+        )
+
+    try:
+        company_context = build_company_context(db, current_user.company_id)
+        system_instruction = (
+            "Sen Tesera'nın YZ Asistanısın. Aşağıdaki operasyonel verilere dayanarak şirket için 3 adet kısa, "
+            "eyleme dönük ve profesyonel öneri üret. Her öneri şu formatta olmalı ve sadece bu 3 satırı döndür:\n"
+            "type|message|action\n\n"
+            "type değerleri: stock, shipment, workflow, order\n"
+            "Örnek:\n"
+            "stock|İncir Reçeli stokları kritik seviyede. Yeniden sipariş verilmeli.|Sipariş Ver\n"
+            "shipment|2 sipariş kargo aşamasında gecikme yaşıyor.|Kargoları Gör\n"
+            "workflow|Bugün kargoya verilmesi gereken 3 yeni sipariş var.|Siparişleri Hazırla\n\n"
+            f"Veriler:\n{company_context}"
+        )
+
+        llm_messages = [
+            {"role": "system", "content": system_instruction},
+            {"role": "user", "content": "Şirketin güncel durumuna göre 3 öneri ver."}
+        ]
+
+        with httpx.Client(timeout=60.0) as client:
+            raw = _call_llm_with_fallback(client, llm_messages)
+
+        recommendations: List[RecommendationItem] = []
+        for line in raw.strip().splitlines():
+            parts = line.split("|", 2)
+            if len(parts) == 3:
+                recommendations.append(RecommendationItem(
+                    type=parts[0].strip(),
+                    message=parts[1].strip(),
+                    action=parts[2].strip(),
+                ))
+
+        if not recommendations:
+            raise HTTPException(status_code=502, detail="YZ önerileri ayrıştırılamadı.")
+
+        return RecommendationsResponse(recommendations=recommendations[:3])
+
+    except HTTPException:
+        raise
+    except LLMProviderError as e:
+        if e.status_code == 401:
+            raise HTTPException(status_code=503, detail=f"{e.provider} API anahtarı geçersiz veya eksik.")
+        if e.status_code == 402:
+            raise HTTPException(status_code=402, detail=f"{e.provider} bakiyesi yetersiz.")
+        if e.status_code == 429:
+            raise HTTPException(status_code=429, detail=f"{e.provider} hız limiti veya kotası aşıldı.")
+        raise HTTPException(status_code=502, detail=f"{e.provider} servisinden geçerli bir yanıt alınamadı.")
+    except Exception as e:
+        logger.error(f"Recommendations API Error: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail="YZ önerileri oluşturulurken beklenmeyen bir hata oluştu."
+        )
