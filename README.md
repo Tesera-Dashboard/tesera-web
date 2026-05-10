@@ -21,11 +21,84 @@ Tesera automates:
 
 Currently, the backend runs on **SQLite** (`tesera.db`) to enable rapid local development without requiring a Dockerized PostgreSQL setup. This can be easily swapped to PostgreSQL in production by modifying the `DATABASE_URL` in `.env` / `core/config.py`.
 
-**Core Entities:**
-- **Company:** `id` (UUID), `name` (String), `created_at` (DateTime), `updated_at` (DateTime)
-- **User:** `id` (UUID), `company_id` (UUID - Foreign Key), `email` (String), `full_name` (String), `hashed_password` (String), `is_active` (Boolean), `is_verified` (Boolean)
+### Entity Relationship Diagram (ERD)
 
-*Relationships:* A Company can have multiple Users. Users are authenticated and operated within their company context.
+The platform is designed around a multi-tenant B2B architecture where every operational record is tied to a `Company`. Users authenticate to manage resources owned by their respective companies.
+
+```mermaid
+erDiagram
+    COMPANY {
+        UUID id PK
+        String name
+        DateTime created_at
+        DateTime updated_at
+    }
+    
+    USER {
+        UUID id PK
+        UUID company_id FK
+        String email
+        String full_name
+        String hashed_password
+        Boolean is_active
+        Boolean is_verified
+        DateTime created_at
+        DateTime updated_at
+    }
+    
+    ORDER {
+        String id PK "e.g. ORD-1001"
+        UUID company_id FK
+        String customer
+        String email
+        String product
+        Integer quantity
+        Float amount
+        String status
+        String date
+        String address
+        String notes
+    }
+    
+    INVENTORY_ITEM {
+        String id PK "e.g. INV-001"
+        UUID company_id FK
+        String name
+        String sku
+        String category
+        Integer stock
+        Integer minStock
+        Float price
+        String status
+        String lastRestocked
+    }
+    
+    SHIPMENT {
+        String id PK "e.g. SHP-1001"
+        UUID company_id FK
+        String orderId
+        String carrier
+        String trackingCode
+        String status
+        String origin
+        String destination
+        String estimatedDelivery
+        Boolean isDelayed
+        String delayReason
+    }
+
+    COMPANY ||--o{ USER : "has"
+    COMPANY ||--o{ ORDER : "owns"
+    COMPANY ||--o{ INVENTORY_ITEM : "owns"
+    COMPANY ||--o{ SHIPMENT : "owns"
+```
+
+**Core Entities:**
+- **Company:** Root tenant container. All operational data belongs to a company.
+- **User:** Authenticated members. Bound to a specific `Company` and restricted to its data scope.
+- **Order:** Represents customer purchase records, linked back to the owning company.
+- **InventoryItem:** Products and stock tracking information, triggering reorder alerts based on `minStock`.
+- **Shipment:** Logistic tracking and statuses for fulfilled orders.
 
 ### Authentication Flow
 
