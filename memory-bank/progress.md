@@ -63,11 +63,15 @@ Frontend dev server running at http://localhost:3000
     - Features: Bulk Data Seeding, Random Product Generator, Order Simulator, and Shipment Carrier interface.
 - [x] **Sidebar Enhancements**: Organized the sidebar into categorical groups (Core, Insights, Management, Dev Tools) with proper labels and updated icons (`FlaskConical` for testing).
 
-### ✅ Phase 4 – AI Assistant (Gemini)
-- [x] **Backend API**: New `/api/v1/ai/chat` endpoint using **Google Gemini 1.5 Flash** (free tier). Accepts a conversation history and returns a Turkish response. Requires `GEMINI_API_KEY` in `.env`.
-- [x] **Config**: Added `GEMINI_API_KEY` to `config.py` and updated `.env.example` with instructions to get a free key from [https://aistudio.google.com/app/apikey](https://aistudio.google.com/app/apikey).
+### ✅ Phase 4 – AI Assistant (Grok + OpenRouter)
+- [x] **Backend API**: `/api/v1/ai/chat` endpoint migrated to **Grok** (`grok-4.3`) primary with **OpenRouter** (`meta-llama/llama-3.1-8b-instruct:free`) fallback. Robust error handling for 401/402/429 rate limit and quota exhaustion.
+- [x] **LLM Provider Config**: Replaced `GEMINI_API_KEY` with `GROK_API_KEY`/`OPENROUTER_API_KEY` in `config.py` and updated `.env.example`.
+- [x] **Chat History Persistence**: New SQLAlchemy models `AIConversation` + `AIMessage`. Backend endpoints: `GET /ai/conversations`, `GET /ai/conversations/{id}`, `DELETE /ai/conversations/{id}`. Messages saved to DB per conversation; full history sent to LLM context.
 - [x] **Frontend Chat UI**: Full conversational chat interface at `/dashboard/ai-assistant` with starter prompts, message bubbles, loading states, and clear conversation button.
-- [x] **Test Simulator Integration**: Added **Module 5 – YZ Asistanı Testi** to the Unified Test Simulator for quickly verifying the Gemini API connection without navigating away.
+- [x] **Conversation Sidebar**: Left sidebar showing past conversations (title + timestamp), load-on-click, new conversation button, delete confirmation dialog.
+- [x] **Markdown Rendering**: AI responses rendered via `react-markdown` + `remark-gfm` with Tailwind Typography (`prose`) support for headings, lists, code blocks, links, and tables.
+- [x] **Layout Fix**: Chat area uses full viewport height (`h-full -m-6`) to eliminate extra top/bottom padding and scroll.
+- [x] **Test Simulator Integration**: Added **Module 5 – YZ Asistanı Testi** to the Unified Test Simulator for quickly verifying the API connection without navigating away.
 - [ ] Agent workflow builder
 - [ ] Notification center
 

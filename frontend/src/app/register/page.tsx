@@ -28,11 +28,11 @@ export default function RegisterPage() {
     try {
 
       await register(companyName, fullName, email, password);
-      toast.success("Account created successfully!");
+      toast.success("Hesabınız oluşturuldu. Doğrulama e-postanızı kontrol edin.");
 
       // Automatically login after register
       await login(email, password);
-      router.push("/pending-verification");
+      router.push(`/pending-verification?email=${encodeURIComponent(email)}`);
     } catch (error: any) {
       toast.error(error.message || "Failed to create account");
 

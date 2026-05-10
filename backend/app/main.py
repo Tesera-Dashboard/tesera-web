@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.api.v1 import auth, orders, inventory, shipments, test, ai
 from app.core.database import engine, Base
+from app.models import ai_chat
 
 # Create tables
 Base.metadata.create_all(bind=engine)

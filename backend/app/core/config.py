@@ -25,7 +25,12 @@ class Settings(BaseSettings):
     FRONTEND_URL: str = "http://localhost:3000"
 
     # AI
-    GEMINI_API_KEY: Optional[str] = None
+    GROK_API_KEY: Optional[str] = None
+    GROK_MODEL: str = "grok-4.3"
+    GROK_BASE_URL: str = "https://api.x.ai/v1"
+    OPENROUTER_API_KEY: Optional[str] = None
+    OPENROUTER_MODEL: str = "meta-llama/llama-3.1-8b-instruct:free"
+    OPENROUTER_BASE_URL: str = "https://openrouter.ai/api/v1"
 
     # Database
     DATABASE_URL: str = "sqlite:///./tesera.db"
@@ -36,6 +41,7 @@ class Settings(BaseSettings):
     class Config:
         env_file = ".env"
         case_sensitive = True
+        extra = "ignore"
 
 
 @lru_cache()

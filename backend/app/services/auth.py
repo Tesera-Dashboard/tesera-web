@@ -1,8 +1,13 @@
+import smtplib
+from email.message import EmailMessage
+from pathlib import Path
+
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 from app.models.user import User, Company
 from app.schemas.user import RegisterRequest, LoginRequest, Token
 from app.core.security import hash_password, verify_password, create_access_token
+from app.core.config import settings
 
 def register_company_and_user(db: Session, request: RegisterRequest) -> User:
     # Check if user already exists
@@ -49,10 +54,6 @@ def authenticate_user(db: Session, request: LoginRequest) -> Token:
     access_token = create_access_token(subject=user.id)
     return Token(access_token=access_token, token_type="bearer")
 
-import smtplib
-from email.message import EmailMessage
-from app.core.config import settings
-
 def send_email(email_to: str, subject: str, html_content: str):
     if not settings.SMTP_HOST:
         print(f"Mock Email to {email_to}: {subject}\n{html_content}")
@@ -61,6 +62,10 @@ def send_email(email_to: str, subject: str, html_content: str):
     msg = EmailMessage()
     msg.set_content("Bu e-postayı görüntülemek için lütfen HTML'i etkinleştirin.")
     msg.add_alternative(html_content, subtype='html')
+    logo_path = Path(__file__).resolve().parents[3] / "frontend" / "public" / "logo.png"
+    if logo_path.exists():
+        html_part = msg.get_payload()[1]
+        html_part.add_related(logo_path.read_bytes(), maintype="image", subtype="png", cid="tesera-logo")
     msg['Subject'] = subject
     msg['From'] = f"{settings.EMAILS_FROM_NAME} <{settings.EMAILS_FROM_EMAIL}>"
     msg['To'] = email_to
@@ -81,7 +86,7 @@ def send_verification_email(email: str, token: str):
     html = f"""
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #eaeaec; border-radius: 12px; overflow: hidden;">
         <div style="background-color: #f9fafb; padding: 24px; text-align: center; border-bottom: 1px solid #eaeaec;">
-            <img src="{settings.FRONTEND_URL}/logo.png" alt="Tesera" style="height: 40px; width: auto;" />
+            <img src="cid:tesera-logo" alt="Tesera" style="height: 40px; width: auto;" />
         </div>
         <div style="padding: 32px; color: #374151;">
             <h2 style="color: #111827; margin-top: 0; font-size: 24px;">Tesera'ya Hoş Geldiniz!</h2>
@@ -103,7 +108,7 @@ def send_reset_password_email(email: str, token: str):
     html = f"""
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #eaeaec; border-radius: 12px; overflow: hidden;">
         <div style="background-color: #f9fafb; padding: 24px; text-align: center; border-bottom: 1px solid #eaeaec;">
-            <img src="{settings.FRONTEND_URL}/logo.png" alt="Tesera" style="height: 40px; width: auto;" />
+            <img src="cid:tesera-logo" alt="Tesera" style="height: 40px; width: auto;" />
         </div>
         <div style="padding: 32px; color: #374151;">
             <h2 style="color: #111827; margin-top: 0; font-size: 24px;">Şifrenizi Sıfırlayın</h2>

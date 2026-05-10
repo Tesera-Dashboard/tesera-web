@@ -1,15 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import Image from "next/image";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Mail } from "lucide-react";
+import { CheckCircle2, Mail } from "lucide-react";
 import { resendVerification, logout } from "@/lib/auth";
 
-export default function PendingVerificationPage() {
+function PendingVerificationContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const email = searchParams.get("email");
   const [isLoading, setIsLoading] = useState(false);
   const [countdown, setCountdown] = useState(0);
 
@@ -44,6 +47,10 @@ export default function PendingVerificationPage() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-muted/30 p-4">
       <div className="w-full max-w-md bg-background rounded-2xl border shadow-sm p-8 space-y-6 text-center">
+        <Link href="/" className="inline-block">
+          <Image src="/logo.png" alt="Tesera Logo" width={600} height={200} className="mx-auto w-[220px] md:w-[260px] h-auto object-contain dark:invert" priority />
+        </Link>
+
         <div className="mx-auto bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mb-6">
           <Mail className="h-8 w-8 text-primary" />
         </div>
@@ -53,6 +60,24 @@ export default function PendingVerificationPage() {
           <p className="text-sm text-muted-foreground">
             E-posta adresinize bir doğrulama bağlantısı gönderdik. Hesabınızı etkinleştirmek için lütfen bağlantıya tıklayın.
           </p>
+          {email ? (
+            <p className="text-sm font-medium text-foreground">{email}</p>
+          ) : null}
+        </div>
+
+        <div className="rounded-xl border bg-muted/40 p-4 text-left space-y-3">
+          <div className="flex gap-3">
+            <CheckCircle2 className="mt-0.5 h-4 w-4 text-primary" />
+            <p className="text-sm text-muted-foreground">Gelen kutunuzu ve spam klasörünüzü kontrol edin.</p>
+          </div>
+          <div className="flex gap-3">
+            <CheckCircle2 className="mt-0.5 h-4 w-4 text-primary" />
+            <p className="text-sm text-muted-foreground">Doğrulama bağlantısı 24 saat boyunca geçerlidir.</p>
+          </div>
+          <div className="flex gap-3">
+            <CheckCircle2 className="mt-0.5 h-4 w-4 text-primary" />
+            <p className="text-sm text-muted-foreground">Doğrulama tamamlandıktan sonra şirket panelinize erişebilirsiniz.</p>
+          </div>
         </div>
 
         <div className="space-y-4 pt-4">
@@ -80,5 +105,13 @@ export default function PendingVerificationPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function PendingVerificationPage() {
+  return (
+    <Suspense fallback={<p className="text-sm text-center">Yükleniyor...</p>}>
+      <PendingVerificationContent />
+    </Suspense>
   );
 }
