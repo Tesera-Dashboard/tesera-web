@@ -5,50 +5,50 @@ import Image from "next/image";
 const features = [
   {
     imageSrc: "/landing/1-AI-Customer-Assistant.png",
-    title: "AI Customer Assistant",
-    desc: "Responds to WhatsApp, email, and chat with context-aware AI. Handles order status, FAQs, and escalations automatically.",
+    title: "Yapay Zeka Müşteri Asistanı",
+    desc: "WhatsApp, e-posta ve canlı destek üzerinden bağlama duyarlı yapay zeka ile yanıt verir. Sipariş durumlarını ve sık sorulan soruları otomatik halleder.",
     badge: "AI",
   },
   {
     imageSrc: "/landing/2-Inventory-Management.png",
-    title: "Inventory Management",
-    desc: "Live stock tracking with AI reorder suggestions. Get low-stock alerts before customers notice.",
+    title: "Envanter Yönetimi",
+    desc: "Yapay zeka destekli sipariş önerileriyle canlı stok takibi. Müşteriler fark etmeden önce düşük stok uyarıları alın.",
     badge: null,
   },
   {
     imageSrc: "/landing/3-Shipment-Tracking.png",
-    title: "Shipment Tracking",
-    desc: "Automated cargo tracking with delay detection. Notifies customers proactively — before they ask.",
+    title: "Kargo Takibi",
+    desc: "Gecikme tespiti ile otomatik kargo takibi. Müşterileri sormadan önce proaktif olarak bilgilendirir.",
     badge: null,
   },
   {
     imageSrc: "/landing/4-workflow-automation.png",
-    title: "Workflow Automation",
-    desc: "Build custom automation rules. Assign tasks to team members automatically based on triggers and conditions.",
+    title: "İş Akışı Otomasyonu",
+    desc: "Özel otomasyon kuralları oluşturun. Tetikleyicilere ve koşullara göre ekip üyelerine otomatik görevler atayın.",
     badge: null,
   },
   {
     imageSrc: "/landing/5-Operational-Analytics.png",
-    title: "Operational Analytics",
-    desc: "Sales trends, stock forecasts, and performance insights. Know what is happening before it becomes a problem.",
+    title: "Operasyonel Analitik",
+    desc: "Satış trendleri, stok tahminleri ve performans analizleri. Sorunlar büyümeden önce gidişatı görün.",
     badge: "AI",
   },
   {
     imageSrc: "/landing/6-smart-notifications.png",
-    title: "Smart Notifications",
-    desc: "AI-prioritized alerts. No noise, only what matters — delivered to the right person at the right time.",
+    title: "Akıllı Bildirimler",
+    desc: "Yapay zeka öncelikli uyarılar. Gürültü yok, sadece önemli olanlar — doğru kişiye doğru zamanda iletilir.",
     badge: "AI",
   },
   {
     imageSrc: "/landing/7-Multi-Agent-Architecture.png",
-    title: "Multi-Agent Architecture",
-    desc: "Domain-specific AI agents work together to orchestrate your entire operation seamlessly.",
+    title: "Çoklu Ajan Mimarisi",
+    desc: "Uzmanlaşmış yapay zeka ajanları tüm operasyonunuzu kusursuz bir şekilde yönetmek için birlikte çalışır.",
     badge: "AI",
   },
   {
     imageSrc: "/landing/8-Integrations-Ready.png",
-    title: "Integrations Ready",
-    desc: "Webhooks and REST API built in. Connect your existing tools, ERP, or marketplace with minimal effort.",
+    title: "Entegrasyona Hazır",
+    desc: "Dahili Webhook ve REST API. Mevcut araçlarınızı, ERP'nizi veya pazaryerinizi minimum çabayla bağlayın.",
     badge: null,
   },
 ];
@@ -59,10 +59,10 @@ export function Features() {
       <div className="section-container">
         <div className="max-w-2xl mx-auto text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">
-            Everything your operation needs
+            Operasyonunuzun İhtiyaç Duyduğu Her Şey
           </h2>
           <p className="text-lg text-muted-foreground">
-            One platform. Eight pillars. Fully automated.
+            Tek platform. Sekiz temel yapı taşı. Tamamen otomatik.
           </p>
         </div>
 

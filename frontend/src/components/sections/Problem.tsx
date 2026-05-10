@@ -5,18 +5,18 @@ import { AlertTriangle, Layers, Clock } from "lucide-react";
 const problems = [
   {
     icon: <AlertTriangle className="h-5 w-5" />,
-    title: "Fragmented Communication",
-    desc: "Your team juggles WhatsApp, emails, and DMs simultaneously — losing context, missing orders, and frustrating customers.",
+    title: "Kopuk İletişim",
+    desc: "Ekibiniz aynı anda WhatsApp, e-posta ve DM'lerle boğuşur — bağlam kaybolur, siparişler kaçar ve müşteriler hüsrana uğrar.",
   },
   {
     icon: <Layers className="h-5 w-5" />,
-    title: "Manual Inventory Chaos",
-    desc: "Spreadsheets break down the moment demand spikes. Stockouts and overstocking quietly drain your margins every week.",
+    title: "Manuel Envanter Kaosu",
+    desc: "Talep arttığı anda e-tablolar (Excel) yetersiz kalır. Stok tükenmeleri ve fazla stoklar her hafta marjlarınızı sessizce eritir.",
   },
   {
     icon: <Clock className="h-5 w-5" />,
-    title: "Shipment Blind Spots",
-    desc: "Customers complain about delays before your team even knows there is a problem. Manual tracking simply cannot scale.",
+    title: "Kargo Kör Noktaları",
+    desc: "Ekibiniz daha sorunu fark etmeden müşteriler gecikmelerden şikayet eder. Manuel kargo takibi kesinlikle ölçeklenemez.",
   },
 ];
 
@@ -26,10 +26,10 @@ export function Problem() {
       <div className="section-container">
         <div className="max-w-2xl mx-auto text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">
-            Sound familiar?
+            Tanıdık geldi mi?
           </h2>
           <p className="text-lg text-muted-foreground">
-            Most SMEs hit the same operational wall. Manual processes that worked at 100 orders/month collapse at 1,000.
+            Çoğu KOBİ aynı operasyonel duvara çarpar. Ayda 100 siparişte çalışan manuel süreçler 1.000 siparişte çöker.
           </p>
         </div>
 

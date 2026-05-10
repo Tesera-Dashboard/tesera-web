@@ -21,21 +21,21 @@ export function CTA() {
 
           <div className="relative z-10 max-w-2xl mx-auto">
             <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">
-              Ready to put your operations on autopilot?
+              Operasyonlarınızı otopilota bağlamaya hazır mısınız?
             </h2>
             <p className="text-lg text-primary-foreground/80 mb-8">
-              Join hundreds of SMEs who have automated their operations with Tesera. Start your free 14-day trial today.
+              Operasyonlarını Tesera ile otomatikleştiren yüzlerce KOBİ'ye katılın. 14 günlük ücretsiz denemenizi bugün başlatın.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link href="/register">
                 <Button size="lg" variant="secondary" className="h-12 px-8 text-base font-semibold">
-                  Start Free Trial
+                  Ücretsiz Başla
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </Link>
               <Link href="/contact">
                 <Button size="lg" variant="outline" className="h-12 px-8 text-base border-white/30 text-primary-foreground hover:bg-white/10 hover:text-primary-foreground">
-                  Talk to Sales
+                  Satış Ekibiyle Görüş
                 </Button>
               </Link>
             </div>

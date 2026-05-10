@@ -8,24 +8,24 @@ export function Navbar() {
       <div className="container mx-auto flex h-20 md:h-24 items-center justify-between px-4 md:px-8">
         <div className="flex gap-6 md:gap-10">
           <Image src="/logo.png" alt="Tesera Logo" width={500} height={160} className="w-[160px] md:w-[200px] h-auto object-contain dark:invert" priority />
-          <nav className="hidden md:flex gap-6">
+          <nav className="hidden md:flex gap-6 mt-3">
             <Link
               href="#features"
               className="flex items-center text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
             >
-              Features
+              Özellikler
             </Link>
             <Link
               href="#solutions"
               className="flex items-center text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
             >
-              Solutions
+              Çözümler
             </Link>
             <Link
               href="#pricing"
               className="flex items-center text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
             >
-              Pricing
+              Fiyatlandırma
             </Link>
           </nav>
         </div>
@@ -33,11 +33,11 @@ export function Navbar() {
           <nav className="flex items-center space-x-2">
             <Link href="/login" className="hidden sm:block">
               <Button variant="ghost" size="sm">
-                Log in
+                Giriş Yap
               </Button>
             </Link>
             <Link href="/register">
-              <Button size="sm">Start Free Trial</Button>
+              <Button size="sm">Ücretsiz Başla</Button>
             </Link>
           </nav>
         </div>

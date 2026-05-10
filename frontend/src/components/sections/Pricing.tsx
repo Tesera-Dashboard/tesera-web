@@ -7,68 +7,68 @@ import { cn } from "@/lib/utils";
 
 const plans = [
   {
-    name: "Free Trial",
-    price: "Free",
-    period: "14 days",
-    desc: "Full platform access to explore Tesera with your team.",
+    name: "Ücretsiz Deneme",
+    price: "Ücretsiz",
+    period: "14 gün",
+    desc: "Tesera'yı ekibinizle keşfetmeniz için tam platform erişimi.",
     features: [
-      "All core features",
-      "Up to 3 users",
-      "1,000 AI messages",
-      "Community support",
+      "Tüm temel özellikler",
+      "3 kullanıcıya kadar",
+      "1.000 YZ mesajı",
+      "Topluluk desteği",
     ],
-    cta: "Start Free Trial",
+    cta: "Ücretsiz Başla",
     href: "/register",
     highlighted: false,
   },
   {
-    name: "Starter",
+    name: "Başlangıç",
     price: "$49",
-    period: "/month",
-    desc: "Perfect for boutique e-commerce and small teams.",
+    period: "/aylık",
+    desc: "Butik e-ticaret ve küçük ekipler için mükemmel.",
     features: [
-      "Everything in Free",
-      "Up to 10 users",
-      "10,000 AI messages",
-      "Email & chat support",
-      "3 integrations",
+      "Ücretsiz plandaki her şey",
+      "10 kullanıcıya kadar",
+      "10.000 YZ mesajı",
+      "E-posta ve canlı destek",
+      "3 entegrasyon",
     ],
-    cta: "Get Started",
+    cta: "Hemen Başla",
     href: "/register?plan=starter",
     highlighted: false,
   },
   {
-    name: "Growth",
+    name: "Büyüme",
     price: "$149",
-    period: "/month",
-    desc: "For scaling operations with complex automation needs.",
+    period: "/aylık",
+    desc: "Karmaşık otomasyon ihtiyaçları olan ölçeklenen operasyonlar için.",
     features: [
-      "Everything in Starter",
-      "Unlimited users",
-      "100,000 AI messages",
-      "Priority support",
-      "Unlimited integrations",
-      "Custom automation rules",
-      "Advanced analytics",
+      "Başlangıç planındaki her şey",
+      "Sınırsız kullanıcı",
+      "100.000 YZ mesajı",
+      "Öncelikli destek",
+      "Sınırsız entegrasyon",
+      "Özel otomasyon kuralları",
+      "Gelişmiş analitik",
     ],
-    cta: "Get Started",
+    cta: "Hemen Başla",
     href: "/register?plan=growth",
     highlighted: true,
   },
   {
-    name: "Enterprise",
-    price: "Custom",
+    name: "Kurumsal",
+    price: "Özel",
     period: "",
-    desc: "Advanced AI agents, SLAs, and custom integrations at scale.",
+    desc: "Gelişmiş YZ ajanları, SLA'lar ve büyük ölçekli özel entegrasyonlar.",
     features: [
-      "Everything in Growth",
-      "Dedicated AI agents",
-      "Custom onboarding",
-      "SSO & advanced security",
-      "Dedicated SLA",
-      "API priority access",
+      "Büyüme planındaki her şey",
+      "Özel atanmış YZ ajanları",
+      "Size özel kurulum",
+      "SSO ve gelişmiş güvenlik",
+      "Özel SLA garantisi",
+      "API öncelikli erişim",
     ],
-    cta: "Contact Sales",
+    cta: "Satışla İletişime Geç",
     href: "/contact",
     highlighted: false,
   },
@@ -80,10 +80,10 @@ export function Pricing() {
       <div className="section-container">
         <div className="max-w-2xl mx-auto text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">
-            Simple, transparent pricing
+            Basit, şeffaf fiyatlandırma
           </h2>
           <p className="text-lg text-muted-foreground">
-            Start free. Scale as you grow.
+            Ücretsiz başlayın. Büyüdükçe ölçekleyin.
           </p>
         </div>
 
@@ -105,7 +105,7 @@ export function Pricing() {
               {plan.highlighted && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                   <span className="text-[11px] font-semibold px-3 py-1 rounded-full bg-background text-primary border border-primary/30">
-                    Most popular
+                    En popüler
                   </span>
                 </div>
               )}

@@ -34,35 +34,35 @@ export function Hero() {
 
           <div className="inline-flex items-center gap-2 rounded-full border bg-card/80 backdrop-blur-sm px-4 py-1.5 text-sm font-medium text-muted-foreground mb-8">
             <Sparkles className="h-3.5 w-3.5 text-primary" />
-            AI-powered operations for modern SMEs
+            Modern KOBİ'ler için yapay zeka destekli operasyonlar
           </div>
 
           <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-6 leading-[1.08]">
-            Run your business
+            İşinizi daha zor değil,
             <br />
-            <span className="gradient-text">smarter, not harder</span>
+            <span className="gradient-text">daha akıllıca yönetin</span>
           </h1>
 
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed">
-            Tesera automates customer communication, inventory tracking, shipments, and workflows — so your team can focus on growth, not grunt work.
+            Tesera müşteri iletişimini, stok takibini, kargoları ve iş akışlarını otomatikleştirir — böylece ekibiniz hamallığa değil büyümeye odaklanabilir.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link href="/register">
               <Button size="lg" className="h-12 px-8 text-base font-semibold shadow-lg">
-                Start Free Trial
+                Ücretsiz Başla
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </Link>
             <Link href="#features">
               <Button size="lg" variant="outline" className="h-12 px-8 text-base">
-                See how it works
+                Nasıl çalıştığını gör
               </Button>
             </Link>
           </div>
 
           <p className="mt-6 text-sm text-muted-foreground">
-            No credit card required · Free for 14 days · Cancel anytime
+            Kredi kartı gerekmez · 14 gün ücretsiz · İstediğiniz zaman iptal edin
           </p>
         </motion.div>
       </div>

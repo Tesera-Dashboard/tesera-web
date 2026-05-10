@@ -9,28 +9,28 @@ import {
 
 const faqs = [
   {
-    q: "Who is Tesera built for?",
-    a: "Tesera is designed for SMEs, cooperatives, boutique e-commerce businesses, and hybrid physical-online sellers. If you manage orders, inventory, shipments, or customer communication — Tesera is for you.",
+    q: "Tesera kimler için tasarlandı?",
+    a: "Tesera; KOBİ'ler, kooperatifler, butik e-ticaret işletmeleri ve hem fiziksel hem online satış yapanlar için tasarlandı. Eğer sipariş, stok, kargo veya müşteri iletişimi yönetiyorsanız — Tesera tam size göre.",
   },
   {
-    q: "Do I need technical knowledge to set up Tesera?",
-    a: "No. Tesera features a guided onboarding flow with step-by-step setup. Most businesses are fully operational within 30 minutes.",
+    q: "Tesera'yı kurmak için teknik bilgiye ihtiyacım var mı?",
+    a: "Hayır. Tesera, adım adım yönlendiren bir kurulum akışına sahiptir. Çoğu işletme 30 dakika içinde tam olarak operasyonel hale gelir.",
   },
   {
-    q: "How does the AI Customer Assistant work?",
-    a: "Tesera's AI agent reads incoming messages across your connected channels, understands the customer's intent, and generates context-aware replies — including order status, shipping updates, and FAQs. You can review and customize all responses.",
+    q: "Yapay Zeka Müşteri Asistanı nasıl çalışır?",
+    a: "Tesera'nın YZ ajanı bağlı kanallarınızdan gelen mesajları okur, müşterinin niyetini anlar ve sipariş durumu, kargo güncellemeleri veya SSS'ler dahil olmak üzere bağlama duyarlı yanıtlar üretir. Tüm yanıtları inceleyebilir ve özelleştirebilirsiniz.",
   },
   {
-    q: "Can I connect my existing tools?",
-    a: "Yes. Tesera provides REST API and webhook support. Enterprise plans include dedicated integration assistance and custom connectors.",
+    q: "Mevcut araçlarımı bağlayabilir miyim?",
+    a: "Evet. Tesera, REST API ve webhook desteği sunar. Kurumsal planlar özel entegrasyon desteği ve bağlayıcılar içerir.",
   },
   {
-    q: "Is my data secure?",
-    a: "Absolutely. All data is encrypted at rest and in transit. Enterprise plans include SSO, advanced permissions, and dedicated SLAs.",
+    q: "Verilerim güvende mi?",
+    a: "Kesinlikle. Tüm veriler hem bekleme hem aktarım anında şifrelenir. Kurumsal planlarda SSO, gelişmiş izinler ve özel SLA'lar bulunur.",
   },
   {
-    q: "Can I try Tesera before paying?",
-    a: "Yes — 14-day free trial with full access. No credit card required.",
+    q: "Ödeme yapmadan önce Tesera'yı deneyebilir miyim?",
+    a: "Evet — Tam erişimli 14 günlük ücretsiz deneme sürümümüz mevcut. Kredi kartı gerekmez.",
   },
 ];
 
@@ -40,10 +40,10 @@ export function FAQ() {
       <div className="section-container max-w-3xl">
         <div className="text-center mb-14">
           <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">
-            Frequently asked questions
+            Sıkça Sorulan Sorular
           </h2>
           <p className="text-lg text-muted-foreground">
-            Everything you need to know before getting started.
+            Başlamadan önce bilmeniz gereken her şey.
           </p>
         </div>
 
