@@ -24,6 +24,9 @@ class Settings(BaseSettings):
     EMAILS_FROM_NAME: Optional[str] = "Tesera"
     FRONTEND_URL: str = "http://localhost:3000"
 
+    # AI
+    GEMINI_API_KEY: Optional[str] = None
+
     # Database
     DATABASE_URL: str = "sqlite:///./tesera.db"
 

@@ -6,14 +6,20 @@ import { PageHeader } from "@/components/shared/PageHeader";
 import { toast } from "sonner";
 import { InventoryItem } from "@/types/inventory";
 import { Shipment } from "@/types/shipment";
-import { DatabaseBackup, PackagePlus, ShoppingCart, Truck } from "lucide-react";
+import { DatabaseBackup, PackagePlus, ShoppingCart, Truck, Bot, Send, Loader2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
+
+interface AIMessage { role: "user" | "model"; content: string; }
 
 export default function UnifiedTestSimulator() {
   const [loadingSeed, setLoadingSeed] = useState(false);
   const [loadingItem, setLoadingItem] = useState(false);
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [shipments, setShipments] = useState<Shipment[]>([]);
+  const [aiInput, setAiInput] = useState("");
+  const [aiMessages, setAiMessages] = useState<AIMessage[]>([]);
+  const [aiLoading, setAiLoading] = useState(false);
 
   const loadData = () => {
     fetchWithAuth("/inventory").then(res => res.json()).then(setInventory);
@@ -84,6 +90,32 @@ export default function UnifiedTestSimulator() {
       loadData();
     } catch (err) {
       toast.error("Güncelleme başarısız");
+    }
+  };
+
+  // 5. AI Sohbet Testi
+  const handleAiSend = async () => {
+    if (!aiInput.trim() || aiLoading) return;
+    const userMsg: AIMessage = { role: "user", content: aiInput.trim() };
+    const newMsgs = [...aiMessages, userMsg];
+    setAiMessages(newMsgs);
+    setAiInput("");
+    setAiLoading(true);
+    try {
+      const res = await fetchWithAuth("/ai/chat", {
+        method: "POST",
+        body: JSON.stringify({ messages: newMsgs }),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.detail || "Hata");
+      }
+      const data = await res.json();
+      setAiMessages([...newMsgs, { role: "model", content: data.message }]);
+    } catch (err: any) {
+      toast.error(`YZ Hatası: ${err.message}`);
+    } finally {
+      setAiLoading(false);
     }
   };
 
@@ -183,6 +215,54 @@ export default function UnifiedTestSimulator() {
               </div>
             ))}
           </div>
+        </div>
+      </div>
+
+      <Separator />
+
+      {/* Modül 5: YZ Asistanı Testi */}
+      <div className="bg-card border rounded-xl p-6 space-y-4 shadow-sm">
+        <div className="flex items-center gap-3 mb-2">
+          <div className="p-2 bg-pink-500/10 text-pink-600 rounded-lg">
+            <Bot className="h-5 w-5" />
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold">5. YZ Asistanı Testi</h3>
+            <p className="text-xs text-muted-foreground">Gemini API bağlantısını doğrudan bu ekrandan test edin.</p>
+          </div>
+        </div>
+        <div className="border rounded-lg bg-muted/20 p-3 h-48 overflow-y-auto flex flex-col gap-2">
+          {aiMessages.length === 0 && (
+            <p className="text-xs text-muted-foreground italic m-auto">Henüz mesaj yok. Bir şey sorun!</p>
+          )}
+          {aiMessages.map((m, i) => (
+            <div key={i} className={`text-xs rounded-lg px-3 py-2 max-w-[85%] ${
+              m.role === "user"
+                ? "bg-primary text-primary-foreground self-end"
+                : "bg-card border self-start"
+            }`}>
+              {m.content}
+            </div>
+          ))}
+          {aiLoading && (
+            <div className="text-xs bg-card border rounded-lg px-3 py-2 self-start">
+              <Loader2 className="h-3 w-3 animate-spin" />
+            </div>
+          )}
+        </div>
+        <div className="flex gap-2">
+          <Textarea
+            value={aiInput}
+            onChange={e => setAiInput(e.target.value)}
+            onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleAiSend(); } }}
+            placeholder="YZ'ye bir şey sorun..."
+            className="resize-none text-sm min-h-[40px] max-h-24"
+            rows={1}
+            disabled={aiLoading}
+          />
+          <Button size="icon" onClick={handleAiSend} disabled={aiLoading || !aiInput.trim()} className="shrink-0 h-10 w-10">
+            {aiLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+          </Button>
         </div>
       </div>
     </div>

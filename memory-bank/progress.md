@@ -63,8 +63,11 @@ Frontend dev server running at http://localhost:3000
     - Features: Bulk Data Seeding, Random Product Generator, Order Simulator, and Shipment Carrier interface.
 - [x] **Sidebar Enhancements**: Organized the sidebar into categorical groups (Core, Insights, Management, Dev Tools) with proper labels and updated icons (`FlaskConical` for testing).
 
-### Phase 4
-- [ ] AI Assistant chat interface
+### ✅ Phase 4 – AI Assistant (Gemini)
+- [x] **Backend API**: New `/api/v1/ai/chat` endpoint using **Google Gemini 1.5 Flash** (free tier). Accepts a conversation history and returns a Turkish response. Requires `GEMINI_API_KEY` in `.env`.
+- [x] **Config**: Added `GEMINI_API_KEY` to `config.py` and updated `.env.example` with instructions to get a free key from [https://aistudio.google.com/app/apikey](https://aistudio.google.com/app/apikey).
+- [x] **Frontend Chat UI**: Full conversational chat interface at `/dashboard/ai-assistant` with starter prompts, message bubbles, loading states, and clear conversation button.
+- [x] **Test Simulator Integration**: Added **Module 5 – YZ Asistanı Testi** to the Unified Test Simulator for quickly verifying the Gemini API connection without navigating away.
 - [ ] Agent workflow builder
 - [ ] Notification center
 
