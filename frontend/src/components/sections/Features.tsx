@@ -1,52 +1,52 @@
 "use client";
 import { motion } from "framer-motion";
-import { Bot, Box, Truck, Workflow, BarChart3, MessageSquare, BellRing, Plug } from "lucide-react";
+import Image from "next/image";
 
 const features = [
   {
-    icon: <MessageSquare className="h-5 w-5" />,
+    imageSrc: "/landing/1-AI-Customer-Assistant.png",
     title: "AI Customer Assistant",
     desc: "Responds to WhatsApp, email, and chat with context-aware AI. Handles order status, FAQs, and escalations automatically.",
     badge: "AI",
   },
   {
-    icon: <Box className="h-5 w-5" />,
+    imageSrc: "/landing/2-Inventory-Management.png",
     title: "Inventory Management",
     desc: "Live stock tracking with AI reorder suggestions. Get low-stock alerts before customers notice.",
     badge: null,
   },
   {
-    icon: <Truck className="h-5 w-5" />,
+    imageSrc: "/landing/3-Shipment-Tracking.png",
     title: "Shipment Tracking",
     desc: "Automated cargo tracking with delay detection. Notifies customers proactively — before they ask.",
     badge: null,
   },
   {
-    icon: <Workflow className="h-5 w-5" />,
+    imageSrc: "/landing/4-workflow-automation.png",
     title: "Workflow Automation",
     desc: "Build custom automation rules. Assign tasks to team members automatically based on triggers and conditions.",
     badge: null,
   },
   {
-    icon: <BarChart3 className="h-5 w-5" />,
+    imageSrc: "/landing/5-Operational-Analytics.png",
     title: "Operational Analytics",
     desc: "Sales trends, stock forecasts, and performance insights. Know what is happening before it becomes a problem.",
     badge: "AI",
   },
   {
-    icon: <BellRing className="h-5 w-5" />,
+    imageSrc: "/landing/6-smart-notifications.png",
     title: "Smart Notifications",
     desc: "AI-prioritized alerts. No noise, only what matters — delivered to the right person at the right time.",
     badge: "AI",
   },
   {
-    icon: <Bot className="h-5 w-5" />,
+    imageSrc: "/landing/7-Multi-Agent-Architecture.png",
     title: "Multi-Agent Architecture",
     desc: "Domain-specific AI agents work together to orchestrate your entire operation seamlessly.",
     badge: "AI",
   },
   {
-    icon: <Plug className="h-5 w-5" />,
+    imageSrc: "/landing/8-Integrations-Ready.png",
     title: "Integrations Ready",
     desc: "Webhooks and REST API built in. Connect your existing tools, ERP, or marketplace with minimal effort.",
     badge: null,
@@ -74,19 +74,17 @@ export function Features() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.07, duration: 0.45 }}
-              className="group p-6 rounded-2xl border bg-card hover:shadow-sm hover:border-primary/30 transition-all duration-200"
+              className="group flex flex-col items-center text-center p-6 rounded-2xl border bg-card hover:shadow-sm hover:border-primary/30 transition-all duration-300"
             >
-              <div className="flex items-start justify-between mb-4">
-                <div className="h-10 w-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center group-hover:bg-primary/15 transition-colors">
-                  {f.icon}
-                </div>
+              <div className="relative w-full aspect-square rounded-xl overflow-hidden mb-5 bg-white border border-border/40 shadow-sm">
+                <Image src={f.imageSrc} alt={f.title} fill className="object-cover object-center group-hover:scale-105 transition-transform duration-500" sizes="(max-width: 768px) 100vw, 300px" />
                 {f.badge && (
-                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+                  <span className="absolute top-3 right-3 text-[10px] font-semibold px-2.5 py-0.5 rounded-full bg-background/95 backdrop-blur-sm border shadow-sm text-foreground">
                     {f.badge}
                   </span>
                 )}
               </div>
-              <h3 className="font-semibold mb-1.5">{f.title}</h3>
+              <h3 className="font-semibold mb-2 text-lg">{f.title}</h3>
               <p className="text-sm text-muted-foreground leading-relaxed">{f.desc}</p>
             </motion.div>
           ))}

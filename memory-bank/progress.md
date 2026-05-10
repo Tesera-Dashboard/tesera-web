@@ -42,17 +42,19 @@ Frontend dev server running at http://localhost:3000
 - **Dynamic Sidebar**: Added `mini-logo.png` fallback that appears when the dashboard sidebar is collapsed.
 - **Hero Enhancements**: Embedded large animated `mini-logo.png` into the Landing page hero section.
 - **Backend Email Templates**: Restructured SMTP emails into modern HTML formats encapsulating the frontend's `logo.png` and `#fa7f05` brand color.
+- **Landing Page Polish**: Upgraded the "Features" section by replacing default icons with high-quality custom illustrations (`object-contain`), transforming them into large, centered, modern UI cards with hover animations.
 
 ## What's Left to Build
 
 ### 🚧 Phase 3 – Core Modules (Review & Refinement)
 - [x] **ERD Verification**: Review existing Phase 3 models (Order, Inventory, Shipment) against the ERD.
-- [x] **Backend & Mock Data**: Verify SQLite DB connectivity and create a script/endpoint to seed initial mock data for orders, inventory, and shipments.
-- [x] **UI Consistency**: Standardize table designs, filters, and page layouts across `/dashboard/orders`, `/dashboard/inventory`, and `/dashboard/shipments` so they have a cohesive look and feel.
-- [x] **Inventory Management**: Add "New Product" functionality using the `shadcn` Sheet component on the Inventory page.
+- [x] **Backend & Mock Data**: Rebuilt SQLite tables to fully support multi-tenancy (`company_id`). Created a robust randomizing seed mechanism to prevent `IntegrityError` collisions.
+- [x] **UI Consistency**: Standardized search and filter layouts across `/dashboard/orders`, `/dashboard/inventory`, and `/dashboard/shipments` into a single inline flex-row design.
+- [x] **Inventory Management**: Upgraded `shadcn` Sheet to `ProductSheet` handling both "New Product" creation and "Edit Product". Added Edit/Delete icons to the Inventory table.
 - [x] **Testing Simulators**: 
-    - Build `/test/orders` to list inventory products and simulate order creation.
-    - Build `/test/shipments` to act as a carrier interface for testing shipment status updates.
+    - Combined all testing tools into a **Unified Test Simulator** at `/dashboard/test`.
+    - Features: Bulk Data Seeding, Random Product Generator, Order Simulator, and Shipment Carrier interface.
+- [x] **Sidebar Enhancements**: Organized the sidebar into categorical groups (Core, Insights, Management, Dev Tools) with proper labels and updated icons (`FlaskConical` for testing).
 
 ### Phase 4
 - [ ] AI Assistant chat interface
