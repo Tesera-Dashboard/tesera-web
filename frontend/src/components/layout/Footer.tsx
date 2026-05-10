@@ -1,12 +1,15 @@
 import Link from "next/link";
+import Image from "next/image";
 
 export function Footer() {
   return (
-    <footer className="border-t bg-background">
-      <div className="container mx-auto px-4 md:px-8 py-12 md:py-16">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-          <div className="col-span-2 md:col-span-1">
-            <span className="font-bold inline-block text-xl tracking-tight mb-4">Tesera</span>
+    <footer className="border-t bg-muted/20">
+      <div className="container mx-auto px-4 md:px-8 py-12 md:py-16 max-w-7xl">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8">
+          <div className="col-span-2 lg:col-span-2">
+            <Link href="/" className="inline-block mb-4">
+              <Image src="/logo.png" alt="Tesera Logo" width={500} height={160} className="w-[160px] md:w-[200px] h-auto object-contain dark:invert" />
+            </Link>
             <p className="text-sm text-muted-foreground pr-4">
               AI-powered operations assistant platform for modern SMEs, cooperatives, and e-commerce businesses.
             </p>

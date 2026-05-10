@@ -1,6 +1,7 @@
 "use client";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Sparkles } from "lucide-react";
 
@@ -12,7 +13,25 @@ export function Hero() {
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
+          className="flex flex-col items-center"
         >
+          <div className="mb-8 relative">
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.1, duration: 0.5, ease: "easeOut" }}
+            >
+              <Image 
+                src="/mini-logo.png" 
+                alt="Tesera Logo" 
+                width={200} 
+                height={200} 
+                className="w-24 md:w-32 h-auto object-contain dark:invert drop-shadow-2xl" 
+                priority 
+              />
+            </motion.div>
+          </div>
+
           <div className="inline-flex items-center gap-2 rounded-full border bg-card/80 backdrop-blur-sm px-4 py-1.5 text-sm font-medium text-muted-foreground mb-8">
             <Sparkles className="h-3.5 w-3.5 text-primary" />
             AI-powered operations for modern SMEs

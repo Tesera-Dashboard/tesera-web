@@ -3,6 +3,7 @@
 import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -89,9 +90,9 @@ export default function ResetPasswordPage() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-muted/30 p-4">
       <div className="w-full max-w-md bg-background rounded-2xl border shadow-sm p-8 space-y-6">
-        <div className="text-center space-y-2">
-          <Link href="/" className="inline-block font-bold text-2xl tracking-tight mb-2">
-            Tesera
+        <div className="text-center flex flex-col items-center space-y-2">
+          <Link href="/" className="inline-block mb-4">
+            <Image src="/logo.png" alt="Tesera Logo" width={600} height={200} className="w-[240px] md:w-[280px] h-auto object-contain dark:invert" priority />
           </Link>
           <h1 className="text-2xl font-semibold tracking-tight">Reset Password</h1>
           <p className="text-sm text-muted-foreground">

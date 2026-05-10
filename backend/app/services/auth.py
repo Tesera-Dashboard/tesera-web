@@ -79,11 +79,21 @@ def send_email(email_to: str, subject: str, html_content: str):
 def send_verification_email(email: str, token: str):
     link = f"{settings.FRONTEND_URL}/verify-email?token={token}"
     html = f"""
-    <div>
-        <h2>Welcome to Tesera!</h2>
-        <p>Please verify your email address by clicking the link below:</p>
-        <p><a href="{link}">Verify Email</a></p>
-        <p>If you did not create an account, you can ignore this email.</p>
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #eaeaec; border-radius: 12px; overflow: hidden;">
+        <div style="background-color: #f9fafb; padding: 24px; text-align: center; border-bottom: 1px solid #eaeaec;">
+            <img src="{settings.FRONTEND_URL}/logo.png" alt="Tesera" style="height: 40px; width: auto;" />
+        </div>
+        <div style="padding: 32px; color: #374151;">
+            <h2 style="color: #111827; margin-top: 0; font-size: 24px;">Welcome to Tesera!</h2>
+            <p style="font-size: 16px; line-height: 1.5; margin-bottom: 24px;">Thank you for signing up. Please verify your email address to activate your account and access your dashboard.</p>
+            <div style="text-align: center; margin: 32px 0;">
+                <a href="{link}" style="background-color: #fa7f05; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: bold; font-size: 16px; display: inline-block;">Verify Email Address</a>
+            </div>
+            <p style="font-size: 14px; color: #6b7280; line-height: 1.5; margin-bottom: 0;">If you did not create an account, you can safely ignore this email.</p>
+        </div>
+        <div style="background-color: #f9fafb; padding: 16px; text-align: center; border-top: 1px solid #eaeaec; font-size: 12px; color: #9ca3af;">
+            &copy; Tesera. All rights reserved.
+        </div>
     </div>
     """
     send_email(email, "Verify your Tesera Account", html)
@@ -91,11 +101,21 @@ def send_verification_email(email: str, token: str):
 def send_reset_password_email(email: str, token: str):
     link = f"{settings.FRONTEND_URL}/reset-password?token={token}"
     html = f"""
-    <div>
-        <h2>Reset Your Password</h2>
-        <p>We received a request to reset your password. Click the link below to choose a new one:</p>
-        <p><a href="{link}">Reset Password</a></p>
-        <p>If you did not request a password reset, you can safely ignore this email.</p>
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #eaeaec; border-radius: 12px; overflow: hidden;">
+        <div style="background-color: #f9fafb; padding: 24px; text-align: center; border-bottom: 1px solid #eaeaec;">
+            <img src="{settings.FRONTEND_URL}/logo.png" alt="Tesera" style="height: 40px; width: auto;" />
+        </div>
+        <div style="padding: 32px; color: #374151;">
+            <h2 style="color: #111827; margin-top: 0; font-size: 24px;">Reset Your Password</h2>
+            <p style="font-size: 16px; line-height: 1.5; margin-bottom: 24px;">We received a request to reset your password. Click the button below to choose a new one:</p>
+            <div style="text-align: center; margin: 32px 0;">
+                <a href="{link}" style="background-color: #fa7f05; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: bold; font-size: 16px; display: inline-block;">Reset Password</a>
+            </div>
+            <p style="font-size: 14px; color: #6b7280; line-height: 1.5; margin-bottom: 0;">If you did not request a password reset, please ignore this email.</p>
+        </div>
+        <div style="background-color: #f9fafb; padding: 16px; text-align: center; border-top: 1px solid #eaeaec; font-size: 12px; color: #9ca3af;">
+            &copy; Tesera. All rights reserved.
+        </div>
     </div>
     """
     send_email(email, "Reset your Tesera Password", html)

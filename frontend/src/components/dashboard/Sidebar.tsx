@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import {
@@ -47,21 +48,33 @@ export function Sidebar() {
       )}
     >
       {/* Logo */}
-      <div className="flex items-center justify-between h-16 px-4 border-b border-sidebar-border shrink-0">
-        {!collapsed && (
-          <Link href="/dashboard" className="font-bold text-lg tracking-tight text-sidebar-foreground">
-            Tesera
-          </Link>
+      <div className="flex items-center justify-between h-20 px-4 border-b border-sidebar-border shrink-0">
+        {collapsed ? (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-10 w-10 shrink-0 mx-auto"
+            onClick={() => setCollapsed(false)}
+            aria-label="Expand sidebar"
+          >
+            <Image src="/mini-logo.png" alt="Tesera" width={40} height={40} className="h-8 w-8 object-contain dark:invert" />
+          </Button>
+        ) : (
+          <>
+            <Link href="/dashboard" className="flex items-center gap-2">
+              <Image src="/logo.png" alt="Tesera Logo" width={400} height={120} className="w-[160px] h-auto object-contain dark:invert" priority />
+            </Link>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-muted-foreground hover:text-foreground shrink-0"
+              onClick={() => setCollapsed(true)}
+              aria-label="Collapse sidebar"
+            >
+              <ChevronLeft className="h-4 w-4 transition-transform duration-300" />
+            </Button>
+          </>
         )}
-        <Button
-          variant="ghost"
-          size="icon"
-          className={cn("h-8 w-8 text-muted-foreground hover:text-foreground shrink-0", collapsed && "mx-auto")}
-          onClick={() => setCollapsed(!collapsed)}
-          aria-label="Toggle sidebar"
-        >
-          <ChevronLeft className={cn("h-4 w-4 transition-transform duration-300", collapsed && "rotate-180")} />
-        </Button>
       </div>
 
       {/* Nav */}
