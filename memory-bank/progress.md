@@ -73,7 +73,29 @@ Frontend dev server running at http://localhost:3000
 - [x] **Layout Fix**: Chat area uses full viewport height (`h-full -m-6`) to eliminate extra top/bottom padding and scroll.
 - [x] **Test Simulator Integration**: Added **Module 5 – YZ Asistanı Testi** to the Unified Test Simulator for quickly verifying the API connection without navigating away.
 - [x] **Dashboard AI Recommendations**: `GET /ai/recommendations` endpoint queries LLM with current company data and returns 3 actionable recommendations (type, message, action). Frontend `AIRecommendations` component fetches live suggestions with loading state, refresh button, and static fallback on error. Action buttons are fully clickable and route to the relevant dashboard pages: *Sipariş Ver* → Inventory, *Siparişleri Hazırla* → Orders, *Gecikme Nedenini Gör* → Shipments.
-- [ ] Agent workflow builder
+
+### ✅ Phase 4 – Agent Workflow Builder
+- [x] **Backend Database Models**: Created `Workflow` and `WorkflowStep` SQLAlchemy models with multi-tenancy support (`company_id`). Workflow includes trigger types (manual, scheduled, webhook, event) and trigger config. WorkflowStep includes step type, step config, name, description, and order.
+- [x] **Backend Schemas**: Added Pydantic schemas for `Workflow`, `WorkflowStep`, `WorkflowCreate`, and `WorkflowUpdate` with UUID and datetime field serializers for proper API response serialization.
+- [x] **Backend API Routes**: Implemented full CRUD endpoints at `/api/v1/workflows` (GET list, GET by ID, POST create, PUT update, DELETE delete). All endpoints include UUID conversion from string to handle frontend requests properly.
+- [x] **Frontend Types**: Created TypeScript types for `Workflow`, `WorkflowStep`, `WorkflowCreate`, and `WorkflowUpdate` in `frontend/src/types/workflow.ts`.
+- [x] **Frontend Workflow Builder UI**: Built complete workflow management interface at `/dashboard/workflows` with:
+  - Card-based workflow list display with trigger icons (Zap for manual, Clock for scheduled, Webhook for webhook)
+  - Create workflow dialog with name, description, and trigger type selection
+  - Edit workflow dialog with full editing capabilities (name, description, trigger type)
+  - Toggle active/inactive functionality with "Başlat/Durdur" button
+  - Delete workflow with confirmation dialog
+  - Empty state with call-to-action
+  - Turkish localization throughout
+- [x] **Step Management**: Added comprehensive step creation/editing/deletion functionality:
+  - Step creation form in both create and edit dialogs
+  - Step types: Bildirim Gönder, Envanter Güncelle, Sipariş Oluştur, YZ Aksiyonu, Gecikme
+  - Step list display with order numbers
+  - Step deletion with trash icon button
+  - Automatic order recalculation when steps are added/removed
+- [x] **Test Simulator Integration**: Added **Module 6 – İş Akışı Testi** to the Unified Test Simulator at `/dashboard/test` for quickly generating sample workflows with test steps.
+- [x] **Error Handling**: Added detailed error handling for all workflow operations (create, update, delete, toggle) with console logging and user-friendly toast messages showing actual backend error details.
+- [x] **Backend Clear Function**: Updated test clear endpoint to also delete workflow data alongside inventory, orders, shipments, and AI chat history.
 - [ ] Notification center
 
 ### Phase 5

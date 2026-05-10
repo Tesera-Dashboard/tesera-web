@@ -6,9 +6,11 @@ import { PageHeader } from "@/components/shared/PageHeader";
 import { toast } from "sonner";
 import { InventoryItem } from "@/types/inventory";
 import { Shipment } from "@/types/shipment";
-import { DatabaseBackup, PackagePlus, ShoppingCart, Truck, Bot, Send, Loader2, Trash2 } from "lucide-react";
+import { Workflow } from "@/types/workflow";
+import { DatabaseBackup, PackagePlus, ShoppingCart, Truck, Bot, Send, Loader2, Trash2, Workflow as WorkflowIcon } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { cn } from "@/lib/utils";
@@ -19,9 +21,11 @@ export default function UnifiedTestSimulator() {
   const [loadingSeed, setLoadingSeed] = useState(false);
   const [loadingItem, setLoadingItem] = useState(false);
   const [loadingShipment, setLoadingShipment] = useState(false);
+  const [loadingWorkflow, setLoadingWorkflow] = useState(false);
   const [clearing, setClearing] = useState(false);
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [shipments, setShipments] = useState<Shipment[]>([]);
+  const [workflows, setWorkflows] = useState<Workflow[]>([]);
   const [aiInput, setAiInput] = useState("");
   const [aiMessages, setAiMessages] = useState<AIMessage[]>([]);
   const [aiLoading, setAiLoading] = useState(false);
@@ -29,6 +33,7 @@ export default function UnifiedTestSimulator() {
   const loadData = () => {
     fetchWithAuth("/inventory").then(res => res.json()).then(setInventory);
     fetchWithAuth("/shipments").then(res => res.json()).then(setShipments);
+    fetchWithAuth("/workflows").then(res => res.json()).then(setWorkflows);
   };
 
   useEffect(() => {
@@ -154,6 +159,20 @@ export default function UnifiedTestSimulator() {
     } finally {
       setAiLoading(false);
     }
+  };
+
+  // 8. İş Akışı Testi
+  const handleCreateWorkflow = async () => {
+    setLoadingWorkflow(true);
+    try {
+      const res = await fetchWithAuth("/test/workflows/create", { method: "POST" });
+      const data = await res.json();
+      toast.success(`${data.message}: ${data.workflow_id}`);
+      loadData();
+    } catch (err) {
+      toast.error("İş akışı oluşturulamadı");
+    }
+    setLoadingWorkflow(false);
   };
 
   return (
@@ -344,6 +363,51 @@ export default function UnifiedTestSimulator() {
             {aiLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
           </Button>
         </div>
+      </div>
+
+      <Separator />
+
+      {/* Modül 6: İş Akışı Testi */}
+      <div className="bg-card border rounded-xl p-6 space-y-4 shadow-sm">
+        <div className="flex items-center gap-3 mb-2">
+          <div className="p-2 bg-indigo-500/10 text-indigo-600 rounded-lg">
+            <WorkflowIcon className="h-5 w-5" />
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold">6. İş Akışı Testi</h3>
+            <p className="text-xs text-muted-foreground">Örnek iş akışı oluşturarak backend API bağlantısını test edin.</p>
+          </div>
+        </div>
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm text-muted-foreground">
+              Mevcut iş akışları: <span className="font-semibold">{workflows.length}</span>
+            </p>
+          </div>
+          <Button
+            onClick={handleCreateWorkflow}
+            disabled={loadingWorkflow}
+            variant="outline"
+            className="border-indigo-200 text-indigo-700 hover:bg-indigo-50 dark:border-indigo-900/50 dark:text-indigo-400 dark:hover:bg-indigo-900/20"
+          >
+            {loadingWorkflow ? "Oluşturuluyor..." : "Test İş Akışı Oluştur"}
+          </Button>
+        </div>
+        {workflows.length > 0 && (
+          <div className="mt-4 space-y-2 max-h-48 overflow-y-auto">
+            {workflows.map(w => (
+              <div key={w.id} className="flex items-center justify-between p-3 border rounded-lg text-sm">
+                <div>
+                  <p className="font-medium">{w.name}</p>
+                  <p className="text-xs text-muted-foreground">{w.steps.length} adım • {w.is_active ? "Aktif" : "Pasif"}</p>
+                </div>
+                <Badge variant={w.is_active ? "default" : "secondary"} className="text-xs">
+                  {w.trigger_type}
+                </Badge>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

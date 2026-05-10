@@ -160,7 +160,7 @@ def simulate_create_shipment(db: Session = Depends(get_db), current_user: User =
 def clear_all_test_data(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     company_id = current_user.company_id
 
-    # Delete shipments, orders, inventory items, and AI conversations for this company
+    # Delete shipments, orders, inventory items, AI conversations, and workflows for this company
     db.query(Shipment).filter(Shipment.company_id == company_id).delete(synchronize_session=False)
     db.query(Order).filter(Order.company_id == company_id).delete(synchronize_session=False)
     db.query(InventoryItem).filter(InventoryItem.company_id == company_id).delete(synchronize_session=False)
@@ -169,5 +169,56 @@ def clear_all_test_data(db: Session = Depends(get_db), current_user: User = Depe
     from app.models.ai_chat import AIConversation
     db.query(AIConversation).filter(AIConversation.company_id == company_id).delete(synchronize_session=False)
 
+    # Clear workflows
+    from app.models.workflow import Workflow
+    db.query(Workflow).filter(Workflow.company_id == company_id).delete(synchronize_session=False)
+
     db.commit()
-    return {"message": "Tüm test verileri ve yapay zeka konuşma geçmişi başarıyla temizlendi."}
+    return {"message": "Tüm test verileri, yapay zeka konuşma geçmişi ve iş akışları başarıyla temizlendi."}
+
+
+# Workflow test endpoints
+@router.post("/workflows/create")
+def create_test_workflow(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    from app.models.workflow import Workflow, WorkflowStep
+    import uuid
+    
+    workflow_id = uuid.uuid4()
+    
+    # Create a sample workflow
+    workflow = Workflow(
+        id=workflow_id,
+        company_id=current_user.company_id,
+        name="Test İş Akışı",
+        description="Bu bir test iş akışıdır",
+        trigger_type="manual",
+        trigger_config={},
+        is_active=True
+    )
+    db.add(workflow)
+    db.flush()
+    
+    # Add sample steps
+    step1 = WorkflowStep(
+        id=uuid.uuid4(),
+        workflow_id=workflow_id,
+        order=0,
+        step_type="send_notification",
+        step_config={"message": "Stok uyarısı: Ürün stok seviyesi kritik seviyenin altında"},
+        name="Bildirim Gönder",
+        description="Kullanıcıya bildirim gönder"
+    )
+    step2 = WorkflowStep(
+        id=uuid.uuid4(),
+        workflow_id=workflow_id,
+        order=1,
+        step_type="update_inventory",
+        step_config={"action": "restock", "quantity": 10},
+        name="Envanter Güncelle",
+        description="Stok seviyesini güncelle"
+    )
+    db.add(step1)
+    db.add(step2)
+    
+    db.commit()
+    return {"message": "Test iş akışı başarıyla oluşturuldu", "workflow_id": str(workflow_id)}
