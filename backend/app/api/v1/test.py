@@ -125,3 +125,49 @@ def simulate_create_inventory_item(db: Session = Depends(get_db), current_user: 
     db.add(new_item)
     db.commit()
     return {"message": "Mock ürün başarıyla oluşturuldu", "item": new_item.name}
+
+
+@router.post("/shipments/create")
+def simulate_create_shipment(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    company_id = current_user.company_id
+    carriers = ["FedEx", "UPS", "DHL", "Yurtiçi Kargo", "Aras Kargo"]
+    statuses = ["Hazırlanıyor", "Kargoda", "Dağıtımda", "Teslim Edildi"]
+
+    now = datetime.utcnow()
+    shipment_id = f"SHP-{random.randint(10000, 99999)}"
+    order_id = f"ORD-{random.randint(10000, 99999)}"
+    is_delayed = random.choice([True, False])
+
+    new_shipment = Shipment(
+        id=shipment_id,
+        company_id=company_id,
+        orderId=order_id,
+        carrier=random.choice(carriers),
+        trackingCode=f"TRK{random.randint(100000, 999999)}",
+        status=random.choice(statuses),
+        origin="İstanbul Depo",
+        destination="Teslimat Adresi",
+        estimatedDelivery=(now + timedelta(days=random.randint(1, 7))).isoformat(),
+        isDelayed=is_delayed,
+        delayReason="Kötü hava koşulları" if is_delayed else ""
+    )
+    db.add(new_shipment)
+    db.commit()
+    return {"message": "Kargo başarıyla oluşturuldu", "shipment_id": shipment_id, "carrier": new_shipment.carrier}
+
+
+@router.post("/clear")
+def clear_all_test_data(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    company_id = current_user.company_id
+
+    # Delete shipments, orders, inventory items, and AI conversations for this company
+    db.query(Shipment).filter(Shipment.company_id == company_id).delete(synchronize_session=False)
+    db.query(Order).filter(Order.company_id == company_id).delete(synchronize_session=False)
+    db.query(InventoryItem).filter(InventoryItem.company_id == company_id).delete(synchronize_session=False)
+
+    # Also clear AI chat history for this company/user
+    from app.models.ai_chat import AIConversation
+    db.query(AIConversation).filter(AIConversation.company_id == company_id).delete(synchronize_session=False)
+
+    db.commit()
+    return {"message": "Tüm test verileri ve yapay zeka konuşma geçmişi başarıyla temizlendi."}

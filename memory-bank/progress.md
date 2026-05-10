@@ -58,9 +58,9 @@ Frontend dev server running at http://localhost:3000
 - [x] **Backend & Mock Data**: Rebuilt SQLite tables to fully support multi-tenancy (`company_id`). Created a robust randomizing seed mechanism to prevent `IntegrityError` collisions.
 - [x] **UI Consistency**: Standardized search and filter layouts across `/dashboard/orders`, `/dashboard/inventory`, and `/dashboard/shipments` into a single inline flex-row design.
 - [x] **Inventory Management**: Upgraded `shadcn` Sheet to `ProductSheet` handling both "New Product" creation and "Edit Product". Added Edit/Delete icons to the Inventory table.
-- [x] **Testing Simulators**: 
+- [x] **Testing Simulators**:
     - Combined all testing tools into a **Unified Test Simulator** at `/dashboard/test`.
-    - Features: Bulk Data Seeding, Random Product Generator, Order Simulator, and Shipment Carrier interface.
+    - Features: Bulk Data Seeding, Random Product Generator, Random Shipment Generator, Order Simulator, Shipment Carrier interface, DB Clear (wipes all company inventory, orders, shipments, and AI chat history), and AI Chat Test with markdown rendering.
 - [x] **Sidebar Enhancements**: Organized the sidebar into categorical groups (Core, Insights, Management, Dev Tools) with proper labels and updated icons (`FlaskConical` for testing).
 
 ### ✅ Phase 4 – AI Assistant (Grok + OpenRouter)

@@ -6,15 +6,20 @@ import { PageHeader } from "@/components/shared/PageHeader";
 import { toast } from "sonner";
 import { InventoryItem } from "@/types/inventory";
 import { Shipment } from "@/types/shipment";
-import { DatabaseBackup, PackagePlus, ShoppingCart, Truck, Bot, Send, Loader2 } from "lucide-react";
+import { DatabaseBackup, PackagePlus, ShoppingCart, Truck, Bot, Send, Loader2, Trash2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import { cn } from "@/lib/utils";
 
 interface AIMessage { role: "user" | "model"; content: string; }
 
 export default function UnifiedTestSimulator() {
   const [loadingSeed, setLoadingSeed] = useState(false);
   const [loadingItem, setLoadingItem] = useState(false);
+  const [loadingShipment, setLoadingShipment] = useState(false);
+  const [clearing, setClearing] = useState(false);
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [shipments, setShipments] = useState<Shipment[]>([]);
   const [aiInput, setAiInput] = useState("");
@@ -93,7 +98,39 @@ export default function UnifiedTestSimulator() {
     }
   };
 
-  // 5. AI Sohbet Testi
+  // 5. Rastgele Kargo Oluştur
+  const handleCreateRandomShipment = async () => {
+    setLoadingShipment(true);
+    try {
+      const res = await fetchWithAuth("/test/shipments/create", { method: "POST" });
+      const data = await res.json();
+      toast.success(`${data.message}: ${data.shipment_id} (${data.carrier})`);
+      loadData();
+    } catch (err) {
+      toast.error("Kargo oluşturulamadı");
+    }
+    setLoadingShipment(false);
+  };
+
+  // 6. Tüm Verileri Temizle
+  const handleClearAll = async () => {
+    if (!confirm("Tüm test verileri (envanter, sipariş, kargo ve yapay zeka konuşma geçmişi) silinecek. Emin misiniz?")) return;
+    setClearing(true);
+    try {
+      const res = await fetchWithAuth("/test/clear", { method: "POST" });
+      const data = await res.json();
+      toast.success(data.message);
+      setInventory([]);
+      setShipments([]);
+      setAiMessages([]);
+      loadData();
+    } catch (err) {
+      toast.error("Veriler temizlenemedi");
+    }
+    setClearing(false);
+  };
+
+  // 7. AI Sohbet Testi
   const handleAiSend = async () => {
     if (!aiInput.trim() || aiLoading) return;
     const userMsg: AIMessage = { role: "user", content: aiInput.trim() };
@@ -121,11 +158,33 @@ export default function UnifiedTestSimulator() {
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-10">
-      <PageHeader 
-        title="Simülatör Paneli" 
-        description="Tek sayfadan tüm platform modüllerine mock veri ekleyin ve süreçleri test edin." 
+      <PageHeader
+        title="Simülatör Paneli"
+        description="Tek sayfadan tüm platform modüllerine mock veri ekleyin ve süreçleri test edin."
       />
-      
+
+      {/* Sistem Temizliği */}
+      <div className="flex items-center justify-between p-4 border border-red-200 bg-red-50 dark:bg-red-950/20 dark:border-red-900/50 rounded-xl">
+        <div className="flex items-center gap-3">
+          <Trash2 className="h-5 w-5 text-red-600" />
+          <div>
+            <p className="text-sm font-medium text-red-700 dark:text-red-400">Veritabanını Temizle</p>
+            <p className="text-xs text-red-600/70 dark:text-red-400/70">
+              Envanter, sipariş, kargo ve yapay zeka konuşma geçmişini siler. Geri alınamaz.
+            </p>
+          </div>
+        </div>
+        <Button
+          variant="destructive"
+          size="sm"
+          onClick={handleClearAll}
+          disabled={clearing}
+          className="shrink-0"
+        >
+          {clearing ? "Temizleniyor..." : "Tümünü Sil"}
+        </Button>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Modül 1: Toplu Veri */}
         <div className="bg-card border rounded-xl p-6 space-y-4 shadow-sm">
@@ -191,11 +250,22 @@ export default function UnifiedTestSimulator() {
 
         {/* Modül 4: Kargo Operasyonları */}
         <div className="bg-card border rounded-xl p-6 space-y-4 shadow-sm">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 bg-purple-500/10 text-purple-600 rounded-lg">
-              <Truck className="h-5 w-5" />
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-purple-500/10 text-purple-600 rounded-lg">
+                <Truck className="h-5 w-5" />
+              </div>
+              <h3 className="text-lg font-semibold">4. Kargo Operasyonları</h3>
             </div>
-            <h3 className="text-lg font-semibold">4. Kargo Operasyonları</h3>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleCreateRandomShipment}
+              disabled={loadingShipment}
+              className="text-xs border-purple-200 text-purple-700 hover:bg-purple-50 dark:border-purple-900/50 dark:text-purple-400 dark:hover:bg-purple-900/20"
+            >
+              {loadingShipment ? "Oluşturuluyor..." : "+ Rastgele Kargo"}
+            </Button>
           </div>
           <p className="text-sm text-muted-foreground mb-4">Kargo durumlarını güncelleyin ve taşıyıcı gibi davranın.</p>
           
@@ -228,7 +298,7 @@ export default function UnifiedTestSimulator() {
           </div>
           <div>
             <h3 className="text-lg font-semibold">5. YZ Asistanı Testi</h3>
-            <p className="text-xs text-muted-foreground">Gemini API bağlantısını doğrudan bu ekrandan test edin.</p>
+            <p className="text-xs text-muted-foreground">Grok/OpenRouter API bağlantısını doğrudan bu ekrandan test edin.</p>
           </div>
         </div>
         <div className="border rounded-lg bg-muted/20 p-3 h-48 overflow-y-auto flex flex-col gap-2">
@@ -236,12 +306,22 @@ export default function UnifiedTestSimulator() {
             <p className="text-xs text-muted-foreground italic m-auto">Henüz mesaj yok. Bir şey sorun!</p>
           )}
           {aiMessages.map((m, i) => (
-            <div key={i} className={`text-xs rounded-lg px-3 py-2 max-w-[85%] ${
-              m.role === "user"
-                ? "bg-primary text-primary-foreground self-end"
-                : "bg-card border self-start"
-            }`}>
-              {m.content}
+            <div
+              key={i}
+              className={cn(
+                "text-xs rounded-lg px-3 py-2 max-w-[85%]",
+                m.role === "user"
+                  ? "bg-primary text-primary-foreground self-end whitespace-pre-wrap"
+                  : "bg-card border self-start prose prose-xs max-w-none dark:prose-invert prose-p:mb-1 prose-p:mt-0 prose-ul:mb-1 prose-ul:mt-0 prose-ol:mb-1 prose-ol:mt-0 prose-headings:mb-1 prose-headings:mt-2 prose-pre:bg-muted prose-pre:text-muted-foreground prose-code:bg-muted prose-code:text-muted-foreground prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:text-[10px] prose-code:before:content-none prose-code:after:content-none"
+              )}
+            >
+              {m.role === "model" ? (
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {m.content}
+                </ReactMarkdown>
+              ) : (
+                m.content
+              )}
             </div>
           ))}
           {aiLoading && (
