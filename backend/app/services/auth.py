@@ -1,6 +1,5 @@
 import smtplib
 from email.message import EmailMessage
-from pathlib import Path
 
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
@@ -62,22 +61,17 @@ def send_email(email_to: str, subject: str, html_content: str):
     msg = EmailMessage()
     msg.set_content("Bu e-postayı görüntülemek için lütfen HTML'i etkinleştirin.")
     msg.add_alternative(html_content, subtype='html')
-    logo_path = Path(__file__).resolve().parents[3] / "frontend" / "public" / "logo.png"
-    if logo_path.exists():
-        html_part = msg.get_payload()[1]
-        html_part.add_related(logo_path.read_bytes(), maintype="image", subtype="png", cid="tesera-logo")
     msg['Subject'] = subject
     msg['From'] = f"{settings.EMAILS_FROM_NAME} <{settings.EMAILS_FROM_EMAIL}>"
     msg['To'] = email_to
 
     try:
-        server = smtplib.SMTP(settings.SMTP_HOST, settings.SMTP_PORT)
-        if settings.SMTP_TLS:
-            server.starttls()
-        if settings.SMTP_USER and settings.SMTP_PASSWORD:
-            server.login(settings.SMTP_USER, settings.SMTP_PASSWORD)
-        server.send_message(msg)
-        server.quit()
+        import ssl
+        context = ssl.create_default_context()
+        with smtplib.SMTP_SSL(settings.SMTP_HOST, settings.SMTP_PORT, context=context) as server:
+            if settings.SMTP_USER and settings.SMTP_PASSWORD:
+                server.login(settings.SMTP_USER, settings.SMTP_PASSWORD)
+            server.send_message(msg)
     except Exception as e:
         print(f"Error sending email: {e}")
 
