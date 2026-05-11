@@ -188,10 +188,10 @@ def ai_chat(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    if not settings.GROK_API_KEY and not settings.OPENROUTER_API_KEY:
+    if not settings.GEMINI_API_KEY and not settings.OPENAI_API_KEY:
         raise HTTPException(
             status_code=503,
-            detail="YZ Asistanı şu anda kullanılamıyor. Lütfen backend .env dosyasına GROK_API_KEY veya OPENROUTER_API_KEY ekleyin."
+            detail="YZ Asistanı şu anda kullanılamıyor. Lütfen backend .env dosyasına GEMINI_API_KEY veya OPENAI_API_KEY ekleyin."
         )
 
     if not request.messages:
@@ -271,30 +271,30 @@ def ai_chat(
 
 
 def _call_llm_with_fallback(client: httpx.Client, messages: list[dict[str, str]]) -> str:
-    if settings.GROK_API_KEY:
+    if settings.GEMINI_API_KEY:
         try:
             return call_chat_completion(
                 client=client,
-                provider="Grok",
-                base_url=settings.GROK_BASE_URL,
-                api_key=settings.GROK_API_KEY,
-                model=settings.GROK_MODEL,
+                provider="Gemini",
+                base_url=settings.GEMINI_BASE_URL,
+                api_key=settings.GEMINI_API_KEY,
+                model=settings.GEMINI_MODEL,
                 messages=messages,
             )
-        except LLMProviderError as grok_error:
-            if not settings.OPENROUTER_API_KEY:
-                raise grok_error
-            logger.warning(f"Grok failed, falling back to OpenRouter: {grok_error}")
+        except LLMProviderError as gemini_error:
+            if not settings.OPENAI_API_KEY:
+                raise gemini_error
+            logger.warning(f"Gemini failed, falling back to OpenAI: {gemini_error}")
 
-    if not settings.OPENROUTER_API_KEY:
-        raise LLMProviderError("OpenRouter", 503, "OpenRouter fallback için OPENROUTER_API_KEY yapılandırılmamış.")
+    if not settings.OPENAI_API_KEY:
+        raise LLMProviderError("OpenAI", 503, "OpenAI fallback için OPENAI_API_KEY yapılandırılmamış.")
 
     return call_chat_completion(
         client=client,
-        provider="OpenRouter",
-        base_url=settings.OPENROUTER_BASE_URL,
-        api_key=settings.OPENROUTER_API_KEY,
-        model=settings.OPENROUTER_MODEL,
+        provider="OpenAI",
+        base_url=settings.OPENAI_BASE_URL,
+        api_key=settings.OPENAI_API_KEY,
+        model=settings.OPENAI_MODEL,
         messages=messages,
     )
 
@@ -347,10 +347,10 @@ def get_recommendations(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    if not settings.GROK_API_KEY and not settings.OPENROUTER_API_KEY:
+    if not settings.GEMINI_API_KEY and not settings.OPENAI_API_KEY:
         raise HTTPException(
             status_code=503,
-            detail="YZ Asistanı şu anda kullanılamıyor. Lütfen backend .env dosyasına GROK_API_KEY veya OPENROUTER_API_KEY ekleyin."
+            detail="YZ Asistanı şu anda kullanılamıyor. Lütfen backend .env dosyasına GEMINI_API_KEY veya OPENAI_API_KEY ekleyin."
         )
 
     try:

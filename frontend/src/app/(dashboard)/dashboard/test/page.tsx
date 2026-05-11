@@ -317,7 +317,7 @@ export default function UnifiedTestSimulator() {
           </div>
           <div>
             <h3 className="text-lg font-semibold">5. YZ Asistanı Testi</h3>
-            <p className="text-xs text-muted-foreground">Grok/OpenRouter API bağlantısını doğrudan bu ekrandan test edin.</p>
+            <p className="text-xs text-muted-foreground">Gemini/OpenAI API bağlantısını doğrudan bu ekrandan test edin.</p>
           </div>
         </div>
         <div className="border rounded-lg bg-muted/20 p-3 h-48 overflow-y-auto flex flex-col gap-2">

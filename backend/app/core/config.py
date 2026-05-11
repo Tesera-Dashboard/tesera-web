@@ -25,12 +25,12 @@ class Settings(BaseSettings):
     FRONTEND_URL: str = "http://localhost:3000"
 
     # AI
-    GROK_API_KEY: Optional[str] = None
-    GROK_MODEL: str = "grok-4.3"
-    GROK_BASE_URL: str = "https://api.x.ai/v1"
-    OPENROUTER_API_KEY: Optional[str] = None
-    OPENROUTER_MODEL: str = "meta-llama/llama-3.1-8b-instruct:free"
-    OPENROUTER_BASE_URL: str = "https://openrouter.ai/api/v1"
+    GEMINI_API_KEY: Optional[str] = None
+    GEMINI_MODEL: str = "gemini-1.5-flash"
+    GEMINI_BASE_URL: str = "https://generativelanguage.googleapis.com/v1beta/openai"
+    OPENAI_API_KEY: Optional[str] = None
+    OPENAI_MODEL: str = "gpt-4o-mini"
+    OPENAI_BASE_URL: str = "https://api.openai.com/v1"
 
     # Database
     DATABASE_URL: str = "sqlite:///./tesera.db"

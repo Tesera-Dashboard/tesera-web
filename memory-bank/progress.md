@@ -63,9 +63,9 @@ Frontend dev server running at http://localhost:3000
     - Features: Bulk Data Seeding, Random Product Generator, Random Shipment Generator, Order Simulator, Shipment Carrier interface, DB Clear (wipes all company inventory, orders, shipments, and AI chat history), and AI Chat Test with markdown rendering.
 - [x] **Sidebar Enhancements**: Organized the sidebar into categorical groups (Core, Insights, Management, Dev Tools) with proper labels and updated icons (`FlaskConical` for testing).
 
-### ✅ Phase 4 – AI Assistant (Grok + OpenRouter)
-- [x] **Backend API**: `/api/v1/ai/chat` endpoint migrated to **Grok** (`grok-4.3`) primary with **OpenRouter** (`meta-llama/llama-3.1-8b-instruct:free`) fallback. Robust error handling for 401/402/429 rate limit and quota exhaustion.
-- [x] **LLM Provider Config**: Replaced `GEMINI_API_KEY` with `GROK_API_KEY`/`OPENROUTER_API_KEY` in `config.py` and updated `.env.example`.
+### ✅ Phase 4 – AI Assistant (Gemini + OpenAI)
+- [x] **Backend API**: `/api/v1/ai/chat` endpoint migrated to **Gemini** (`gemini-1.5-flash`) primary with **OpenAI** (`gpt-4o-mini`) fallback. Robust error handling for 401/402/429 rate limit and quota exhaustion.
+- [x] **LLM Provider Config**: Replaced `GROK_API_KEY` with `GEMINI_API_KEY` in `config.py` and updated `.env.example`.
 - [x] **Chat History Persistence**: New SQLAlchemy models `AIConversation` + `AIMessage`. Backend endpoints: `GET /ai/conversations`, `GET /ai/conversations/{id}`, `DELETE /ai/conversations/{id}`. Messages saved to DB per conversation; full history sent to LLM context.
 - [x] **Frontend Chat UI**: Full conversational chat interface at `/dashboard/ai-assistant` with starter prompts, message bubbles, loading states, and clear conversation button.
 - [x] **Conversation Sidebar**: Left sidebar showing past conversations (title + timestamp), load-on-click, new conversation button, delete confirmation dialog.
