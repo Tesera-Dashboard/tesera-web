@@ -70,9 +70,9 @@ psycopg2-binary==2.9.9
 pyasn1==0.6.3
 pyasn1_modules==0.4.2
 pycparser==2.23
-pydantic==2.6.4
-pydantic-settings==2.2.1
-pydantic_core==2.16.3
+pydantic==2.11.4
+pydantic_core==2.33.2
+pydantic-settings==2.9.1
 pyparsing==3.3.2
 pytest==8.1.1
 python-dateutil==2.9.0.post0
@@ -105,3 +105,4 @@ watchfiles==1.1.1
 wcwidth==0.7.0
 websockets==15.0.1
 yarl==1.22.0
+gunicorn==23.0.0
