@@ -54,24 +54,35 @@ def authenticate_user(db: Session, request: LoginRequest) -> Token:
     return Token(access_token=access_token, token_type="bearer")
 
 def send_email(email_to: str, subject: str, html_content: str):
-    if not settings.SMTP_HOST:
-        print(f"Mock Email to {email_to}: {subject}\n{html_content}")
+    import os
+    import urllib.request
+    import json
+    
+    api_key = os.getenv("RESEND_API_KEY")
+    if not api_key:
+        print(f"Mock Email to {email_to}: {subject}")
         return
 
-    msg = EmailMessage()
-    msg.set_content("Bu e-postayı görüntülemek için lütfen HTML'i etkinleştirin.")
-    msg.add_alternative(html_content, subtype='html')
-    msg['Subject'] = subject
-    msg['From'] = f"{settings.EMAILS_FROM_NAME} <{settings.EMAILS_FROM_EMAIL}>"
-    msg['To'] = email_to
+    payload = json.dumps({
+        "from": "Tesera <onboarding@resend.dev>",
+        "to": [email_to],
+        "subject": subject,
+        "html": html_content,
+    }).encode("utf-8")
+
+    req = urllib.request.Request(
+        "https://api.resend.com/emails",
+        data=payload,
+        headers={
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+        },
+        method="POST"
+    )
 
     try:
-        import ssl
-        context = ssl.create_default_context()
-        with smtplib.SMTP_SSL(settings.SMTP_HOST, settings.SMTP_PORT, context=context) as server:
-            if settings.SMTP_USER and settings.SMTP_PASSWORD:
-                server.login(settings.SMTP_USER, settings.SMTP_PASSWORD)
-            server.send_message(msg)
+        with urllib.request.urlopen(req) as response:
+            print(f"Email sent: {response.status}")
     except Exception as e:
         print(f"Error sending email: {e}")
 
