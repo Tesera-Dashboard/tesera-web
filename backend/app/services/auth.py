@@ -56,6 +56,7 @@ def authenticate_user(db: Session, request: LoginRequest) -> Token:
 def send_email(email_to: str, subject: str, html_content: str):
     import os
     import urllib.request
+    import urllib.error
     import json
     
     api_key = os.getenv("RESEND_API_KEY")
@@ -83,6 +84,8 @@ def send_email(email_to: str, subject: str, html_content: str):
     try:
         with urllib.request.urlopen(req) as response:
             print(f"Email sent: {response.status}")
+    except urllib.error.HTTPError as e:
+        print(f"Resend error {e.code}: {e.read().decode()}")
     except Exception as e:
         print(f"Error sending email: {e}")
 
