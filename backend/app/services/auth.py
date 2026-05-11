@@ -57,7 +57,7 @@ def send_email(email_to: str, subject: str, html_content: str):
     import os
     import httpx
     
-    api_key = os.getenv("RESEND_API_KEY")
+    api_key = os.getenv("BREVO_API_KEY")
     if not api_key:
         print(f"Mock Email to {email_to}: {subject}")
         return
@@ -65,17 +65,16 @@ def send_email(email_to: str, subject: str, html_content: str):
     try:
         with httpx.Client() as client:
             response = client.post(
-                "https://api.resend.com/emails",
+                "https://api.brevo.com/v3/smtp/email",
                 headers={
-                    "Authorization": f"Bearer {api_key}",
+                    "api-key": api_key,
                     "Content-Type": "application/json",
-                    "User-Agent": "TeseraBackend/1.0", # Cloudflare engelini aşmak için
                 },
                 json={
-                    "from": "Tesera <onboarding@resend.dev>",
-                    "to": [email_to],
+                    "sender": {"name": "Tesera", "email": "teserakooperatif@gmail.com"},
+                    "to": [{"email": email_to}],
                     "subject": subject,
-                    "html": html_content,
+                    "htmlContent": html_content,
                 }
             )
             print(f"Email sent: {response.status_code} {response.text}")
