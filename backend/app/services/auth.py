@@ -55,37 +55,30 @@ def authenticate_user(db: Session, request: LoginRequest) -> Token:
 
 def send_email(email_to: str, subject: str, html_content: str):
     import os
-    import urllib.request
-    import urllib.error
-    import json
+    import httpx
     
     api_key = os.getenv("RESEND_API_KEY")
     if not api_key:
         print(f"Mock Email to {email_to}: {subject}")
         return
 
-    payload = json.dumps({
-        "from": "Tesera <onboarding@resend.dev>",
-        "to": [email_to],
-        "subject": subject,
-        "html": html_content,
-    }).encode("utf-8")
-
-    req = urllib.request.Request(
-        "https://api.resend.com/emails",
-        data=payload,
-        headers={
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json",
-        },
-        method="POST"
-    )
-
     try:
-        with urllib.request.urlopen(req) as response:
-            print(f"Email sent: {response.status}")
-    except urllib.error.HTTPError as e:
-        print(f"Resend error {e.code}: {e.read().decode()}")
+        with httpx.Client() as client:
+            response = client.post(
+                "https://api.resend.com/emails",
+                headers={
+                    "Authorization": f"Bearer {api_key}",
+                    "Content-Type": "application/json",
+                    "User-Agent": "TeseraBackend/1.0", # Cloudflare engelini aşmak için
+                },
+                json={
+                    "from": "Tesera <onboarding@resend.dev>",
+                    "to": [email_to],
+                    "subject": subject,
+                    "html": html_content,
+                }
+            )
+            print(f"Email sent: {response.status_code} {response.text}")
     except Exception as e:
         print(f"Error sending email: {e}")
 
