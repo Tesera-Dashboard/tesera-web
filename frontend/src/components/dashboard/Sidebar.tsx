@@ -46,8 +46,8 @@ const navGroups = [
   {
     label: "Yönetim",
     items: [
-      { label: "Entegrasyonlar", href: "/dashboard/integrations", icon: Plug },
-      { label: "Ekip", href: "/dashboard/team", icon: Users },
+      { label: "Entegrasyonlar", href: "/dashboard/integrations", icon: Plug, badge: "Yakında" },
+      { label: "Ekip", href: "/dashboard/team", icon: Users, badge: "Yakında" },
       { label: "Ayarlar", href: "/dashboard/settings", icon: Settings },
     ]
   },
@@ -116,7 +116,7 @@ export function Sidebar() {
                 </div>
               )}
               <ul className="space-y-0.5">
-                {group.items.map(({ label, href, icon: Icon }) => {
+                {group.items.map(({ label, href, icon: Icon, badge }) => {
                   const isActive = pathname === href || (href !== "/dashboard" && pathname.startsWith(href));
                   return (
                     <li key={href}>
@@ -132,7 +132,16 @@ export function Sidebar() {
                         title={collapsed ? label : undefined}
                       >
                         <Icon className="h-5 w-5 shrink-0" />
-                        {!collapsed && <span>{label}</span>}
+                        {!collapsed && (
+                          <div className="flex items-center gap-2 flex-1">
+                            <span>{label}</span>
+                            {badge && (
+                              <span className="text-[10px] px-1.5 py-0.5 bg-primary/10 text-primary rounded-full font-medium">
+                                {badge}
+                              </span>
+                            )}
+                          </div>
+                        )}
                       </Link>
                     </li>
                   );

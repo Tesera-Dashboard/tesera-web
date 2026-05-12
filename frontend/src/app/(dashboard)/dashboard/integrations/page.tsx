@@ -59,19 +59,19 @@ export default function IntegrationsPage() {
         {integrations.map((integration) => (
           <Card key={integration.id} className="overflow-hidden hover:shadow-lg transition-shadow">
             <div className="p-6 space-y-4">
-              <div className="flex items-center justify-center h-24 bg-muted rounded-lg">
+              <div className="flex items-center justify-center h-32 bg-muted rounded-lg">
                 {integration.image ? (
                   <Image
                     src={integration.image}
                     alt={integration.name}
-                    width={80}
-                    height={80}
+                    width={120}
+                    height={120}
                     className="object-contain"
                   />
                 ) : integration.icon ? (
-                  <integration.icon className="h-12 w-12 text-muted-foreground" />
+                  <integration.icon className="h-16 w-16 text-muted-foreground" />
                 ) : (
-                  <Plug className="h-12 w-12 text-muted-foreground" />
+                  <Plug className="h-16 w-16 text-muted-foreground" />
                 )}
               </div>
               <div className="space-y-2">
