@@ -6,18 +6,21 @@ import Link from "next/link";
 const team = [
   {
     name: "Yusuf Atas",
+    title: "CEO & DevOps Engineer",
     image: "/yusuf-atas.png",
     linkedin: "https://linkedin.com/in/yusuf-atas34",
     github: "https://github.com/yusufatass",
   },
   {
     name: "Ulas Can Demirbag",
+    title: "CTO & Fullstack Engineer",
     image: "/ulas-can-demirbag.png",
     linkedin: "https://www.linkedin.com/in/ulascandemirbag/",
     github: "https://github.com/ulascan54",
   },
   {
     name: "Sedef Esra Kazan",
+    title: "CBD & İş Geliştirme ve Marketing",
     image: "/sedef-esra-kazan.png",
     linkedin: "https://www.linkedin.com/in/sedef-kazan-a90400332/",
     github: "https://github.com/sedefkazan",
@@ -48,7 +51,7 @@ const itemVariants = {
 
 export function Team() {
   return (
-    <section className="py-24 bg-gradient-to-b from-background via-muted/20 to-background">
+    <section className="py-24 bg-gradient-to-b from-background via-muted/20 to-background" id="team">
       <div className="section-container">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -97,6 +100,7 @@ export function Team() {
                 </motion.div>
               </div>
               <h3 className="text-xl font-semibold mb-3">{member.name}</h3>
+              <p className="text-sm text-muted-foreground mb-3">{member.title}</p>
               <div className="flex gap-3">
                 <Link
                   href={member.linkedin}
