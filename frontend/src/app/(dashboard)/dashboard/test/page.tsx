@@ -30,6 +30,7 @@ export default function UnifiedTestSimulator() {
   const [shipments, setShipments] = useState<Shipment[]>([]);
   const [workflows, setWorkflows] = useState<Workflow[]>([]);
   const [notifications, setNotifications] = useState<any[]>([]);
+  const [notificationCount, setNotificationCount] = useState(0);
   const [aiInput, setAiInput] = useState("");
   const [aiMessages, setAiMessages] = useState<AIMessage[]>([]);
   const [aiLoading, setAiLoading] = useState(false);
@@ -52,6 +53,10 @@ export default function UnifiedTestSimulator() {
       .then(res => res.json())
       .then(data => setWorkflows(Array.isArray(data) ? data : []))
       .catch(() => setWorkflows([]));
+    fetchWithAuth("/notifications/unread-count")
+      .then(res => res.json())
+      .then(data => setNotificationCount(data.count || 0))
+      .catch(() => setNotificationCount(0));
     fetchWithAuth("/notifications?limit=5")
       .then(res => res.json())
       .then(data => setNotifications(Array.isArray(data) ? data : []))
@@ -494,7 +499,7 @@ export default function UnifiedTestSimulator() {
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm text-muted-foreground">
-              Mevcut bildirimler: <span className="font-semibold">{notifications.length > 5 ? "5+" : notifications.length}</span>
+              Mevcut bildirimler: <span className="font-semibold">{notificationCount > 5 ? "5+" : notificationCount}</span>
             </p>
           </div>
           <Button

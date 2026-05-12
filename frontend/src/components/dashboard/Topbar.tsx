@@ -65,16 +65,24 @@ export function Topbar({ pageTitle }: TopbarProps) {
 
   const loadNotifications = async () => {
     try {
+      // Fetch unread count separately to get accurate count
+      const countRes = await fetchWithAuth("/notifications/unread-count");
+      if (countRes.ok) {
+        const countData = await countRes.json();
+        const unreadCount = countData.count || 0;
+        console.log("Unread count from API:", unreadCount);
+        setUnreadCount(unreadCount);
+      }
+
+      // Fetch notifications for dropdown display (limit to 5)
       const res = await fetchWithAuth("/notifications?limit=5");
       if (res.ok) {
         const data = await res.json();
         if (Array.isArray(data)) {
           setNotifications(data);
-          setUnreadCount(data.filter((n: Notification) => !n.is_read).length);
         } else {
           console.error("Unexpected data format:", data);
           setNotifications([]);
-          setUnreadCount(0);
         }
       }
     } catch (err) {
@@ -160,7 +168,7 @@ export function Topbar({ pageTitle }: TopbarProps) {
         <DropdownMenuTrigger className="relative h-8 w-8 p-0 border-0 bg-transparent hover:bg-accent rounded-md flex items-center justify-center">
           <Bell className="h-4 w-4" />
           {unreadCount > 0 && (
-            <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs">
+            <Badge className="absolute -top-0.5 -right-0.5 h-5 w-5 flex items-center justify-center p-0 text-xs rounded-full">
               {unreadCount > 5 ? "5+" : unreadCount}
             </Badge>
           )}
