@@ -6,6 +6,7 @@ import { Features } from "@/components/sections/Features";
 import { Pricing } from "@/components/sections/Pricing";
 import { FAQ } from "@/components/sections/FAQ";
 import { CTA } from "@/components/sections/CTA";
+import { Team } from "@/components/sections/Team";
 
 export default function LandingPage() {
   return (
@@ -16,6 +17,7 @@ export default function LandingPage() {
         <Problem />
         <Features />
         <Pricing />
+        <Team />
         <FAQ />
         <CTA />
       </main>

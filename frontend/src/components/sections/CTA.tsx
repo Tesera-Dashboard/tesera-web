@@ -33,11 +33,6 @@ export function CTA() {
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </Link>
-              <Link href="/contact">
-                <Button size="lg" variant="outline" className="h-12 px-8 text-base border-white/30 text-primary-foreground hover:bg-white/10 hover:text-primary-foreground">
-                  Satış Ekibiyle Görüş
-                </Button>
-              </Link>
             </div>
           </div>
         </motion.div>

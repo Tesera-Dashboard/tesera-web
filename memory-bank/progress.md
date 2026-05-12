@@ -290,6 +290,9 @@ Frontend dev server running at http://localhost:3000
 - [x] **AI Predictions Feature**: Added AI-powered predictions endpoint and integrated it into analytics page with sticky sidebar showing business summary, performance analysis, forecasts, and profit/loss predictions with markdown support and regenerate button
 - [x] **Error Message Translation**: Translated all user-facing error messages to Turkish in auth pages (login, register, forgot-password, reset-password, verify-email, pending-verification) and backend API endpoints
 - [x] **AI Recommendations Fix**: Added missing route decorator to fix 404 error for AI recommendations endpoint
+- [x] **Landing Page Improvements**: Fixed navbar navigation links, added dark/light mode toggle, removed sales button, updated footer to only show GitHub link, enhanced Features and Problem sections with animations, created Team section with 3 members
+- [x] **404 Page**: Created under construction 404 page with navbar, footer, and custom image
+- [x] **Logo Fixes**: Removed dark:invert from all logos to prevent color inversion in dark mode, set mini-logo.png as favicon
 
 ### Phase 6
 - [ ] Docker Compose (frontend + backend + postgres + redis)
