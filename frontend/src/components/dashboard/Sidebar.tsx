@@ -142,22 +142,6 @@ export function Sidebar() {
           ))}
         </ul>
       </nav>
-
-      {/* Footer */}
-      <div className="p-2 border-t border-sidebar-border shrink-0">
-        <Separator className="mb-2 bg-sidebar-border" />
-        <div className={cn("flex items-center gap-3 px-3 py-2 rounded-lg", collapsed && "justify-center")}>
-          <div className="h-7 w-7 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs font-semibold shrink-0">
-            A
-          </div>
-          {!collapsed && (
-            <div className="min-w-0">
-              <p className="text-sm font-medium truncate text-sidebar-foreground">Acme Corp</p>
-              <p className="text-xs text-muted-foreground truncate">admin@acme.com</p>
-            </div>
-          )}
-        </div>
-      </div>
     </aside>
   );
 }
