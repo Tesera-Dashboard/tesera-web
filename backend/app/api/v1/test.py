@@ -64,6 +64,9 @@ class CreateOrderRequest(BaseModel):
 
 @router.post("/orders/create")
 def simulate_create_order(req: CreateOrderRequest, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    from app.models.notification import Notification as NotificationModel
+    import uuid
+
     order_id = f"ORD-{random.randint(2000, 9999)}"
     new_order = Order(
         id=order_id,
@@ -80,6 +83,22 @@ def simulate_create_order(req: CreateOrderRequest, db: Session = Depends(get_db)
     )
     db.add(new_order)
     db.commit()
+
+    # Create notification for new order
+    notification = NotificationModel(
+        id=uuid.uuid4(),
+        company_id=current_user.company_id,
+        user_id=current_user.id,
+        title="Yeni Sipariş Oluşturuldu",
+        message=f"{req.product} ürününden {req.quantity} adet sipariş oluşturuldu. Sipariş ID: {order_id}",
+        type="order",
+        priority="info",
+        meta_data={"order_id": order_id},
+        is_read=False
+    )
+    db.add(notification)
+    db.commit()
+
     return {"message": "Order created", "order_id": order_id}
 
 class UpdateShipmentRequest(BaseModel):
@@ -147,10 +166,13 @@ def simulate_update_shipment(req: UpdateShipmentRequest, db: Session = Depends(g
 
 @router.post("/inventory/create")
 def simulate_create_inventory_item(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    from app.models.notification import Notification as NotificationModel
+    import uuid
+
     item_id = f"INV-{random.randint(1000, 9999)}"
     categories = ["Reçel", "Turşu", "Bal", "Zeytin", "Süt Ürünleri", "Kuru Gıda"]
     names = ["Ayva Reçeli", "Ceviz Reçeli", "Gül Reçeli", "Domates Turşusu", "Salatalık Turşusu", "Kabak Turşusu", "Çam Balı", "Çiçek Balı", "Karaca Balı", "Siyah Zeytin", "Yeşil Zeytin", "Üzüm Zeytini", "Beyaz Peynir", "Kaşar Peyniri", "Tulum Peyniri", "Köy Yoğurdu", "Ayran", "Nohut", "Mercimek", "Bulgur", "Pirinç"]
-    
+
     new_item = InventoryItem(
         id=item_id,
         company_id=current_user.company_id,
@@ -165,6 +187,23 @@ def simulate_create_inventory_item(db: Session = Depends(get_db), current_user: 
     )
     db.add(new_item)
     db.commit()
+
+    # Create notification for new inventory item
+    priority = "warning" if new_item.status in ["Azalıyor", "Tükendi"] else "info"
+    notification = NotificationModel(
+        id=uuid.uuid4(),
+        company_id=current_user.company_id,
+        user_id=current_user.id,
+        title="Yeni Ürün Eklendi",
+        message=f"{new_item.name} ürünü envantere eklendi. Stok: {new_item.stock}, Durum: {new_item.status}",
+        type="inventory",
+        priority=priority,
+        meta_data={"item_id": item_id},
+        is_read=False
+    )
+    db.add(notification)
+    db.commit()
+
     return {"message": "Mock ürün başarıyla oluşturuldu", "item": new_item.name}
 
 

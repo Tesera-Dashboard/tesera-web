@@ -168,13 +168,20 @@ Frontend dev server running at http://localhost:3000
 - [x] **Test Simulator Enhancements**:
   - Turkish-ized all mock data with natural cooperative inventory items:
     - Categories: Reçel, Turşu, Bal, Zeytin, Süt Ürünleri, Kuru Gıda
-    - Products: Ayva Reçeli, Çam Balı, Domates Turşusu, Siyah Zeytin, Beyaz Peynir, Tulum Peynir, Nohut, Mercimek, Bulgur, Pirinç, etc.
+    - Products: Ayva Reçeli, Çam Balı, Domates Turşusu, Siyah Zeytin, Beyaz Peynir, Tulum Peyniri, Nohut, Mercimek, Bulgur, Pirinç, etc.
     - Orders: Turkish customer names and addresses
     - Carriers: Yurtiçi Kargo, Aras Kargo
     - Statuses: İşleniyor, Kargoda, Teslim Edildi, Yolda
   - Replaced alert() with custom AlertModal for "Tümünü Sil" confirmation
   - Added SuccessModal for successful deletion feedback
   - Fixed shipment delay notification not being created when isDelayed changes
+- [x] **Notification System Fixes**:
+  - Added notification creation to order creation endpoint (type: "order")
+  - Added notification creation to inventory creation endpoint (type: "inventory", priority: warning for low stock)
+  - Added inventory icon (Box) to Topbar notification icons
+  - Made loadData() calls async with await in test simulator for proper data refresh
+  - Added debug console logs for notification-refresh event dispatching and receiving
+  - Fixed notification count display to show "5+" when count exceeds 5 in both test simulator and topbar
 
 ### Phase 6
 - [ ] Docker Compose (frontend + backend + postgres + redis)

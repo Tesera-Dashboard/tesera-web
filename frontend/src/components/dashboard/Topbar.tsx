@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Bell, Search, Sun, Moon, Package, Truck, Workflow, AlertCircle, CheckCircle, Trash2 } from "lucide-react";
+import { Bell, Search, Sun, Moon, Package, Truck, Workflow, AlertCircle, CheckCircle, Trash2, Box } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useTheme } from "next-themes";
@@ -50,7 +50,8 @@ export function Topbar({ pageTitle }: TopbarProps) {
     const interval = setInterval(loadNotifications, 30000); // Refresh every 30s
     
     // Listen for custom notification refresh events
-    const handleNotificationRefresh = () => {
+    const handleNotificationRefresh = (event: any) => {
+      console.log("Notification refresh event received:", event.detail);
       loadNotifications();
     };
     
@@ -121,6 +122,8 @@ export function Topbar({ pageTitle }: TopbarProps) {
         return <Truck className="h-4 w-4 text-green-600" />;
       case "workflow":
         return <Workflow className="h-4 w-4 text-purple-600" />;
+      case "inventory":
+        return <Box className="h-4 w-4 text-orange-600" />;
       case "system":
         return <AlertCircle className="h-4 w-4 text-gray-600" />;
       default:
@@ -158,7 +161,7 @@ export function Topbar({ pageTitle }: TopbarProps) {
           <Bell className="h-4 w-4" />
           {unreadCount > 0 && (
             <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs">
-              {unreadCount}
+              {unreadCount > 5 ? "5+" : unreadCount}
             </Badge>
           )}
         </DropdownMenuTrigger>

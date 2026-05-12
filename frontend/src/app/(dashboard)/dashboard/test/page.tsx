@@ -70,10 +70,10 @@ export default function UnifiedTestSimulator() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.detail || "Hata oluştu");
       toast.success(data.message);
-      loadData();
+      await loadData();
       // Trigger notification refresh
       if (typeof window !== "undefined") {
-        window.dispatchEvent(new CustomEvent("notification-refresh"));
+        window.dispatchEvent(new CustomEvent("notification-refresh", { detail: { force: true } }));
       }
     } catch (err: any) {
       toast.error(`Seed başarısız: ${err.message}`);
@@ -233,10 +233,11 @@ export default function UnifiedTestSimulator() {
       const res = await fetchWithAuth("/test/notifications/create", { method: "POST" });
       const data = await res.json();
       toast.success(`${data.message}: ${data.notification_id}`);
-      loadData();
-      // Trigger notification refresh
+      await loadData();
+      // Trigger notification refresh for topbar
       if (typeof window !== "undefined") {
-        window.dispatchEvent(new CustomEvent("notification-refresh"));
+        console.log("Dispatching notification-refresh event");
+        window.dispatchEvent(new CustomEvent("notification-refresh", { detail: { force: true } }));
       }
     } catch (err) {
       toast.error("Bildirim oluşturulamadı");
@@ -493,7 +494,7 @@ export default function UnifiedTestSimulator() {
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm text-muted-foreground">
-              Mevcut bildirimler: <span className="font-semibold">{notifications.length}</span>
+              Mevcut bildirimler: <span className="font-semibold">{notifications.length > 5 ? "5+" : notifications.length}</span>
             </p>
           </div>
           <Button
