@@ -182,6 +182,23 @@ Frontend dev server running at http://localhost:3000
   - Made loadData() calls async with await in test simulator for proper data refresh
   - Added debug console logs for notification-refresh event dispatching and receiving
   - Fixed notification count display to show "5+" when count exceeds 5 in both test simulator and topbar
+- [x] **Inventory Import/Export**: Added import and export functionality to inventory page:
+  - "İçe Aktar" button opens Sheet with CSV format instructions
+  - "Dışa Aktar" button exports inventory as CSV file
+  - Sheet includes column descriptions, example CSV, and upload area
+  - Turkish localization with natural cooperative product examples (reçel, bal, turşu)
+  - Added import mode selection (overwrite vs reset)
+  - Added warning modal for reset option
+  - Backend handles duplicate SKU skipping in overwrite mode
+  - Backend deletes all inventory in reset mode
+  - Fixed 422 error by bypassing fetchWithAuth for FormData upload
+  - Made import sheet scrollable
+- [x] **Integrations Page**: Created marketplace integrations UI:
+  - Added 4 integration cards (Trendyol, Hepsiburada, Amazon, Diğer)
+  - Used provided brand images for Trendyol, Hepsiburada, Amazon
+  - All cards marked as "Yakında" (Coming soon)
+  - Responsive grid layout with hover effects
+  - Turkish descriptions for each integration
 
 ### Phase 6
 - [ ] Docker Compose (frontend + backend + postgres + redis)
