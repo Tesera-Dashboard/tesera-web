@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import { fetchWithAuth } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/shared/PageHeader";
+import { AlertModal } from "@/components/ui/AlertModal";
+import { SuccessModal } from "@/components/ui/SuccessModal";
 import { toast } from "sonner";
 import { InventoryItem } from "@/types/inventory";
 import { Shipment } from "@/types/shipment";
@@ -31,6 +33,11 @@ export default function UnifiedTestSimulator() {
   const [aiInput, setAiInput] = useState("");
   const [aiMessages, setAiMessages] = useState<AIMessage[]>([]);
   const [aiLoading, setAiLoading] = useState(false);
+
+  // Modal states
+  const [isClearAlertOpen, setIsClearAlertOpen] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
+  const [isSuccessOpen, setIsSuccessOpen] = useState(false);
 
   const loadData = () => {
     fetchWithAuth("/inventory")
@@ -155,12 +162,12 @@ export default function UnifiedTestSimulator() {
 
   // 6. Tüm Verileri Temizle
   const handleClearAll = async () => {
-    if (!confirm("Tüm test verileri (envanter, sipariş, kargo ve yapay zeka konuşma geçmişi) silinecek. Emin misiniz?")) return;
     setClearing(true);
     try {
       const res = await fetchWithAuth("/test/clear", { method: "POST" });
       const data = await res.json();
-      toast.success(data.message);
+      setSuccessMessage(data.message);
+      setIsSuccessOpen(true);
       setInventory([]);
       setShipments([]);
       setAiMessages([]);
@@ -258,7 +265,7 @@ export default function UnifiedTestSimulator() {
         <Button
           variant="destructive"
           size="sm"
-          onClick={handleClearAll}
+          onClick={() => setIsClearAlertOpen(true)}
           disabled={clearing}
           className="shrink-0"
         >
@@ -514,6 +521,27 @@ export default function UnifiedTestSimulator() {
           </div>
         )}
       </div>
+
+      {/* Alert Modal for Clear All */}
+      <AlertModal
+        isOpen={isClearAlertOpen}
+        onClose={() => setIsClearAlertOpen(false)}
+        onConfirm={handleClearAll}
+        title="Veritabanını Temizle"
+        description="Tüm test verileri (envanter, sipariş, kargo, iş akışları, bildirimler ve yapay zeka konuşma geçmişi) silinecek. Bu işlem geri alınamaz."
+        confirmText="Evet, Sil"
+        cancelText="İptal"
+        variant="danger"
+      />
+
+      {/* Success Modal */}
+      <SuccessModal
+        isOpen={isSuccessOpen}
+        onClose={() => setIsSuccessOpen(false)}
+        title="İşlem Başarılı"
+        description={successMessage}
+        confirmText="Tamam"
+      />
     </div>
   );
 }

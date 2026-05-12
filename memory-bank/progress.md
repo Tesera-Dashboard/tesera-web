@@ -160,6 +160,21 @@ Frontend dev server running at http://localhost:3000
   - Added analytics chart section showing order trends (last 7 days)
   - Added notifications section showing recent notifications with icons and priority badges
   - Fixed data formatting with nullish coalescing for proper display
+- [x] **Inventory Import/Export**: Added import and export functionality to inventory page:
+  - "İçe Aktar" button opens Sheet with CSV format instructions
+  - "Dışa Aktar" button exports inventory as CSV file
+  - Sheet includes column descriptions, example CSV, and upload area
+  - Turkish localization with natural cooperative product examples (reçel, bal, turşu)
+- [x] **Test Simulator Enhancements**:
+  - Turkish-ized all mock data with natural cooperative inventory items:
+    - Categories: Reçel, Turşu, Bal, Zeytin, Süt Ürünleri, Kuru Gıda
+    - Products: Ayva Reçeli, Çam Balı, Domates Turşusu, Siyah Zeytin, Beyaz Peynir, Tulum Peynir, Nohut, Mercimek, Bulgur, Pirinç, etc.
+    - Orders: Turkish customer names and addresses
+    - Carriers: Yurtiçi Kargo, Aras Kargo
+    - Statuses: İşleniyor, Kargoda, Teslim Edildi, Yolda
+  - Replaced alert() with custom AlertModal for "Tümünü Sil" confirmation
+  - Added SuccessModal for successful deletion feedback
+  - Fixed shipment delay notification not being created when isDelayed changes
 
 ### Phase 6
 - [ ] Docker Compose (frontend + backend + postgres + redis)

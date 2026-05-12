@@ -16,35 +16,35 @@ router = APIRouter()
 @router.post("/seed")
 def seed_mock_data(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     company_id = current_user.company_id
-    
+
     # 1. Seed Inventory
     inv_id1, inv_id2, inv_id3, inv_id4 = f"INV-{random.randint(10000,99999)}", f"INV-{random.randint(10000,99999)}", f"INV-{random.randint(10000,99999)}", f"INV-{random.randint(10000,99999)}"
-    
+
     inventory_items = [
-        InventoryItem(id=inv_id1, company_id=company_id, name="Wireless Keyboard", sku=f"WK-{random.randint(1000,9999)}", category="Electronics", stock=150, minStock=20, price=49.99, status="Stokta", lastRestocked="2023-10-01"),
-        InventoryItem(id=inv_id2, company_id=company_id, name="Ergonomic Mouse", sku=f"EM-{random.randint(1000,9999)}", category="Electronics", stock=85, minStock=15, price=29.99, status="Stokta", lastRestocked="2023-10-05"),
-        InventoryItem(id=inv_id3, company_id=company_id, name="Desk Mat", sku=f"DM-{random.randint(1000,9999)}", category="Accessories", stock=12, minStock=50, price=19.99, status="Azalıyor", lastRestocked="2023-09-15"),
-        InventoryItem(id=inv_id4, company_id=company_id, name="Monitor Stand", sku=f"MS-{random.randint(1000,9999)}", category="Furniture", stock=0, minStock=10, price=39.99, status="Tükendi", lastRestocked="2023-08-20"),
+        InventoryItem(id=inv_id1, company_id=company_id, name="Ayva Reçeli", sku=f"REC-{random.randint(1000,9999)}", category="Reçel", stock=150, minStock=20, price=45.00, status="Stokta", lastRestocked="2024-01-15"),
+        InventoryItem(id=inv_id2, company_id=company_id, name="Çam Balı", sku=f"BAL-{random.randint(1000,9999)}", category="Bal", stock=85, minStock=15, price=120.00, status="Stokta", lastRestocked="2024-02-20"),
+        InventoryItem(id=inv_id3, company_id=company_id, name="Domates Turşusu", sku=f"TUR-{random.randint(1000,9999)}", category="Turşu", stock=12, minStock=50, price=35.00, status="Azalıyor", lastRestocked="2024-03-10"),
+        InventoryItem(id=inv_id4, company_id=company_id, name="Siyah Zeytin", sku=f"ZEY-{random.randint(1000,9999)}", category="Zeytin", stock=0, minStock=10, price=55.00, status="Tükendi", lastRestocked="2024-01-20"),
     ]
     for item in inventory_items:
         db.add(item)
-        
+
     # 2. Seed Orders
     now = datetime.utcnow()
     ord_id1, ord_id2, ord_id3 = f"ORD-{random.randint(10000,99999)}", f"ORD-{random.randint(10000,99999)}", f"ORD-{random.randint(10000,99999)}"
-    
+
     orders = [
-        Order(id=ord_id1, company_id=company_id, customer="Alice Smith", email="alice@example.com", product="Wireless Keyboard", quantity=2, amount=99.98, status="Processing", date=(now - timedelta(days=1)).isoformat(), address="123 Tech Lane, NY", notes="Deliver before noon"),
-        Order(id=ord_id2, company_id=company_id, customer="Bob Jones", email="bob@example.com", product="Ergonomic Mouse", quantity=1, amount=29.99, status="Shipped", date=(now - timedelta(days=2)).isoformat(), address="456 Silicon Blvd, CA", notes=""),
-        Order(id=ord_id3, company_id=company_id, customer="Charlie Brown", email="charlie@example.com", product="Desk Mat", quantity=5, amount=99.95, status="Delivered", date=(now - timedelta(days=5)).isoformat(), address="789 StartUp Way, TX", notes="Leave at reception"),
+        Order(id=ord_id1, company_id=company_id, customer="Ahmet Yılmaz", email="ahmet@example.com", product="Ayva Reçeli", quantity=2, amount=90.00, status="İşleniyor", date=(now - timedelta(days=1)).isoformat(), address="Atatürk Cad. No:123, İstanbul", notes="Öğleden önce teslim"),
+        Order(id=ord_id2, company_id=company_id, customer="Ayşe Demir", email="ayse@example.com", product="Çam Balı", quantity=1, amount=120.00, status="Kargoda", date=(now - timedelta(days=2)).isoformat(), address="Bağdat Cad. No:456, İstanbul", notes=""),
+        Order(id=ord_id3, company_id=company_id, customer="Mehmet Kaya", email="mehmet@example.com", product="Domates Turşusu", quantity=5, amount=175.00, status="Teslim Edildi", date=(now - timedelta(days=5)).isoformat(), address="İstiklal Cad. No:789, İstanbul", notes="Kapıcıya bırak"),
     ]
     for o in orders:
         db.add(o)
-        
+
     # 3. Seed Shipments
     shipments = [
-        Shipment(id=f"SHP-{random.randint(10000,99999)}", company_id=company_id, orderId=ord_id2, carrier="FedEx", trackingCode=f"FX{random.randint(100000,999999)}", status="In Transit", origin="NY Warehouse", destination="456 Silicon Blvd, CA", estimatedDelivery=(now + timedelta(days=1)).isoformat(), isDelayed=False, delayReason=""),
-        Shipment(id=f"SHP-{random.randint(10000,99999)}", company_id=company_id, orderId=ord_id3, carrier="UPS", trackingCode=f"1Z{random.randint(100000,999999)}", status="Delivered", origin="NY Warehouse", destination="789 StartUp Way, TX", estimatedDelivery=(now - timedelta(days=1)).isoformat(), isDelayed=False, delayReason=""),
+        Shipment(id=f"SHP-{random.randint(10000,99999)}", company_id=company_id, orderId=ord_id2, carrier="Yurtiçi Kargo", trackingCode=f"TRK{random.randint(100000,999999)}", status="Yolda", origin="İstanbul Depo", destination="Bağdat Cad. No:456, İstanbul", estimatedDelivery=(now + timedelta(days=1)).isoformat(), isDelayed=False, delayReason=""),
+        Shipment(id=f"SHP-{random.randint(10000,99999)}", company_id=company_id, orderId=ord_id3, carrier="Aras Kargo", trackingCode=f"ARS{random.randint(100000,999999)}", status="Teslim Edildi", origin="İstanbul Depo", destination="İstiklal Cad. No:789, İstanbul", estimatedDelivery=(now - timedelta(days=1)).isoformat(), isDelayed=False, delayReason=""),
     ]
     for s in shipments:
         db.add(s)
@@ -98,6 +98,7 @@ def simulate_update_shipment(req: UpdateShipmentRequest, db: Session = Depends(g
         raise HTTPException(status_code=404, detail="Shipment not found")
 
     old_status = shipment.status
+    old_is_delayed = shipment.isDelayed
 
     shipment.status = req.status
     shipment.isDelayed = req.is_delayed
@@ -124,23 +125,41 @@ def simulate_update_shipment(req: UpdateShipmentRequest, db: Session = Depends(g
         db.add(notification)
         db.commit()
 
+    # Create notification if delay status changed
+    if old_is_delayed != req.is_delayed:
+        priority = "warning" if req.is_delayed else "info"
+        message = f"Kargo {shipment.trackingCode} gecikmeli olarak işaretlendi" if req.is_delayed else f"Kargo {shipment.trackingCode} gecikme durumu kaldırıldı"
+        notification = NotificationModel(
+            id=uuid.uuid4(),
+            company_id=current_user.company_id,
+            user_id=current_user.id,
+            title="Kargo Gecikme Durumu",
+            message=message,
+            type="shipment",
+            priority=priority,
+            meta_data={"shipment_id": shipment.id},
+            is_read=False
+        )
+        db.add(notification)
+        db.commit()
+
     return {"message": f"Shipment {req.shipment_id} updated"}
 
 @router.post("/inventory/create")
 def simulate_create_inventory_item(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     item_id = f"INV-{random.randint(1000, 9999)}"
-    categories = ["Elektronik", "Mobilya", "Kırtasiye", "Aksesuar"]
-    names = ["Laptop Standı", "Mekanik Klavye", "Ergonomik Koltuk", "Işıklı Mouse Pad", "Not Defteri Seti"]
+    categories = ["Reçel", "Turşu", "Bal", "Zeytin", "Süt Ürünleri", "Kuru Gıda"]
+    names = ["Ayva Reçeli", "Ceviz Reçeli", "Gül Reçeli", "Domates Turşusu", "Salatalık Turşusu", "Kabak Turşusu", "Çam Balı", "Çiçek Balı", "Karaca Balı", "Siyah Zeytin", "Yeşil Zeytin", "Üzüm Zeytini", "Beyaz Peynir", "Kaşar Peyniri", "Tulum Peyniri", "Köy Yoğurdu", "Ayran", "Nohut", "Mercimek", "Bulgur", "Pirinç"]
     
     new_item = InventoryItem(
         id=item_id,
         company_id=current_user.company_id,
-        name=f"{random.choice(names)} {random.randint(1, 99)}",
+        name=random.choice(names),
         sku=f"SKU-{random.randint(10000, 99999)}",
         category=random.choice(categories),
         stock=random.randint(0, 100),
         minStock=random.randint(5, 20),
-        price=round(random.uniform(10.0, 500.0), 2),
+        price=round(random.uniform(20.0, 150.0), 2),
         status=random.choice(["Stokta", "Azalıyor", "Tükendi"]),
         lastRestocked=datetime.utcnow().isoformat()
     )

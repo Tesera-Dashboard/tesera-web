@@ -12,7 +12,8 @@
 import { useMemo, useState, useCallback, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { fetchWithAuth } from "@/lib/api";
-import { Plus } from "lucide-react";
+import { Plus, Download, Upload, FileSpreadsheet, X, UploadCloud } from "lucide-react";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 
 import { InventoryItem, StockLevel } from "@/types/inventory";
 
@@ -54,6 +55,9 @@ export default function InventoryPage() {
   const [itemToDelete, setItemToDelete] = useState<InventoryItem | null>(null);
   const [successMessage, setSuccessMessage] = useState("");
   const [isSuccessOpen, setIsSuccessOpen] = useState(false);
+
+  // Import/Export states
+  const [isImportSheetOpen, setIsImportSheetOpen] = useState(false);
 
   // API'den stokları çek
   const loadInventory = useCallback(async () => {
@@ -102,6 +106,28 @@ export default function InventoryPage() {
 
   const handleSearch = useCallback((value: string) => setSearchQuery(value), []);
 
+  const handleExport = useCallback(() => {
+    const csv = [
+      ["SKU", "Ürün Adı", "Kategori", "Stok", "Minimum Stok", "Fiyat", "Durum", "Son Stok Tarihi"],
+      ...inventoryItems.map(item => [
+        item.sku,
+        item.name,
+        item.category,
+        item.stock,
+        item.minStock,
+        item.price,
+        item.status,
+        item.lastRestocked
+      ])
+    ].map(row => row.join(",")).join("\n");
+
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `envanter-${new Date().toISOString().split("T")[0]}.csv`;
+    link.click();
+  }, [inventoryItems]);
+
   return (
     <div className="space-y-5 max-w-7xl mx-auto">
 
@@ -111,10 +137,20 @@ export default function InventoryPage() {
           title="Envanter"
           description={`${filteredItems.length} ürün listeleniyor`}
         />
-        <Button onClick={() => { setEditItem(null); setIsProductSheetOpen(true); }} className="h-10">
-          <Plus className="mr-2 h-4 w-4" />
-          Yeni Ürün Ekle
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={() => setIsImportSheetOpen(true)} variant="outline" className="h-10">
+            <Upload className="mr-2 h-4 w-4" />
+            İçe Aktar
+          </Button>
+          <Button onClick={() => handleExport()} variant="outline" className="h-10">
+            <Download className="mr-2 h-4 w-4" />
+            Dışa Aktar
+          </Button>
+          <Button onClick={() => { setEditItem(null); setIsProductSheetOpen(true); }} className="h-10">
+            <Plus className="mr-2 h-4 w-4" />
+            Yeni Ürün Ekle
+          </Button>
+        </div>
       </div>
 
       {/* Stok uyarı banner'ları */}
@@ -205,6 +241,71 @@ export default function InventoryPage() {
         description={successMessage}
         confirmText="Tamam"
       />
+
+      {/* Import Sheet */}
+      <Sheet open={isImportSheetOpen} onOpenChange={setIsImportSheetOpen}>
+        <SheetContent className="sm:max-w-lg">
+          <SheetHeader>
+            <SheetTitle className="flex items-center gap-2">
+              <UploadCloud className="h-5 w-5" />
+              Envanter İçe Aktar
+            </SheetTitle>
+            <SheetDescription>
+              CSV formatındaki envanter dosyanızı yükleyin
+            </SheetDescription>
+          </SheetHeader>
+          <div className="mt-6 space-y-6">
+            {/* Instructions */}
+            <div className="space-y-4">
+              <h4 className="font-semibold text-sm flex items-center gap-2">
+                <FileSpreadsheet className="h-4 w-4" />
+                CSV Dosya Formatı
+              </h4>
+              <div className="bg-muted rounded-lg p-4 text-sm space-y-2">
+                <p className="font-medium">Sütunlar (sırasıyla):</p>
+                <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+                  <li>SKU - Ürün benzersiz kodu</li>
+                  <li>Ürün Adı - Ürünün adı</li>
+                  <li>Kategori - Ürün kategorisi (Örn: Reçel, Turşu, Bal)</li>
+                  <li>Stok - Mevcut stok miktarı</li>
+                  <li>Minimum Stok - Minimum stok seviyesi</li>
+                  <li>Fiyat - Birim fiyatı (TL)</li>
+                  <li>Durum - Stok durumu (Stokta, Azalıyor, Tükendi)</li>
+                  <li>Son Stok Tarihi - YYYY-MM-DD formatında</li>
+                </ul>
+              </div>
+            </div>
+
+            {/* Example */}
+            <div className="space-y-2">
+              <h4 className="font-semibold text-sm">Örnek CSV:</h4>
+              <div className="bg-muted rounded-lg p-4 text-xs font-mono overflow-x-auto">
+                <pre>{`SKU,Ürün Adı,Kategori,Stok,Minimum Stok,Fiyat,Durum,Son Stok Tarihi
+REC-001,Ayva Reçeli,Reçel,50,10,45.00,Stokta,2024-01-15
+TUR-002,Kırmızı Biber Turşusu,Turşu,30,15,35.00,Azalıyor,2024-02-20
+BAL-003,Çam Balı,Bal,20,10,120.00,Tükendi,2024-03-10`}</pre>
+              </div>
+            </div>
+
+            {/* Upload Area */}
+            <div className="space-y-2">
+              <h4 className="font-semibold text-sm">Dosya Yükle</h4>
+              <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center hover:border-primary/50 transition-colors cursor-pointer">
+                <UploadCloud className="h-12 w-12 mx-auto mb-3 text-muted-foreground" />
+                <p className="text-sm text-muted-foreground mb-2">
+                  CSV dosyasını sürükleyip bırakın veya seçin
+                </p>
+                <Button variant="outline" size="sm" className="pointer-events-none">
+                  Dosya Seç
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Not: İçe aktarma özelliği şu an için görsel olarak hazırlanmıştır. Backend entegrasyonu yakında eklenecektir.
+              </p>
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
 
     </div>
   );
