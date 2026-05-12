@@ -26,7 +26,7 @@ export function Hero() {
                 alt="Tesera Logo" 
                 width={200} 
                 height={200} 
-                className="w-24 md:w-32 h-auto object-contain dark:invert drop-shadow-2xl" 
+                className="w-24 md:w-32 h-auto object-contain drop-shadow-2xl" 
                 priority 
               />
             </motion.div>

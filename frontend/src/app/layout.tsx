@@ -12,6 +12,10 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "Tesera - AI-Powered Operations Assistant",
   description: "Intelligent operations platform for SMEs to manage customers, stock, and shipments.",
+  icons: {
+    icon: "/mini-logo.png",
+    apple: "/mini-logo.png",
+  },
 };
 
 export default function RootLayout({

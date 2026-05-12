@@ -58,7 +58,7 @@ export default function LoginPage() {
       <div className="w-full max-w-md bg-background rounded-2xl border shadow-sm p-8 space-y-6">
         <div className="text-center flex flex-col items-center space-y-2">
           <Link href="/" className="inline-block mb-4">
-            <Image src="/logo.png" alt="Tesera Logo" width={600} height={200} className="w-[240px] md:w-[280px] h-auto object-contain dark:invert" priority />
+            <Image src="/logo.png" alt="Tesera Logo" width={600} height={200} className="w-[240px] md:w-[280px] h-auto object-contain" priority />
           </Link>
           <h1 className="text-2xl font-semibold tracking-tight">Tekrar Hoş Geldiniz</h1>
           <p className="text-sm text-muted-foreground">

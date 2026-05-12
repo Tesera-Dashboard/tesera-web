@@ -48,7 +48,7 @@ function PendingVerificationContent() {
     <div className="min-h-screen flex flex-col items-center justify-center bg-muted/30 p-4">
       <div className="w-full max-w-md bg-background rounded-2xl border shadow-sm p-8 space-y-6 text-center">
         <Link href="/" className="inline-block">
-          <Image src="/logo.png" alt="Tesera Logo" width={600} height={200} className="mx-auto w-[220px] md:w-[260px] h-auto object-contain dark:invert" priority />
+          <Image src="/logo.png" alt="Tesera Logo" width={600} height={200} className="mx-auto w-[220px] md:w-[260px] h-auto object-contain" priority />
         </Link>
 
         <div className="mx-auto bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mb-6">

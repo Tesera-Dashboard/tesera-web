@@ -8,7 +8,7 @@ export function Footer() {
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8">
           <div className="col-span-2 lg:col-span-2">
             <Link href="/" className="inline-block mb-4">
-              <Image src="/logo.png" alt="Tesera Logo" width={500} height={160} className="w-[160px] md:w-[200px] h-auto object-contain dark:invert" />
+              <Image src="/logo.png" alt="Tesera Logo" width={500} height={160} className="w-[160px] md:w-[200px] h-auto object-contain" />
             </Link>
             <p className="text-sm text-muted-foreground pr-4">
               Modern KOBİ'ler, kooperatifler ve e-ticaret işletmeleri için yapay zeka destekli operasyon asistanı platformu.

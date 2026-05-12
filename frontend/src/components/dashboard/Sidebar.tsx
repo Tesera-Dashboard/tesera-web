@@ -117,12 +117,12 @@ export function Sidebar() {
             onClick={() => setCollapsed(false)}
             aria-label="Expand sidebar"
           >
-            <Image src="/mini-logo.png" alt="Tesera" width={40} height={40} className="h-8 w-8 object-contain dark:invert" />
+            <Image src="/mini-logo.png" alt="Tesera" width={40} height={40} className="h-8 w-8 object-contain" />
           </Button>
         ) : (
           <>
             <Link href="/dashboard" className="flex items-center gap-2">
-              <Image src="/logo.png" alt="Tesera Logo" width={400} height={120} className="w-[160px] h-auto object-contain dark:invert" priority />
+              <Image src="/logo.png" alt="Tesera Logo" width={400} height={120} className="w-[160px] h-auto object-contain" priority />
             </Link>
             <Button
               variant="ghost"

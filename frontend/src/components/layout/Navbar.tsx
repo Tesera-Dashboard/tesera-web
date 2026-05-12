@@ -7,7 +7,7 @@ export function Navbar() {
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto flex h-20 md:h-24 items-center justify-between px-4 md:px-8">
         <div className="flex gap-6 md:gap-10">
-          <Image src="/logo.png" alt="Tesera Logo" width={500} height={160} className="w-[160px] md:w-[200px] h-auto object-contain dark:invert" priority />
+          <Image src="/logo.png" alt="Tesera Logo" width={500} height={160} className="w-[160px] md:w-[200px] h-auto object-contain" priority />
           <nav className="hidden md:flex gap-6 mt-3">
             <Link
               href="#features"
