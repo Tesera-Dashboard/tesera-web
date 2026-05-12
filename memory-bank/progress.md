@@ -95,8 +95,40 @@ Frontend dev server running at http://localhost:3000
   - Automatic order recalculation when steps are added/removed
 - [x] **Test Simulator Integration**: Added **Module 6 – İş Akışı Testi** to the Unified Test Simulator at `/dashboard/test` for quickly generating sample workflows with test steps.
 - [x] **Error Handling**: Added detailed error handling for all workflow operations (create, update, delete, toggle) with console logging and user-friendly toast messages showing actual backend error details.
+- [x] **Module Integration**: Added automatic notification creation to all core modules:
+  - **Orders**: Notification created when new order is received (success priority) + PUT endpoint creates notification when order status changes (info priority) + deadline check endpoint to create warning notifications when order delivery date is approaching
+  - **Shipments**: Notification created when new shipment is created (success priority) + delay check endpoint to create warning notifications when shipment is past estimated delivery date + PUT endpoint creates notification when shipment status changes (info priority)
+  - **Inventory**: Notification created when new item is added (success priority) + low stock check endpoint to create warning notifications when stock falls below threshold + PUT endpoint creates notification when inventory quantity decreases (warning priority)
+  - **Workflows**: Notification created when workflow is created/updated/deleted (success/info/warning priorities)
+  - **Test**: Fixed test notification endpoint to work without authentication for easier testing
 - [x] **Backend Clear Function**: Updated test clear endpoint to also delete workflow data alongside inventory, orders, shipments, and AI chat history.
-- [ ] Notification center
+
+### ✅ Phase 4 – Notification Center
+- [x] **Backend Database Model**: Created `Notification` SQLAlchemy model with multi-tenancy support (`company_id`, `user_id`). Includes title, message, type (order, shipment, inventory, workflow, system), priority (info, warning, error, success), meta_data for additional context, is_read flag, read_at timestamp, and created_at.
+- [x] **Backend Schemas**: Added Pydantic schemas for `Notification`, `NotificationBase`, and `NotificationCreate` with UUID and datetime field serializers for proper API response serialization.
+- [x] **Backend API Routes**: Implemented full CRUD endpoints at `/api/v1/notifications` (GET list with unread filter, GET by ID, POST create, PUT mark-read, PUT mark-all-read, DELETE delete). Includes `/unread-count` endpoint for badge display. All endpoints include UUID conversion from string to handle frontend requests properly.
+- [x] **Frontend Types**: Created TypeScript types for `Notification` and `NotificationCreate` in `frontend/src/types/notification.ts`.
+- [x] **Frontend Notification Center UI**: Built complete notification management interface at `/dashboard/notifications` with:
+  - Card-based notification list display with type icons (Package for order, Truck for shipment, Workflow for workflow, AlertCircle for system)
+  - Priority badges (Hata, Uyarı, Başarılı, Bilgi) with color coding
+  - Unread notifications highlighted with left border accent
+  - Mark as read functionality with button
+  - Mark all as read functionality (shown when unread count > 0)
+  - Delete notification with trash icon
+  - Empty state with bell icon
+  - Turkish localization throughout
+- [x] **Navbar Notification Dropdown**: Added notification dropdown to dashboard topbar with:
+  - Badge showing unread count
+  - Dropdown with recent notifications (last 5)
+  - Auto-refresh every 30 seconds
+  - Click to mark as read
+  - "Tümünü Oku" button when unread count > 0
+  - "Tüm Bildirimleri Gör" link to notification center
+  - Type icons matching notification center
+  - Unread indicator dots
+- [x] **Test Simulator Integration**: Added **Module 7 – Bildirim Testi** to the Unified Test Simulator at `/dashboard/test` for quickly generating sample notifications with random types.
+- [x] **Backend Clear Function**: Updated test clear endpoint to also delete notification data alongside inventory, orders, shipments, workflows, and AI chat history.
+- [x] **Error Handling**: Added detailed error handling for all notification operations with console logging and user-friendly toast messages showing actual backend error details.
 
 ### Phase 5
 - [ ] Analytics charts (Recharts or similar)

@@ -19,6 +19,13 @@ class Order(OrderBase):
     class Config:
         from_attributes = True
 
+class OrderCreate(BaseModel):
+    customer: str
+    email: str
+    product: str
+    quantity: int
+    status: str = "pending"
+
 class InventoryItemBase(BaseModel):
     id: str
     name: str
@@ -33,6 +40,13 @@ class InventoryItemBase(BaseModel):
 class InventoryItem(InventoryItemBase):
     class Config:
         from_attributes = True
+
+class InventoryItemCreate(BaseModel):
+    name: str
+    sku: str
+    quantity: int
+    price: float
+    category: str
 
 class ShipmentBase(BaseModel):
     id: str
@@ -49,6 +63,13 @@ class ShipmentBase(BaseModel):
 class Shipment(ShipmentBase):
     class Config:
         from_attributes = True
+
+class ShipmentCreate(BaseModel):
+    order_id: str
+    carrier: str
+    tracking_number: str
+    status: str = "pending"
+    estimated_delivery: Optional[datetime] = None
 
 class WorkflowStepBase(BaseModel):
     id: uuid.UUID
@@ -89,8 +110,8 @@ class WorkflowBase(BaseModel):
         return str(value)
 
     @field_serializer('created_at', 'updated_at')
-    def serialize_datetime(self, value: datetime) -> str:
-        return value.isoformat()
+    def serialize_datetime(self, value: Optional[datetime]) -> Optional[str]:
+        return value.isoformat() if value else None
 
 class Workflow(WorkflowBase):
     class Config:
@@ -110,3 +131,35 @@ class WorkflowUpdate(BaseModel):
     trigger_config: Optional[Dict[str, Any]] = None
     is_active: Optional[bool] = None
     steps: Optional[List[Dict[str, Any]]] = None
+
+class NotificationBase(BaseModel):
+    id: uuid.UUID
+    company_id: uuid.UUID
+    user_id: Optional[uuid.UUID] = None
+    title: str
+    message: str
+    type: str
+    priority: str
+    meta_data: Optional[Dict[str, Any]] = None
+    is_read: bool
+    read_at: Optional[datetime] = None
+    created_at: datetime
+
+    @field_serializer('id', 'company_id', 'user_id')
+    def serialize_uuid(self, value: uuid.UUID) -> str:
+        return str(value)
+
+    @field_serializer('created_at', 'read_at')
+    def serialize_datetime(self, value: Optional[datetime]) -> Optional[str]:
+        return value.isoformat() if value else None
+
+class Notification(NotificationBase):
+    class Config:
+        from_attributes = True
+
+class NotificationCreate(BaseModel):
+    title: str
+    message: str
+    type: str
+    priority: str = "info"
+    meta_data: Optional[Dict[str, Any]] = None

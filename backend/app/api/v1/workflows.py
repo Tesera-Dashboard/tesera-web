@@ -10,8 +10,25 @@ from app.models.workflow import Workflow as WorkflowModel, WorkflowStep as Workf
 from app.schemas.domain import Workflow, WorkflowCreate, WorkflowUpdate
 from app.api.deps import get_current_user
 from app.models.user import User
+from app.models.notification import Notification as NotificationModel
 
 router = APIRouter()
+
+def create_notification(db: Session, company_id, user_id, title, message, notification_type, priority="info", meta_data=None):
+    """Helper function to create notifications"""
+    notification = NotificationModel(
+        id=uuid.uuid4(),
+        company_id=company_id,
+        user_id=user_id,
+        title=title,
+        message=message,
+        type=notification_type,
+        priority=priority,
+        meta_data=meta_data,
+        is_read=False
+    )
+    db.add(notification)
+    db.commit()
 
 @router.get("/", response_model=List[Workflow])
 def read_workflows(
@@ -78,6 +95,19 @@ def create_workflow(
 
         db.commit()
         db.refresh(new_workflow)
+
+        # Create notification
+        create_notification(
+            db,
+            current_user.company_id,
+            current_user.id,
+            "Yeni İş Akışı",
+            f"{workflow.name} iş akışı oluşturuldu. {len(workflow.steps)} adım içeriyor",
+            "workflow",
+            "success",
+            {"workflow_id": str(new_workflow.id)}
+        )
+
         return new_workflow
     except Exception as e:
         db.rollback()
@@ -136,6 +166,19 @@ def update_workflow(
 
         db.commit()
         db.refresh(db_workflow)
+
+        # Create notification
+        create_notification(
+            db,
+            current_user.company_id,
+            current_user.id,
+            "İş Akışı Güncellendi",
+            f"{db_workflow.name} iş akışı güncellendi",
+            "workflow",
+            "info",
+            {"workflow_id": str(db_workflow.id)}
+        )
+
         return db_workflow
     except Exception as e:
         db.rollback()
@@ -151,16 +194,33 @@ def delete_workflow(
         workflow_uuid = UUID(workflow_id)
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid workflow ID format")
-    db_workflow = db.query(WorkflowModel).filter(
+
+    workflow = db.query(WorkflowModel).filter(
         WorkflowModel.id == workflow_uuid,
         WorkflowModel.company_id == current_user.company_id
     ).first()
-    if not db_workflow:
+
+    if not workflow:
         raise HTTPException(status_code=404, detail="Workflow not found")
 
+    workflow_name = workflow.name
+
     try:
-        db.delete(db_workflow)
+        db.delete(workflow)
         db.commit()
+
+        # Create notification
+        create_notification(
+            db,
+            current_user.company_id,
+            current_user.id,
+            "İş Akışı Silindi",
+            f"{workflow_name} iş akışı silindi",
+            "workflow",
+            "warning",
+            {"workflow_id": str(workflow.id)}
+        )
+
         return {"message": "Workflow deleted successfully"}
     except Exception as e:
         db.rollback()

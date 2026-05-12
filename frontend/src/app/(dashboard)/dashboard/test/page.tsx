@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { InventoryItem } from "@/types/inventory";
 import { Shipment } from "@/types/shipment";
 import { Workflow } from "@/types/workflow";
-import { DatabaseBackup, PackagePlus, ShoppingCart, Truck, Bot, Send, Loader2, Trash2, Workflow as WorkflowIcon } from "lucide-react";
+import { DatabaseBackup, PackagePlus, ShoppingCart, Truck, Bot, Send, Loader2, Trash2, Workflow as WorkflowIcon, Bell } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
@@ -22,18 +22,33 @@ export default function UnifiedTestSimulator() {
   const [loadingItem, setLoadingItem] = useState(false);
   const [loadingShipment, setLoadingShipment] = useState(false);
   const [loadingWorkflow, setLoadingWorkflow] = useState(false);
+  const [loadingNotification, setLoadingNotification] = useState(false);
   const [clearing, setClearing] = useState(false);
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [shipments, setShipments] = useState<Shipment[]>([]);
   const [workflows, setWorkflows] = useState<Workflow[]>([]);
+  const [notifications, setNotifications] = useState<any[]>([]);
   const [aiInput, setAiInput] = useState("");
   const [aiMessages, setAiMessages] = useState<AIMessage[]>([]);
   const [aiLoading, setAiLoading] = useState(false);
 
   const loadData = () => {
-    fetchWithAuth("/inventory").then(res => res.json()).then(setInventory);
-    fetchWithAuth("/shipments").then(res => res.json()).then(setShipments);
-    fetchWithAuth("/workflows").then(res => res.json()).then(setWorkflows);
+    fetchWithAuth("/inventory")
+      .then(res => res.json())
+      .then(data => setInventory(Array.isArray(data) ? data : []))
+      .catch(() => setInventory([]));
+    fetchWithAuth("/shipments")
+      .then(res => res.json())
+      .then(data => setShipments(Array.isArray(data) ? data : []))
+      .catch(() => setShipments([]));
+    fetchWithAuth("/workflows")
+      .then(res => res.json())
+      .then(data => setWorkflows(Array.isArray(data) ? data : []))
+      .catch(() => setWorkflows([]));
+    fetchWithAuth("/notifications?limit=5")
+      .then(res => res.json())
+      .then(data => setNotifications(Array.isArray(data) ? data : []))
+      .catch(() => setNotifications([]));
   };
 
   useEffect(() => {
@@ -173,6 +188,20 @@ export default function UnifiedTestSimulator() {
       toast.error("İş akışı oluşturulamadı");
     }
     setLoadingWorkflow(false);
+  };
+
+  // 9. Bildirim Testi
+  const handleCreateNotification = async () => {
+    setLoadingNotification(true);
+    try {
+      const res = await fetchWithAuth("/test/notifications/create", { method: "POST" });
+      const data = await res.json();
+      toast.success(`${data.message}: ${data.notification_id}`);
+      loadData();
+    } catch (err) {
+      toast.error("Bildirim oluşturulamadı");
+    }
+    setLoadingNotification(false);
   };
 
   return (
@@ -403,6 +432,49 @@ export default function UnifiedTestSimulator() {
                 </div>
                 <Badge variant={w.is_active ? "default" : "secondary"} className="text-xs">
                   {w.trigger_type}
+                </Badge>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Modül 7: Bildirim Testi */}
+      <div className="bg-card border rounded-xl p-6 space-y-4 shadow-sm">
+        <div className="flex items-center gap-3 mb-2">
+          <div className="p-2 bg-blue-500/10 text-blue-600 rounded-lg">
+            <Bell className="h-5 w-5" />
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold">7. Bildirim Testi</h3>
+            <p className="text-xs text-muted-foreground">Örnek bildirim oluşturarak backend API bağlantısını test edin.</p>
+          </div>
+        </div>
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm text-muted-foreground">
+              Mevcut bildirimler: <span className="font-semibold">{notifications.length}</span>
+            </p>
+          </div>
+          <Button
+            onClick={handleCreateNotification}
+            disabled={loadingNotification}
+            variant="outline"
+            className="border-blue-200 text-blue-700 hover:bg-blue-50 dark:border-blue-900/50 dark:text-blue-400 dark:hover:bg-blue-900/20"
+          >
+            {loadingNotification ? "Oluşturuluyor..." : "Test Bildirimi Oluştur"}
+          </Button>
+        </div>
+        {notifications.length > 0 && (
+          <div className="mt-4 space-y-2 max-h-48 overflow-y-auto">
+            {notifications.map(n => (
+              <div key={n.id} className="flex items-center justify-between p-3 border rounded-lg text-sm">
+                <div>
+                  <p className="font-medium">{n.title}</p>
+                  <p className="text-xs text-muted-foreground">{n.type} • {n.is_read ? "Okundu" : "Okunmamış"}</p>
+                </div>
+                <Badge variant={n.is_read ? "secondary" : "default"} className="text-xs">
+                  {n.priority}
                 </Badge>
               </div>
             ))}

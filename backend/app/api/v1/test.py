@@ -173,8 +173,12 @@ def clear_all_test_data(db: Session = Depends(get_db), current_user: User = Depe
     from app.models.workflow import Workflow
     db.query(Workflow).filter(Workflow.company_id == company_id).delete(synchronize_session=False)
 
+    # Clear notifications
+    from app.models.notification import Notification
+    db.query(Notification).filter(Notification.company_id == company_id).delete(synchronize_session=False)
+
     db.commit()
-    return {"message": "Tüm test verileri, yapay zeka konuşma geçmişi ve iş akışları başarıyla temizlendi."}
+    return {"message": "Tüm test verileri, yapay zeka konuşma geçmişi, iş akışları ve bildirimler başarıyla temizlendi."}
 
 
 # Workflow test endpoints
@@ -219,6 +223,38 @@ def create_test_workflow(db: Session = Depends(get_db), current_user: User = Dep
     )
     db.add(step1)
     db.add(step2)
-    
+
     db.commit()
     return {"message": "Test iş akışı başarıyla oluşturuldu", "workflow_id": str(workflow_id)}
+
+
+# Notification test endpoints
+@router.post("/notifications/create")
+def create_test_notification(db: Session = Depends(get_db)):
+    from app.models.notification import Notification
+    from app.models.user import User
+    import uuid
+
+    # Get first user for testing
+    user = db.query(User).first()
+    if not user:
+        return {"error": "No user found"}
+
+    notification_types = ["order", "shipment", "inventory", "workflow", "system"]
+    notification_type = notification_types[hash(str(user.company_id)) % len(notification_types)]
+
+    notification = Notification(
+        id=uuid.uuid4(),
+        company_id=user.company_id,
+        user_id=user.id,
+        title="Test Bildirimi",
+        message=f"Bu bir {notification_type} tipinde test bildirimidir",
+        type=notification_type,
+        priority="info",
+        meta_data={"test": True},
+        is_read=False
+    )
+
+    db.add(notification)
+    db.commit()
+    return {"message": "Test bildirimi başarıyla oluşturuldu", "notification_id": str(notification.id)}

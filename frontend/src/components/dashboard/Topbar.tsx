@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Bell, Search, Sun, Moon } from "lucide-react";
+import { Bell, Search, Sun, Moon, Package, Truck, Workflow, AlertCircle, CheckCircle, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useTheme } from "next-themes";
 import { useRouter } from "next/navigation";
 import { logout, getCurrentUser } from "@/lib/auth";
+import { fetchWithAuth } from "@/lib/api";
 import { toast } from "sonner";
 import {
   DropdownMenu,
@@ -16,6 +17,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Notification } from "@/types/notification";
 
 interface TopbarProps {
   pageTitle?: string;
@@ -25,6 +28,8 @@ export function Topbar({ pageTitle }: TopbarProps) {
   const { theme, setTheme } = useTheme();
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
     getCurrentUser().then(data => {
@@ -40,14 +45,67 @@ export function Topbar({ pageTitle }: TopbarProps) {
     });
   }, [router]);
 
+  useEffect(() => {
+    loadNotifications();
+    const interval = setInterval(loadNotifications, 30000); // Refresh every 30s
+    return () => clearInterval(interval);
+  }, []);
+
+  const loadNotifications = async () => {
+    try {
+      const res = await fetchWithAuth("/notifications?limit=5");
+      if (res.ok) {
+        const data = await res.json();
+        setNotifications(data);
+        setUnreadCount(data.filter((n: Notification) => !n.is_read).length);
+      }
+    } catch (err) {
+      console.error("Notifications load error:", err);
+    }
+  };
+
+  const handleMarkAsRead = async (notificationId: string) => {
+    try {
+      await fetchWithAuth(`/notifications/${notificationId}/mark-read`, { method: "PUT" });
+      loadNotifications();
+    } catch (err) {
+      console.error("Mark as read error:", err);
+    }
+  };
+
+  const handleMarkAllAsRead = async () => {
+    try {
+      await fetchWithAuth("/notifications/mark-all-read", { method: "PUT" });
+      loadNotifications();
+      toast.success("Tüm bildirimler okundu işaretlendi");
+    } catch (err) {
+      console.error("Mark all as read error:", err);
+    }
+  };
+
+  const getNotificationIcon = (type: string) => {
+    switch (type) {
+      case "order":
+        return <Package className="h-4 w-4 text-blue-600" />;
+      case "shipment":
+        return <Truck className="h-4 w-4 text-green-600" />;
+      case "workflow":
+        return <Workflow className="h-4 w-4 text-purple-600" />;
+      case "system":
+        return <AlertCircle className="h-4 w-4 text-gray-600" />;
+      default:
+        return <Bell className="h-4 w-4 text-gray-600" />;
+    }
+  };
+
   const handleLogout = () => {
     logout();
     toast.success("Başarıyla çıkış yapıldı");
     router.push("/login");
   };
 
-  const initials = user?.full_name 
-    ? user.full_name.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase() 
+  const initials = user?.full_name
+    ? user.full_name.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase()
     : "U";
 
   return (
@@ -65,10 +123,68 @@ export function Topbar({ pageTitle }: TopbarProps) {
       </div>
 
       {/* Notifications */}
-      <Button variant="ghost" size="icon" className="relative h-8 w-8" aria-label="Notifications">
-        <Bell className="h-4 w-4" />
-        <span className="absolute top-1.5 right-1.5 h-1.5 w-1.5 rounded-full bg-primary" />
-      </Button>
+      <DropdownMenu>
+        <DropdownMenuTrigger className="relative h-8 w-8 p-0 border-0 bg-transparent hover:bg-accent">
+          <Bell className="h-4 w-4" />
+          {unreadCount > 0 && (
+            <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs">
+              {unreadCount}
+            </Badge>
+          )}
+        </DropdownMenuTrigger>
+        <DropdownMenuContent className="w-80" align="end">
+          <div className="flex items-center justify-between px-2 py-2">
+            <div className="font-semibold text-sm">Bildirimler</div>
+            {unreadCount > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 text-xs"
+                onClick={handleMarkAllAsRead}
+              >
+                Tümünü Oku
+              </Button>
+            )}
+          </div>
+          <DropdownMenuSeparator />
+          {notifications.length === 0 ? (
+            <div className="px-2 py-4 text-center text-sm text-muted-foreground">
+              Bildirim yok
+            </div>
+          ) : (
+            <div className="max-h-80 overflow-y-auto">
+              {notifications.map((notification) => (
+                <DropdownMenuItem
+                  key={notification.id}
+                  className="p-3 cursor-pointer"
+                  onClick={() => handleMarkAsRead(notification.id)}
+                >
+                  <div className="flex items-start gap-3 w-full">
+                    <div className="flex-shrink-0 mt-0.5">
+                      {getNotificationIcon(notification.type)}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-2 mb-1">
+                        <p className={`text-xs font-medium ${!notification.is_read ? "text-foreground" : "text-muted-foreground"}`}>
+                          {notification.title}
+                        </p>
+                        {!notification.is_read && (
+                          <div className="h-2 w-2 rounded-full bg-primary flex-shrink-0" />
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground line-clamp-2">{notification.message}</p>
+                    </div>
+                  </div>
+                </DropdownMenuItem>
+              ))}
+            </div>
+          )}
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={() => router.push("/dashboard/notifications")}>
+            Tüm Bildirimleri Gör
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
 
       {/* Theme toggle */}
       <Button
