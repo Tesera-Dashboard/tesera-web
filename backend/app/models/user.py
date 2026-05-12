@@ -34,17 +34,16 @@ class User(Base):
 class UserSettings(Base):
     __tablename__ = "user_settings"
 
-    id = Column(Uuid(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(Uuid(as_uuid=True), ForeignKey("users.id"), nullable=False)
-    theme = Column(String, default="light")
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, unique=True)
+    theme = Column(String(10), default="light")
     sidebar_order = Column(JSON, nullable=True)
     sidebar_enabled = Column(JSON, nullable=True)
     notifications_enabled = Column(Boolean, default=True)
-    labels = Column(JSON, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
-    user = relationship("User", backref="settings")
+    user = relationship("User", back_populates="settings")
 
 class Subscription(Base):
     __tablename__ = "subscriptions"

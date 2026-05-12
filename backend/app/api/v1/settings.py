@@ -23,7 +23,6 @@ class UserSettingsUpdate(BaseModel):
     sidebar_order: Optional[list] = None
     sidebar_enabled: Optional[list] = None
     notifications_enabled: Optional[bool] = None
-    labels: Optional[list] = None
 
 class SubscriptionInfo(BaseModel):
     plan: str
@@ -109,14 +108,12 @@ def get_user_settings(
     settings = db.query(UserSettings).filter(UserSettings.user_id == current_user.id).first()
     
     if not settings:
-        # Create default settings
         settings = UserSettings(
             user_id=current_user.id,
             theme="light",
             sidebar_order=None,
             sidebar_enabled=None,
             notifications_enabled=True,
-            labels=["Önemli", "Acil", "Normal"]
         )
         db.add(settings)
         db.commit()
@@ -127,7 +124,6 @@ def get_user_settings(
         "sidebar_order": settings.sidebar_order,
         "sidebar_enabled": settings.sidebar_enabled,
         "notifications_enabled": settings.notifications_enabled,
-        "labels": settings.labels,
     }
 
 @router.put("/user-settings")
@@ -140,7 +136,13 @@ def update_user_settings(
     settings = db.query(UserSettings).filter(UserSettings.user_id == current_user.id).first()
     
     if not settings:
-        settings = UserSettings(user_id=current_user.id)
+        settings = UserSettings(
+            user_id=current_user.id,
+            theme="light",
+            sidebar_order=None,
+            sidebar_enabled=None,
+            notifications_enabled=True,
+        )
         db.add(settings)
     
     if settings_data.theme is not None:
@@ -151,18 +153,14 @@ def update_user_settings(
         settings.sidebar_enabled = settings_data.sidebar_enabled
     if settings_data.notifications_enabled is not None:
         settings.notifications_enabled = settings_data.notifications_enabled
-    if settings_data.labels is not None:
-        settings.labels = settings_data.labels
     
     db.commit()
-    db.refresh(settings)
     
     return {
         "theme": settings.theme,
         "sidebar_order": settings.sidebar_order,
         "sidebar_enabled": settings.sidebar_enabled,
         "notifications_enabled": settings.notifications_enabled,
-        "labels": settings.labels,
     }
 
 @router.get("/billing")

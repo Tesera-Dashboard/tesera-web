@@ -39,8 +39,6 @@ export default function SettingsPage() {
   // Settings state
   const [theme, setTheme] = useState("light");
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-  const [newLabel, setNewLabel] = useState("");
-  const [labels, setLabels] = useState<string[]>(["Önemli", "Acil", "Normal"]);
 
   const sidebarItems = [
     { id: 1, label: "Genel Bakış", href: "/dashboard", enabled: true, group: "Temel" },
@@ -114,7 +112,6 @@ export default function SettingsPage() {
           setSidebarOrder(sidebarItems.map((i) => i.id));
         }
         if (data.notifications_enabled !== undefined) setNotificationsEnabled(data.notifications_enabled);
-        if (data.labels) setLabels(data.labels);
         setSettingsLoaded(true);
       } else {
         // If settings endpoint fails, still set settingsLoaded to show default values
@@ -218,7 +215,6 @@ export default function SettingsPage() {
         body: JSON.stringify({
           theme,
           notifications_enabled: notificationsEnabled,
-          labels,
           sidebar_enabled: sidebarEnabled,
           sidebar_order: sidebarOrder,
         }),
@@ -296,17 +292,6 @@ export default function SettingsPage() {
     }
     
     setDraggedItem(null);
-  };
-
-  const handleAddLabel = () => {
-    if (newLabel.trim() && !labels.includes(newLabel.trim())) {
-      setLabels([...labels, newLabel.trim()]);
-      setNewLabel("");
-    }
-  };
-
-  const handleRemoveLabel = (labelToRemove: string) => {
-    setLabels(labels.filter((label) => label !== labelToRemove));
   };
 
   const plans = [
@@ -597,8 +582,9 @@ export default function SettingsPage() {
                           Bu işlem geri alınamaz. Hesabınızı silmek istediğinizden emin misiniz?
                         </DialogDescription>
                       </DialogHeader>
-                      <div className="space-y-4 py-4">
-                        <div className="space-y-2">
+                      <div className="flex flex-col items-center space-y-4 py-4">
+                        <img src="/warning.png" alt="Uyarı" className="w-24 h-24 object-contain" />
+                        <div className="space-y-2 w-full">
                           <Label htmlFor="delete-confirmation">
                             Onaylamak için <span className="font-bold">HESABIMI SİL</span> yazın
                           </Label>
@@ -674,34 +660,6 @@ export default function SettingsPage() {
                 >
                   {notificationsEnabled ? "Açık" : "Kapalı"}
                 </Button>
-              </div>
-
-              {/* Label Management */}
-              <div className="space-y-4">
-                <h4 className="text-sm font-semibold">Etiketler</h4>
-                <div className="space-y-3">
-                  <div className="flex gap-2">
-                    <Input
-                      placeholder="Yeni etiket ekle"
-                      value={newLabel}
-                      onChange={(e) => setNewLabel(e.target.value)}
-                      onKeyPress={(e) => e.key === "Enter" && handleAddLabel()}
-                    />
-                    <Button onClick={handleAddLabel}>Ekle</Button>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {labels.map((label) => (
-                      <Badge
-                        key={label}
-                        variant="secondary"
-                        className="cursor-pointer hover:bg-destructive hover:text-destructive-foreground"
-                        onClick={() => handleRemoveLabel(label)}
-                      >
-                        {label} ×
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
               </div>
 
               {/* Sidebar Management */}
