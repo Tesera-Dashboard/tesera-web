@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { fetchWithAuth } from "@/lib/api";
 import { toast } from "sonner";
@@ -230,8 +231,13 @@ export default function AiAssistantPage() {
         {/* Conversations List */}
         <div className="flex-1 overflow-y-auto p-2 space-y-1">
           {isLoadingConversations ? (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+            <div className="space-y-2">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="flex items-center gap-2 p-2">
+                  <Skeleton className="h-4 w-4" />
+                  <Skeleton className="h-4 w-full" />
+                </div>
+              ))}
             </div>
           ) : conversations.length === 0 ? (
             <div className="text-center py-8 text-sm text-muted-foreground px-4">

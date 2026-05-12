@@ -95,12 +95,179 @@ Frontend dev server running at http://localhost:3000
   - Automatic order recalculation when steps are added/removed
 - [x] **Test Simulator Integration**: Added **Module 6 – İş Akışı Testi** to the Unified Test Simulator at `/dashboard/test` for quickly generating sample workflows with test steps.
 - [x] **Error Handling**: Added detailed error handling for all workflow operations (create, update, delete, toggle) with console logging and user-friendly toast messages showing actual backend error details.
+- [x] **Module Integration**: Added automatic notification creation to all core modules:
+  - **Orders**: Notification created when new order is received (success priority) + PUT endpoint creates notification when order status changes (info priority) + deadline check endpoint to create warning notifications when order delivery date is approaching
+  - **Shipments**: Notification created when new shipment is created (success priority) + delay check endpoint to create warning notifications when shipment is past estimated delivery date + PUT endpoint creates notification when shipment status changes (info priority) + test update endpoint with status change notification
+  - **Inventory**: Notification created when new item is added (success priority) + low stock check endpoint to create warning notifications when stock falls below threshold + PUT endpoint creates notification when inventory quantity decreases (warning priority) + automatic critical stock notification when stock <= minStock (error priority)
+  - **Workflows**: Notification created when workflow is created/updated/deleted (success/info/warning priorities)
+  - **Test**: Fixed test notification endpoint to require authentication for proper user association
 - [x] **Backend Clear Function**: Updated test clear endpoint to also delete workflow data alongside inventory, orders, shipments, and AI chat history.
-- [ ] Notification center
 
-### Phase 5
-- [ ] Analytics charts (Recharts or similar)
-- [ ] Insights dashboard
+### ✅ Phase 4 – Notification Center
+- [x] **Backend Database Model**: Created `Notification` SQLAlchemy model with multi-tenancy support (`company_id`, `user_id`). Includes title, message, type (order, shipment, inventory, workflow, system), priority (info, warning, error, success), meta_data for additional context, is_read flag, read_at timestamp, and created_at.
+- [x] **Backend Schemas**: Added Pydantic schemas for `Notification`, `NotificationBase`, and `NotificationCreate` with UUID and datetime field serializers for proper API response serialization.
+- [x] **Backend API Routes**: Implemented full CRUD endpoints at `/api/v1/notifications` (GET list with unread filter, GET by ID, POST create, PUT mark-read, PUT mark-all-read, DELETE delete). Includes `/unread-count` endpoint for badge display. All endpoints include UUID conversion from string to handle frontend requests properly.
+- [x] **Frontend Types**: Created TypeScript types for `Notification` and `NotificationCreate` in `frontend/src/types/notification.ts`.
+- [x] **Frontend Notification Center UI**: Built complete notification management interface at `/dashboard/notifications` with:
+  - Card-based notification list display with type icons (Package for order, Truck for shipment, Workflow for workflow, AlertCircle for system)
+  - Priority badges (Hata, Uyarı, Başarılı, Bilgi) with color coding
+  - Unread notifications highlighted with left border accent
+  - Mark as read functionality with button
+  - Mark all as read functionality (shown when unread count > 0)
+  - Delete notification with trash icon
+  - Delete all notifications with danger alert modal (warning.png image)
+  - Empty state with bell icon
+  - Turkish localization throughout
+- [x] **Navbar Notification Dropdown**: Added notification dropdown to dashboard topbar with:
+  - Badge showing unread count (only when unread > 0)
+  - Dropdown with recent notifications (last 5)
+  - Auto-refresh every 30 seconds
+  - Click to mark as read
+  - "Tümünü Oku" button when unread count > 0 (immediate UI update)
+  - "Tüm Bildirimleri Gör" link to notification center
+  - Type icons matching notification center
+  - Unread indicator dots
+- [x] **Test Simulator Integration**: Added **Module 7 – Bildirim Testi** to the Unified Test Simulator at `/dashboard/test` for quickly generating sample notifications with random types.
+- [x] **Backend Clear Function**: Updated test clear endpoint to also delete notification data alongside inventory, orders, shipments, workflows, and AI chat history.
+- [x] **Error Handling**: Added detailed error handling for all notification operations with console logging and user-friendly toast messages showing actual backend error details.
+- [x] **UI Components**: Created AlertModal and SuccessModal components with warning.png and success.png images for better user feedback
+- [x] **Inventory Delete**: Replaced confirm() with AlertModal in inventory page for delete confirmation
+- [x] **Real-time Notification Sync**: Added custom event system for immediate notification refresh across app (inventory updates, test simulator changes)
+- [x] **Backend Fixes**: Fixed inventory PUT endpoint to use string IDs instead of UUID conversion, fixed SQLAlchemy JSON query for SQLite compatibility
+- [x] **Backend API Routes**: Added `/api/v1/notifications/delete-all` DELETE endpoint for bulk deletion
+
+### ✅ Phase 5 – Analytics & Insights
+- [x] **Backend Analytics API**: Created `/api/v1/analytics` router with endpoints:
+  - `/overview` - Returns overview stats (total orders, revenue, inventory, low stock, active shipments, delayed shipments, pending orders)
+  - `/orders/trends` - Returns order trends over time (date, count, revenue) with configurable days parameter
+  - `/inventory/by-category` - Returns inventory statistics grouped by category (total stock, item count, total value)
+  - `/shipments/status` - Returns shipment status distribution
+- [x] **Frontend Analytics Page**: Built complete analytics page at `/dashboard/analytics` with:
+  - Line chart showing order trends (count and revenue) over last 30 days
+  - Bar chart showing inventory by category (total stock and item count)
+  - Pie chart showing shipment status distribution
+  - Bar chart showing inventory value by category
+  - Responsive charts using Recharts library
+  - Loading states and error handling
+  - Turkish localization
+- [x] **Frontend Insights Dashboard**: Updated `/dashboard` overview page to show real-time KPIs:
+  - Total orders with pending orders count
+  - Critical stock items count
+  - Active shipments with delayed count
+  - Total revenue
+  - Real-time data from analytics overview endpoint
+  - Loading states with "..." placeholder
+  - Added analytics chart section showing order trends (last 7 days)
+  - Added notifications section showing recent notifications with icons and priority badges
+  - Fixed data formatting with nullish coalescing for proper display
+- [x] **Inventory Import/Export**: Added import and export functionality to inventory page:
+  - "İçe Aktar" button opens Sheet with CSV format instructions
+  - "Dışa Aktar" button exports inventory as CSV file
+  - Sheet includes column descriptions, example CSV, and upload area
+  - Turkish localization with natural cooperative product examples (reçel, bal, turşu)
+- [x] **Test Simulator Enhancements**:
+  - Turkish-ized all mock data with natural cooperative inventory items:
+    - Categories: Reçel, Turşu, Bal, Zeytin, Süt Ürünleri, Kuru Gıda
+    - Products: Ayva Reçeli, Çam Balı, Domates Turşusu, Siyah Zeytin, Beyaz Peynir, Tulum Peyniri, Nohut, Mercimek, Bulgur, Pirinç, etc.
+    - Orders: Turkish customer names and addresses
+    - Carriers: Yurtiçi Kargo, Aras Kargo
+    - Statuses: İşleniyor, Kargoda, Teslim Edildi, Yolda
+  - Replaced alert() with custom AlertModal for "Tümünü Sil" confirmation
+  - Added SuccessModal for successful deletion feedback
+  - Fixed shipment delay notification not being created when isDelayed changes
+- [x] **Notification System Fixes**:
+  - Added notification creation to order creation endpoint (type: "order")
+  - Added notification creation to inventory creation endpoint (type: "inventory", priority: warning for low stock)
+  - Added inventory icon (Box) to Topbar notification icons
+  - Made loadData() calls async with await in test simulator for proper data refresh
+  - Added debug console logs for notification-refresh event dispatching and receiving
+  - Fixed notification count display to show "5+" when count exceeds 5 in both test simulator and topbar
+- [x] **Inventory Import/Export**: Added import and export functionality to inventory page:
+  - "İçe Aktar" button opens Sheet with CSV format instructions
+  - "Dışa Aktar" button exports inventory as CSV file
+  - Sheet includes column descriptions, example CSV, and upload area
+  - Turkish localization with natural cooperative product examples (reçel, bal, turşu)
+  - Added import mode selection (overwrite vs reset)
+  - Added warning modal for reset option
+  - Backend handles duplicate SKU skipping in overwrite mode
+  - Backend deletes all inventory in reset mode
+  - Fixed 422 error by bypassing fetchWithAuth for FormData upload
+  - Made import sheet scrollable
+- [x] **Integrations Page**: Created marketplace integrations UI:
+  - Added 4 integration cards (Trendyol, Hepsiburada, Amazon, Diğer)
+  - Used provided brand images for Trendyol, Hepsiburada, Amazon
+  - All cards marked as "Yakında" (Coming soon)
+  - Responsive grid layout with hover effects
+  - Turkish descriptions for each integration
+- [x] **Team Page**: Created team management coming soon page:
+  - Added large ekip.png illustration
+  - Coming soon badge and message
+  - Feature cards: Ekip Üyeleri, Kişisel İş Akışları, Rol Yönetimi, İzinler
+  - Turkish descriptions for each feature
+- [x] **Sidebar Updates**: Added "Yakında" badges:
+  - Added badges to Entegrasyonlar and Ekip navigation items
+  - Small rounded badge with primary color styling
+  - Only visible when sidebar is expanded
+- [x] **Topbar Improvements**: Enhanced navigation and search:
+  - Removed default "Panel" text, only show pageTitle when provided
+  - Moved search bar from right to left
+  - Added spacer to push right elements (notifications, theme, profile) to the right
+  - Implemented endpoint search with dropdown:
+    - Searches dashboard routes (12 pages)
+    - Filters by label and URL
+    - Shows dropdown with matching results
+    - Enter key navigates to first result
+  - Click navigates to selected route
+  - Highlights current page in dropdown
+  - Closes when clicking outside
+- [x] **Settings Page**: Created unified settings page with three tabs:
+  - Profile tab: User info display, profile completion percentage, company info (organization name, tax number, address), password reset and account deletion buttons
+  - Settings tab: Theme setting display, sidebar item management (enable/disable status)
+  - Billing tab: Pricing plans from landing page (Ücretsiz Deneme, Başlangıç, Büyüme, Kurumsal), free tier selected by default, other plans marked as "Yakında", trial days remaining display
+- [x] **Settings Page Backend Integration**: Connected all settings tabs to backend API:
+  - Profile tab: Editable company info form with save functionality, password reset dialog, account deletion dialog with confirmation
+  - Settings tab: Theme toggle (light/dark) with immediate application and auto-save, notifications toggle with auto-save, label management (add/remove), sidebar item management (enable/disable with auto-save), drag-and-drop reordering within groups (Temel, İçgörüler, Yönetim, Geliştirici Araçları)
+  - Topbar navigation to settings page with tab query params (profile, settings, billing)
+- [x] **Backend Models**: Extended user and company models:
+  - Added `tax_number` and `address` fields to Company model
+  - Created UserSettings model (theme, sidebar_order, sidebar_enabled, notifications_enabled, labels)
+  - Created Subscription model (plan, status, trial_ends_at, cancelled_at)
+- [x] **Backend API**: Created settings API endpoints:
+  - GET /settings/profile - User and company info with completion percentage
+  - PUT /settings/profile/company - Update company information
+  - GET /settings/user-settings - User theme, sidebar preferences, notifications, and labels
+  - PUT /settings/user-settings - Update user settings
+  - GET /settings/billing - Subscription info and days remaining
+- [x] **Backend Auth API**: Added user management endpoints:
+  - POST /auth/change-password - Change user password with current password verification
+  - DELETE /auth/delete-account - Delete user account with cascading delete of company, subscriptions, and users
+- [x] **Sidebar Settings Integration**: Connected sidebar to user settings:
+  - Sidebar loads user settings from backend on mount
+  - Sidebar items filtered based on sidebar_enabled array
+  - Sidebar groups hidden if all items in group are disabled
+  - Sidebar refreshes when settings are saved via custom event
+  - Test Simulator (id: 12) added to Geliştirici Araçları group
+- [x] **Topbar Settings Integration**: Connected topbar to user settings:
+  - Notifications setting loaded from backend
+  - Notifications polling only runs when notifications_enabled is true
+  - Topbar refreshes notifications setting when settings are saved via custom event
+  - Topbar navigation menu (Profil, Ayarlar, Faturalandırma) routes to settings page with appropriate tab
+- [x] **Settings Page Cleanup**: Removed labels section from settings page and backend:
+  - Removed labels state, UI section, handlers, and save/load logic from frontend settings page
+  - Removed labels field from UserSettings model in backend
+  - Removed labels from UserSettingsUpdate schema and API endpoints
+  - Added warning.png image to account deletion modal in settings page
+- [x] **Email Template Enhancement**: Increased email logo size from 40px to 120px and adjusted padding from 24px to 40px 24px for better visibility in verification and password reset emails
+- [x] **Skeleton Loading Components**: Added design-appropriate skeleton loading to all data-fetching dashboard pages:
+  - Dashboard overview: Stat cards, order trends chart, and notifications
+  - Orders: Table skeleton with header and rows
+  - Inventory: Table skeleton with header and rows
+  - Shipments: Table skeleton with header and rows
+  - Analytics: Chart skeletons for order trends, inventory by category, and shipment status
+  - Notifications: Notification card skeletons with icon and text
+  - Workflows: Workflow card skeletons with icon, title, and badges
+  - AI Assistant: Conversation list skeleton with icon and text
+- [x] **Backend Model Fix**: Added missing settings relationship to User model to fix SQLAlchemy mapper initialization error
 
 ### Phase 6
 - [ ] Docker Compose (frontend + backend + postgres + redis)

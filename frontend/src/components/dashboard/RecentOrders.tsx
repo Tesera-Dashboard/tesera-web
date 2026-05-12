@@ -19,11 +19,17 @@ export function RecentOrders() {
     fetchWithAuth("/orders?limit=5")
       .then(res => res.json())
       .then(data => {
-        setOrders(data.slice(0, 5));
+        if (Array.isArray(data)) {
+          setOrders(data.slice(0, 5));
+        } else {
+          console.error("Unexpected data format:", data);
+          setOrders([]);
+        }
         setIsLoading(false);
       })
       .catch(err => {
         console.error("Dashboard orders fetch error:", err);
+        setOrders([]);
         setIsLoading(false);
       });
   }, []);

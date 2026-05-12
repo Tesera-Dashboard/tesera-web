@@ -6,6 +6,8 @@
 import { useMemo, useState, useCallback, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { fetchWithAuth } from "@/lib/api";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Card } from "@/components/ui/card";
 
 import { Shipment, ShipmentStatus } from "@/types/shipment";
 
@@ -111,7 +113,32 @@ export default function ShipmentsPage() {
       </div>
 
       {/* Tablo */}
-      <ShipmentsTable shipments={filteredShipments} />
+      {isLoading ? (
+        <Card className="p-6">
+          <div className="space-y-4">
+            {/* Table header skeleton */}
+            <div className="flex gap-4">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-4 w-24" />
+            </div>
+            {/* Table rows skeleton */}
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="flex gap-4 py-3 border-b">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-4 w-24" />
+              </div>
+            ))}
+          </div>
+        </Card>
+      ) : (
+        <ShipmentsTable shipments={filteredShipments} />
+      )}
       
     </div>
   );

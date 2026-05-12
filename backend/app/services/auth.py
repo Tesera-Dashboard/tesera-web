@@ -85,8 +85,8 @@ def send_verification_email(email: str, token: str):
     link = f"{settings.FRONTEND_URL}/verify-email?token={token}"
     html = f"""
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #eaeaec; border-radius: 12px; overflow: hidden;">
-        <div style="background-color: #f9fafb; padding: 24px; text-align: center; border-bottom: 1px solid #eaeaec;">
-            <img src="cid:tesera-logo" alt="Tesera" style="height: 40px; width: auto;" />
+        <div style="background-color: #f9fafb; padding: 40px 24px; text-align: center; border-bottom: 1px solid #eaeaec;">
+            <img src="cid:tesera-logo" alt="Tesera" style="height: 120px; width: auto;" />
         </div>
         <div style="padding: 32px; color: #374151;">
             <h2 style="color: #111827; margin-top: 0; font-size: 24px;">Tesera'ya Hoş Geldiniz!</h2>
@@ -107,8 +107,8 @@ def send_reset_password_email(email: str, token: str):
     link = f"{settings.FRONTEND_URL}/reset-password?token={token}"
     html = f"""
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #eaeaec; border-radius: 12px; overflow: hidden;">
-        <div style="background-color: #f9fafb; padding: 24px; text-align: center; border-bottom: 1px solid #eaeaec;">
-            <img src="cid:tesera-logo" alt="Tesera" style="height: 40px; width: auto;" />
+        <div style="background-color: #f9fafb; padding: 40px 24px; text-align: center; border-bottom: 1px solid #eaeaec;">
+            <img src="cid:tesera-logo" alt="Tesera" style="height: 120px; width: auto;" />
         </div>
         <div style="padding: 32px; color: #374151;">
             <h2 style="color: #111827; margin-top: 0; font-size: 24px;">Şifrenizi Sıfırlayın</h2>

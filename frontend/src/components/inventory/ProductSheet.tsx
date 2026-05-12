@@ -3,15 +3,19 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { InventoryItem } from "@/types/inventory";
 import { useEffect, useState } from "react";
+import { fetchWithAuth } from "@/lib/api";
+import { toast } from "sonner";
 
 interface ProductSheetProps {
   isOpen: boolean;
   onClose: () => void;
   item: InventoryItem | null;
+  onSave?: () => void;
 }
 
-export function ProductSheet({ isOpen, onClose, item }: ProductSheetProps) {
+export function ProductSheet({ isOpen, onClose, item, onSave }: ProductSheetProps) {
   const isEditing = !!item;
+  const [isSaving, setIsSaving] = useState(false);
 
   // Form states
   const [name, setName] = useState("");
@@ -38,6 +42,63 @@ export function ProductSheet({ isOpen, onClose, item }: ProductSheetProps) {
       setPrice("");
     }
   }, [item, isOpen]);
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      const payload = {
+        name,
+        sku,
+        category,
+        quantity: parseInt(stock) || 0,
+        price: parseFloat(price) || 0
+      };
+
+      console.log("Saving inventory item:", { isEditing, itemId: item?.id, payload });
+
+      if (isEditing && item) {
+        // Update existing item
+        const res = await fetchWithAuth(`/inventory/${item.id}`, {
+          method: "PUT",
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        console.log("Update response:", data);
+
+        if (!res.ok) {
+          throw new Error(data.detail || data.error || "Güncelleme başarısız");
+        }
+        toast.success("Ürün başarıyla güncellendi");
+      } else {
+        // Create new item
+        const res = await fetchWithAuth("/inventory", {
+          method: "POST",
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        console.log("Create response:", data);
+
+        if (!res.ok) {
+          throw new Error(data.detail || data.error || "Oluşturma başarısız");
+        }
+        toast.success("Ürün başarıyla eklendi");
+      }
+
+      if (onSave) onSave();
+      
+      // Trigger notification refresh across the app
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("notification-refresh"));
+      }
+      
+      onClose();
+    } catch (err: any) {
+      console.error("Save error:", err);
+      toast.error(`İşlem başarısız: ${err.message}`);
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -79,8 +140,10 @@ export function ProductSheet({ isOpen, onClose, item }: ProductSheetProps) {
           </div>
         </div>
         <SheetFooter>
-          <Button variant="outline" onClick={onClose}>İptal</Button>
-          <Button onClick={onClose}>{isEditing ? "Değişiklikleri Kaydet" : "Ürünü Kaydet"}</Button>
+          <Button variant="outline" onClick={onClose} disabled={isSaving}>İptal</Button>
+          <Button onClick={handleSave} disabled={isSaving}>
+            {isSaving ? "Kaydediliyor..." : (isEditing ? "Değişiklikleri Kaydet" : "Ürünü Kaydet")}
+          </Button>
         </SheetFooter>
       </SheetContent>
     </Sheet>
