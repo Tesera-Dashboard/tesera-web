@@ -279,6 +279,13 @@ Frontend dev server running at http://localhost:3000
   - Updated pending-verification page to redirect to `/onboarding` instead of `/dashboard`
   - Updated verify-email page to redirect to `/onboarding` instead of `/login`
   - Turkish localization throughout
+- [x] **Onboarding Database Tracking**: Added onboarding_completed field to UserSettings model to track completion status
+- [x] **Onboarding Redirect Logic**: Updated login flow to check onboarding status and redirect new users to /onboarding
+- [x] **Onboarding Visual Updates**: Replaced placeholder icons with landing page images, updated styling with white background, primary border, object-cover, and overflow-hidden
+- [x] **Email SMTP Configuration**: Added Gmail SMTP support with USE_GMAIL_SMTP flag for local development
+- [x] **Email Template Updates**: Changed email templates to use mini-logo.png with "Tesera" text in primary color
+- [x] **Database Schema Fixes**: Changed UserSettings user_id from INTEGER to UUID to match User model
+- [x] **Account Deletion Fix**: Updated delete-account endpoint to properly cascade delete all related data (notifications, AI conversations, workflows, orders, inventory, shipments, subscriptions)
 
 ### Phase 6
 - [ ] Docker Compose (frontend + backend + postgres + redis)

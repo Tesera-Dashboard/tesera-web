@@ -23,6 +23,7 @@ class UserSettingsUpdate(BaseModel):
     sidebar_order: Optional[list] = None
     sidebar_enabled: Optional[list] = None
     notifications_enabled: Optional[bool] = None
+    onboarding_completed: Optional[bool] = None
 
 class SubscriptionInfo(BaseModel):
     plan: str
@@ -114,6 +115,7 @@ def get_user_settings(
             sidebar_order=None,
             sidebar_enabled=None,
             notifications_enabled=True,
+            onboarding_completed=False,
         )
         db.add(settings)
         db.commit()
@@ -124,6 +126,7 @@ def get_user_settings(
         "sidebar_order": settings.sidebar_order,
         "sidebar_enabled": settings.sidebar_enabled,
         "notifications_enabled": settings.notifications_enabled,
+        "onboarding_completed": settings.onboarding_completed,
     }
 
 @router.put("/user-settings")
@@ -142,6 +145,7 @@ def update_user_settings(
             sidebar_order=None,
             sidebar_enabled=None,
             notifications_enabled=True,
+            onboarding_completed=False,
         )
         db.add(settings)
     
@@ -153,6 +157,8 @@ def update_user_settings(
         settings.sidebar_enabled = settings_data.sidebar_enabled
     if settings_data.notifications_enabled is not None:
         settings.notifications_enabled = settings_data.notifications_enabled
+    if settings_data.onboarding_completed is not None:
+        settings.onboarding_completed = settings_data.onboarding_completed
     
     db.commit()
     
@@ -161,6 +167,7 @@ def update_user_settings(
         "sidebar_order": settings.sidebar_order,
         "sidebar_enabled": settings.sidebar_enabled,
         "notifications_enabled": settings.notifications_enabled,
+        "onboarding_completed": settings.onboarding_completed,
     }
 
 @router.get("/billing")

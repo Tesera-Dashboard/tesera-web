@@ -41,6 +41,7 @@ class UserSettings(Base):
     sidebar_order = Column(JSON, nullable=True)
     sidebar_enabled = Column(JSON, nullable=True)
     notifications_enabled = Column(Boolean, default=True)
+    onboarding_completed = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 

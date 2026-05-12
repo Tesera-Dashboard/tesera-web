@@ -65,7 +65,7 @@ def send_email(email_to: str, subject: str, html_content: str):
         
         try:
             msg = EmailMessage()
-            msg["From"] = settings.EMAILS_FROM_EMAIL or settings.SMTP_USER
+            msg["From"] = f"{settings.EMAILS_FROM_NAME} <{settings.EMAILS_FROM_EMAIL or settings.SMTP_USER}>"
             msg["To"] = email_to
             msg["Subject"] = subject
             msg.set_content(html_content, subtype="html")
@@ -109,10 +109,14 @@ def send_email(email_to: str, subject: str, html_content: str):
 
 def send_verification_email(email: str, token: str):
     link = f"{settings.FRONTEND_URL}/verify-email?token={token}"
+    logo_url = "https://tesera.co/mini-logo.png"
     html = f"""
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #eaeaec; border-radius: 12px; overflow: hidden;">
-        <div style="background-color: #f9fafb; padding: 40px 24px; text-align: center; border-bottom: 1px solid #eaeaec;">
-            <img src="cid:tesera-logo" alt="Tesera" style="height: 120px; width: auto;" />
+        <div style="background-color: #f9fafb; padding: 32px 24px; text-align: center; border-bottom: 1px solid #eaeaec;">
+            <div style="display: flex; align-items: center; justify-content: center; gap: 12px;">
+                <img src="{logo_url}" alt="Tesera" style="height: 60px; width: auto;" />
+                <span style="font-size: 32px; font-weight: bold; color: #fa7f05;">Tesera</span>
+            </div>
         </div>
         <div style="padding: 32px; color: #374151;">
             <h2 style="color: #111827; margin-top: 0; font-size: 24px;">Tesera'ya Hoş Geldiniz!</h2>
@@ -131,10 +135,14 @@ def send_verification_email(email: str, token: str):
 
 def send_reset_password_email(email: str, token: str):
     link = f"{settings.FRONTEND_URL}/reset-password?token={token}"
+    logo_url = "https://tesera.co/mini-logo.png"
     html = f"""
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #eaeaec; border-radius: 12px; overflow: hidden;">
-        <div style="background-color: #f9fafb; padding: 40px 24px; text-align: center; border-bottom: 1px solid #eaeaec;">
-            <img src="cid:tesera-logo" alt="Tesera" style="height: 120px; width: auto;" />
+        <div style="background-color: #f9fafb; padding: 32px 24px; text-align: center; border-bottom: 1px solid #eaeaec;">
+            <div style="display: flex; align-items: center; justify-content: center; gap: 12px;">
+                <img src="{logo_url}" alt="Tesera" style="height: 60px; width: auto;" />
+                <span style="font-size: 32px; font-weight: bold; color: #fa7f05;">Tesera</span>
+            </div>
         </div>
         <div style="padding: 32px; color: #374151;">
             <h2 style="color: #111827; margin-top: 0; font-size: 24px;">Şifrenizi Sıfırlayın</h2>

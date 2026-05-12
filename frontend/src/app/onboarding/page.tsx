@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Check, ArrowRight, Sparkles, ShoppingCart, Package, Truck, BarChart3, Workflow, Bell, Settings, ChevronRight, ChevronLeft } from "lucide-react";
 import Image from "next/image";
+import { fetchWithAuth } from "@/lib/api";
 
 const steps = [
   {
@@ -17,43 +18,43 @@ const steps = [
   {
     title: "Ürünlerinizi Ekleyin",
     description: "Envanter yönetimi ile ürünlerinizi takip edin, stok seviyelerini izleyin ve düşük stok uyarıları alın.",
-    icon: "love.png",
+    icon: "landing/2-Inventory-Management.png",
     color: "from-blue-500 to-cyan-500"
   },
   {
     title: "Siparişleri Yönetin",
     description: "Gelen siparişleri takip edin, durumlarını güncelleyin ve müşterilerinizi bilgilendirin.",
-    icon: "love.png",
+    icon: "landing/1-AI-Customer-Assistant.png",
     color: "from-green-500 to-emerald-500"
   },
   {
     title: "Kargoları Takip Edin",
     description: "Kargo süreçlerini yönetin, gecikmeli kargoları tespit edin ve kargo şirketleriyle entegre olun.",
-    icon: "love.png",
+    icon: "landing/3-Shipment-Tracking.png",
     color: "from-purple-500 to-violet-500"
   },
   {
     title: "Analitiklerle Karar Verin",
     description: "İşletmenizin performansını analiz edin, trendleri görün ve veriye dayalı kararlar alın.",
-    icon: "love.png",
+    icon: "landing/5-Operational-Analytics.png",
     color: "from-pink-500 to-rose-500"
   },
   {
     title: "İş Akışları Oluşturun",
     description: "Otomatik iş akışları oluşturarak iş süreçlerinizi hızlandırın ve verimliliği artırın.",
-    icon: "love.png",
+    icon: "landing/4-workflow-automation.png",
     color: "from-indigo-500 to-blue-500"
   },
   {
     title: "Bildirimlerden Haberdar Olun",
     description: "Önemli olaylardan anında haberdar olun ve hiçbir detayı kaçırmayın.",
-    icon: "love.png",
+    icon: "landing/6-smart-notifications.png",
     color: "from-yellow-500 to-orange-500"
   },
   {
     title: "Ayarlarınızı Özelleştirin",
     description: "Tercihlerinize göre arayüzü özelleştirin, bildirim ayarlarını yönetin ve işletmenizi yapılandırın.",
-    icon: "love.png",
+    icon: "landing/8-Integrations-Ready.png",
     color: "from-teal-500 to-cyan-500"
   }
 ];
@@ -66,6 +67,15 @@ export default function OnboardingPage() {
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
+      // Mark onboarding as completed
+      fetchWithAuth("/settings/user-settings", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ onboarding_completed: true }),
+      }).catch((error) => console.error("Failed to mark onboarding as completed:", error));
+      
       router.push("/dashboard");
     }
   };
@@ -113,13 +123,13 @@ export default function OnboardingPage() {
         <Card className="p-8 shadow-xl">
           <div className="flex flex-col items-center text-center">
             {/* Icon */}
-            <div className={`w-32 h-32 rounded-2xl bg-gradient-to-br ${steps[currentStep].color} flex items-center justify-center mb-6 shadow-lg`}>
+            <div className="w-48 h-48 rounded-3xl bg-white border-4 border-primary flex items-center justify-center mb-8 shadow-2xl p-0 overflow-hidden">
               <Image 
                 src={`/${steps[currentStep].icon}`} 
                 alt="Step Icon"
-                width={64}
-                height={64}
-                className="object-contain"
+                width={200}
+                height={200}
+                className="object-cover w-full h-full"
               />
             </div>
 

@@ -25,6 +25,25 @@ export default function LoginPage() {
     try {
       await login(email, password);
       toast.success("Successfully logged in");
+      
+      // Check if user has completed onboarding
+      try {
+        const settingsRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/v1/settings/user-settings`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          },
+        });
+        if (settingsRes.ok) {
+          const settingsData = await settingsRes.json();
+          if (!settingsData.onboarding_completed) {
+            router.push("/onboarding");
+            return;
+          }
+        }
+      } catch (error) {
+        console.error("Failed to check onboarding status:", error);
+      }
+      
       router.push("/dashboard");
     } catch (error: any) {
       toast.error(error.message || "Failed to log in");
