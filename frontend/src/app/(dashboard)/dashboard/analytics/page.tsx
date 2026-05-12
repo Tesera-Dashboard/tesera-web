@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { fetchWithAuth } from "@/lib/api";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { Card } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { 
   LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, 
@@ -78,8 +79,22 @@ export default function AnalyticsPage() {
       />
 
       {isLoading ? (
-        <div className="flex items-center justify-center h-64">
-          <p className="text-muted-foreground">Yükleniyor...</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Order Trends Chart Skeleton */}
+          <Card className="p-6">
+            <Skeleton className="h-6 w-48 mb-4" />
+            <Skeleton className="h-64 w-full" />
+          </Card>
+          {/* Inventory by Category Chart Skeleton */}
+          <Card className="p-6">
+            <Skeleton className="h-6 w-48 mb-4" />
+            <Skeleton className="h-64 w-full" />
+          </Card>
+          {/* Shipment Status Chart Skeleton */}
+          <Card className="p-6 md:col-span-2">
+            <Skeleton className="h-6 w-48 mb-4" />
+            <Skeleton className="h-64 w-full" />
+          </Card>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

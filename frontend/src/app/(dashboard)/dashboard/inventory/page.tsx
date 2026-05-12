@@ -15,6 +15,8 @@ import { fetchWithAuth } from "@/lib/api";
 import { toast } from "sonner";
 import { Plus, Download, Upload, FileSpreadsheet, X, UploadCloud } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Card } from "@/components/ui/card";
 
 import { InventoryItem, StockLevel } from "@/types/inventory";
 
@@ -263,15 +265,42 @@ export default function InventoryPage() {
       </div>
 
       {/* Envanter tablosu */}
-      <InventoryTable
-        items={filteredItems}
-        onReorder={setReorderItem}
-        onEdit={(item) => { setEditItem(item); setIsProductSheetOpen(true); }}
-        onDelete={(item) => {
-          setItemToDelete(item);
-          setIsAlertOpen(true);
-        }}
-      />
+      {isLoading ? (
+        <Card className="p-6">
+          <div className="space-y-4">
+            {/* Table header skeleton */}
+            <div className="flex gap-4">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-4 w-24" />
+            </div>
+            {/* Table rows skeleton */}
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="flex gap-4 py-3 border-b">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-4 w-24" />
+              </div>
+            ))}
+          </div>
+        </Card>
+      ) : (
+        <InventoryTable
+          items={filteredItems}
+          onReorder={setReorderItem}
+          onEdit={(item) => { setEditItem(item); setIsProductSheetOpen(true); }}
+          onDelete={(item) => {
+            setItemToDelete(item);
+            setIsAlertOpen(true);
+          }}
+        />
+      )}
 
       {/* Yeniden sipariş dialog */}
       <ReorderDialog

@@ -7,6 +7,7 @@ import { AIRecommendations } from "@/components/dashboard/AIRecommendations";
 import { RecentOrders } from "@/components/dashboard/RecentOrders";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { getCurrentUser } from "@/lib/auth";
 import { fetchWithAuth } from "@/lib/api";
 import { User } from "@/types/user";
@@ -157,34 +158,81 @@ export default function DashboardOverviewPage() {
 
       {/* Stat cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard
-          title="Toplam Siparişler"
-          value={isLoading ? "..." : (stats?.total_orders ?? 0).toString()}
-          delta={stats && stats.pending_orders > 0 ? `${stats.pending_orders} bekleyen` : ""}
-          positive={stats?.pending_orders === 0}
-          icon={<ShoppingCart className="h-4 w-4" />}
-        />
-        <StatCard
-          title="Kritik Stok"
-          value={isLoading ? "..." : (stats?.low_stock_items ?? 0).toString()}
-          delta={stats && stats.low_stock_items > 0 ? "Dikkat gerekiyor" : "Normal"}
-          positive={stats?.low_stock_items === 0}
-          icon={<Box className="h-4 w-4" />}
-        />
-        <StatCard
-          title="Aktif Kargolar"
-          value={isLoading ? "..." : (stats?.active_shipments ?? 0).toString()}
-          delta={stats && stats.delayed_shipments > 0 ? `${stats.delayed_shipments} gecikmeli` : "Hepsi zamanında"}
-          positive={stats?.delayed_shipments === 0}
-          icon={<Truck className="h-4 w-4" />}
-        />
-        <StatCard
-          title="Toplam Gelir"
-          value={isLoading ? "..." : `₺${(stats?.total_revenue ?? 0).toLocaleString()}`}
-          delta="Toplam gelir"
-          positive
-          icon={<TrendingUp className="h-4 w-4" />}
-        />
+        {isLoading ? (
+          <>
+            <Card className="p-6">
+              <div className="flex items-center justify-between">
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-8 w-16" />
+                  <Skeleton className="h-3 w-32" />
+                </div>
+                <Skeleton className="h-10 w-10 rounded-full" />
+              </div>
+            </Card>
+            <Card className="p-6">
+              <div className="flex items-center justify-between">
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-8 w-16" />
+                  <Skeleton className="h-3 w-32" />
+                </div>
+                <Skeleton className="h-10 w-10 rounded-full" />
+              </div>
+            </Card>
+            <Card className="p-6">
+              <div className="flex items-center justify-between">
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-8 w-16" />
+                  <Skeleton className="h-3 w-32" />
+                </div>
+                <Skeleton className="h-10 w-10 rounded-full" />
+              </div>
+            </Card>
+            <Card className="p-6">
+              <div className="flex items-center justify-between">
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-8 w-16" />
+                  <Skeleton className="h-3 w-32" />
+                </div>
+                <Skeleton className="h-10 w-10 rounded-full" />
+              </div>
+            </Card>
+          </>
+        ) : (
+          <>
+            <StatCard
+              title="Toplam Siparişler"
+              value={(stats?.total_orders ?? 0).toString()}
+              delta={stats && stats.pending_orders > 0 ? `${stats.pending_orders} bekleyen` : ""}
+              positive={stats?.pending_orders === 0}
+              icon={<ShoppingCart className="h-4 w-4" />}
+            />
+            <StatCard
+              title="Kritik Stok"
+              value={(stats?.low_stock_items ?? 0).toString()}
+              delta={stats && stats.low_stock_items > 0 ? "Dikkat gerekiyor" : "Normal"}
+              positive={stats?.low_stock_items === 0}
+              icon={<Box className="h-4 w-4" />}
+            />
+            <StatCard
+              title="Aktif Kargolar"
+              value={(stats?.active_shipments ?? 0).toString()}
+              delta={stats && stats.delayed_shipments > 0 ? `${stats.delayed_shipments} gecikmeli` : "Hepsi zamanında"}
+              positive={stats?.delayed_shipments === 0}
+              icon={<Truck className="h-4 w-4" />}
+            />
+            <StatCard
+              title="Toplam Gelir"
+              value={`₺${(stats?.total_revenue ?? 0).toLocaleString()}`}
+              delta="Toplam gelir"
+              positive
+              icon={<TrendingUp className="h-4 w-4" />}
+            />
+          </>
+        )}
       </div>
 
       {/* Analytics Chart + Notifications */}
@@ -200,15 +248,26 @@ export default function DashboardOverviewPage() {
               <Button variant="outline" size="sm">Detay</Button>
             </Link>
           </div>
-          <ResponsiveContainer width="100%" height={200}>
-            <LineChart data={orderTrends}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" tick={{ fontSize: 12 }} />
-              <YAxis tick={{ fontSize: 12 }} />
-              <Tooltip />
-              <Line type="monotone" dataKey="count" stroke="#3b82f6" name="Sipariş Sayısı" />
-            </LineChart>
-          </ResponsiveContainer>
+          {isLoading || orderTrends.length === 0 ? (
+            <div className="space-y-3">
+              <Skeleton className="h-40 w-full" />
+              <div className="flex gap-4 justify-center">
+                <Skeleton className="h-3 w-16" />
+                <Skeleton className="h-3 w-16" />
+                <Skeleton className="h-3 w-16" />
+              </div>
+            </div>
+          ) : (
+            <ResponsiveContainer width="100%" height={200}>
+              <LineChart data={orderTrends}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="date" tick={{ fontSize: 12 }} />
+                <YAxis tick={{ fontSize: 12 }} />
+                <Tooltip />
+                <Line type="monotone" dataKey="count" stroke="#3b82f6" name="Sipariş Sayısı" />
+              </LineChart>
+            </ResponsiveContainer>
+          )}
         </Card>
 
         {/* Recent Notifications */}
@@ -222,35 +281,40 @@ export default function DashboardOverviewPage() {
               <Button variant="outline" size="sm">Tümünü Gör</Button>
             </Link>
           </div>
-          <div className="space-y-3">
-            {notifications.length === 0 ? (
-              <div className="flex items-center justify-center h-32 text-muted-foreground text-sm">
-                Henüz bildirim yok
-              </div>
-            ) : (
-              notifications.slice(0, 4).map((notification) => (
-                <div
-                  key={notification.id}
-                  className={`p-3 rounded-lg border-l-4 ${
-                    !notification.is_read
-                      ? "bg-blue-50 border-blue-500"
-                      : "bg-gray-50 border-gray-300"
-                  }`}
-                >
-                  <div className="flex items-start gap-3">
-                    {getNotificationIcon(notification.type)}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <p className="font-medium text-sm truncate">{notification.title}</p>
-                        {getPriorityBadge(notification.priority)}
+          {isLoading ? (
+            <div className="space-y-3">
+              <Skeleton className="h-16 w-full rounded-lg" />
+              <Skeleton className="h-16 w-full rounded-lg" />
+              <Skeleton className="h-16 w-full rounded-lg" />
+              <Skeleton className="h-16 w-full rounded-lg" />
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {notifications.length === 0 ? (
+                <div className="flex items-center justify-center h-32 text-muted-foreground text-sm">
+                  Henüz bildirim yok
+                </div>
+              ) : (
+                notifications.slice(0, 4).map((notification) => (
+                  <div
+                    key={notification.id}
+                    className={`p-3 rounded-lg border-l-4 ${!notification.is_read ? "bg-blue-50 border-blue-500" : "bg-gray-50 border-gray-300"}`}
+                  >
+                    <div className="flex items-start gap-3">
+                      {getNotificationIcon(notification.type)}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <p className="font-medium text-sm truncate">{notification.title}</p>
+                          {getPriorityBadge(notification.priority)}
+                        </div>
+                        <p className="text-xs text-muted-foreground line-clamp-2">{notification.message}</p>
                       </div>
-                      <p className="text-xs text-muted-foreground line-clamp-2">{notification.message}</p>
                     </div>
                   </div>
-                </div>
-              ))
-            )}
-          </div>
+                ))
+              )}
+            </div>
+          )}
         </Card>
       </div>
 

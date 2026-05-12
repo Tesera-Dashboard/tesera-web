@@ -30,6 +30,7 @@ class User(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
     company = relationship("Company", back_populates="users")
+    settings = relationship("UserSettings", back_populates="user", uselist=False)
 
 class UserSettings(Base):
     __tablename__ = "user_settings"

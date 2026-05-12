@@ -14,6 +14,8 @@
 import { useMemo, useState, useCallback, useEffect } from "react";
 import { Package } from "lucide-react";
 import { fetchWithAuth } from "@/lib/api";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Card } from "@/components/ui/card";
 
 import { Order, OrderStatus } from "@/types/order";
 
@@ -107,10 +109,35 @@ export default function OrdersPage() {
       </div>
 
       {/* Sipariş tablosu */}
-      <OrdersTable
-        orders={filteredOrders}
-        onSelect={setSelectedOrder}
-      />
+      {isLoading ? (
+        <Card className="p-6">
+          <div className="space-y-4">
+            {/* Table header skeleton */}
+            <div className="flex gap-4">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-4 w-24" />
+            </div>
+            {/* Table rows skeleton */}
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="flex gap-4 py-3 border-b">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-4 w-24" />
+              </div>
+            ))}
+          </div>
+        </Card>
+      ) : (
+        <OrdersTable
+          orders={filteredOrders}
+          onSelect={setSelectedOrder}
+        />
+      )}
 
       {/* Detay dialog — selectedOrder null ise kapalı */}
       <OrderDetail

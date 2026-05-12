@@ -252,6 +252,22 @@ Frontend dev server running at http://localhost:3000
   - Notifications polling only runs when notifications_enabled is true
   - Topbar refreshes notifications setting when settings are saved via custom event
   - Topbar navigation menu (Profil, Ayarlar, Faturalandırma) routes to settings page with appropriate tab
+- [x] **Settings Page Cleanup**: Removed labels section from settings page and backend:
+  - Removed labels state, UI section, handlers, and save/load logic from frontend settings page
+  - Removed labels field from UserSettings model in backend
+  - Removed labels from UserSettingsUpdate schema and API endpoints
+  - Added warning.png image to account deletion modal in settings page
+- [x] **Email Template Enhancement**: Increased email logo size from 40px to 120px and adjusted padding from 24px to 40px 24px for better visibility in verification and password reset emails
+- [x] **Skeleton Loading Components**: Added design-appropriate skeleton loading to all data-fetching dashboard pages:
+  - Dashboard overview: Stat cards, order trends chart, and notifications
+  - Orders: Table skeleton with header and rows
+  - Inventory: Table skeleton with header and rows
+  - Shipments: Table skeleton with header and rows
+  - Analytics: Chart skeletons for order trends, inventory by category, and shipment status
+  - Notifications: Notification card skeletons with icon and text
+  - Workflows: Workflow card skeletons with icon, title, and badges
+  - AI Assistant: Conversation list skeleton with icon and text
+- [x] **Backend Model Fix**: Added missing settings relationship to User model to fix SQLAlchemy mapper initialization error
 
 ### Phase 6
 - [ ] Docker Compose (frontend + backend + postgres + redis)
