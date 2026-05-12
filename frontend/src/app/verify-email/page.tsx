@@ -44,8 +44,8 @@ function VerifyEmailContent() {
         <div className="p-4 bg-emerald-500/10 text-emerald-600 rounded-lg">
           <p className="text-sm font-medium">E-postanız başarıyla doğrulandı.</p>
         </div>
-        <Button className="w-full" onClick={() => router.push("/login")}>
-          Giriş Ekranına İlerle
+        <Button className="w-full" onClick={() => router.push("/onboarding")}>
+          Başlayın
         </Button>
       </div>
     );

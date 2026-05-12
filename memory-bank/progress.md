@@ -268,11 +268,23 @@ Frontend dev server running at http://localhost:3000
   - Workflows: Workflow card skeletons with icon, title, and badges
   - AI Assistant: Conversation list skeleton with icon and text
 - [x] **Backend Model Fix**: Added missing settings relationship to User model to fix SQLAlchemy mapper initialization error
+- [x] **Onboarding Flow**: Created step-by-step onboarding page for newly registered users:
+  - New `/onboarding` route with multi-step tutorial explaining app features
+  - 8 steps covering: Welcome, Inventory, Orders, Shipments, Analytics, Workflows, Notifications, Settings
+  - Each step has placeholder icon (love.png) to be replaced with custom designs later
+  - 14-day free trial messaging prominently displayed
+  - Progress bar showing completion percentage
+  - Navigation buttons (Previous/Next/Skip) with smooth transitions
+  - Feature preview cards at bottom showing main app capabilities
+  - Updated pending-verification page to redirect to `/onboarding` instead of `/dashboard`
+  - Updated verify-email page to redirect to `/onboarding` instead of `/login`
+  - Turkish localization throughout
 
 ### Phase 6
 - [ ] Docker Compose (frontend + backend + postgres + redis)
 - [ ] CI/CD prep
 - [ ] Final polish + onboarding flow
+- [ ] Mobile polish
 
 ## Known Issues
 - Lockfile warning in Next.js build (root lockfile conflict) — cosmetic, no action needed.

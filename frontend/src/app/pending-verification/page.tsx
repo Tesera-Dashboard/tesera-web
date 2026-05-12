@@ -95,7 +95,7 @@ function PendingVerificationContent() {
           </Button>
 
           <div className="flex flex-col space-y-2">
-            <Link href="/dashboard" className="text-sm text-primary hover:underline">
+            <Link href="/onboarding" className="text-sm text-primary hover:underline">
               Hesabımı zaten doğruladım
             </Link>
             <button onClick={handleLogout} className="text-sm text-muted-foreground hover:underline">

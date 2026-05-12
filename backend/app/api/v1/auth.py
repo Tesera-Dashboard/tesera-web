@@ -119,14 +119,39 @@ def delete_account(
     Delete user account and associated company data.
     """
     from app.models.user import Subscription
+    from app.models.notification import Notification
+    from app.models.ai_chat import AIConversation
+    from app.models.workflow import Workflow
+    from app.models.order import Order
+    from app.models.inventory import InventoryItem
+    from app.models.shipment import Shipment
     
     company_id = current_user.company_id
     
-    # Delete subscriptions first
-    db.query(Subscription).filter(Subscription.company_id == company_id).delete()
+    # Delete all related data first to avoid constraint violations
+    # Delete notifications
+    db.query(Notification).filter(Notification.company_id == company_id).delete(synchronize_session="fetch")
+    
+    # Delete AI conversations
+    db.query(AIConversation).filter(AIConversation.company_id == company_id).delete(synchronize_session="fetch")
+    
+    # Delete workflows
+    db.query(Workflow).filter(Workflow.company_id == company_id).delete(synchronize_session="fetch")
+    
+    # Delete orders
+    db.query(Order).filter(Order.company_id == company_id).delete(synchronize_session="fetch")
+    
+    # Delete inventory items
+    db.query(InventoryItem).filter(InventoryItem.company_id == company_id).delete(synchronize_session="fetch")
+    
+    # Delete shipments
+    db.query(Shipment).filter(Shipment.company_id == company_id).delete(synchronize_session="fetch")
+    
+    # Delete subscriptions
+    db.query(Subscription).filter(Subscription.company_id == company_id).delete(synchronize_session="fetch")
     
     # Delete all users associated with the company
-    db.query(User).filter(User.company_id == company_id).delete()
+    db.query(User).filter(User.company_id == company_id).delete(synchronize_session="fetch")
     
     # Delete the company
     company = db.query(Company).filter(Company.id == company_id).first()

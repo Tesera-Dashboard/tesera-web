@@ -257,7 +257,7 @@ def clear_all_test_data(db: Session = Depends(get_db), current_user: User = Depe
 
     # Clear notifications
     from app.models.notification import Notification
-    db.query(Notification).filter(Notification.company_id == company_id).delete(synchronize_session=False)
+    db.query(Notification).filter(Notification.company_id == company_id).delete(synchronize_session="fetch")
 
     db.commit()
     return {"message": "Tüm test verileri, yapay zeka konuşma geçmişi, iş akışları ve bildirimler başarıyla temizlendi."}
