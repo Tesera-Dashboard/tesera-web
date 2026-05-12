@@ -157,6 +157,9 @@ Frontend dev server running at http://localhost:3000
   - Total revenue
   - Real-time data from analytics overview endpoint
   - Loading states with "..." placeholder
+  - Added analytics chart section showing order trends (last 7 days)
+  - Added notifications section showing recent notifications with icons and priority badges
+  - Fixed data formatting with nullish coalescing for proper display
 
 ### Phase 6
 - [ ] Docker Compose (frontend + backend + postgres + redis)
