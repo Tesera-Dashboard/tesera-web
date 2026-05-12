@@ -1,6 +1,7 @@
 from typing import Annotated
 from fastapi import APIRouter, Depends, status, HTTPException
 from sqlalchemy.orm import Session
+from pydantic import BaseModel
 
 from app.core.database import get_db
 from app.schemas.user import (
@@ -12,10 +13,15 @@ from app.services.auth import (
     send_verification_email, send_reset_password_email
 )
 from app.api.deps import get_current_user
-from app.models.user import User
-from app.core.security import create_verification_token, create_reset_token, decode_token, hash_password
+from app.models.user import User, Company
+from app.core.security import create_verification_token, create_reset_token, decode_token, hash_password, verify_password
 
 router = APIRouter()
+
+# Schemas for new endpoints
+class ChangePasswordRequest(BaseModel):
+    current_password: str
+    new_password: str
 
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 def register(request: RegisterRequest, db: Annotated[Session, Depends(get_db)]):
@@ -85,3 +91,48 @@ def resend_verification(current_user: Annotated[User, Depends(get_current_user)]
     send_verification_email(current_user.email, token)
     return {"message": "Verification email sent successfully."}
 
+@router.post("/change-password", response_model=MsgResponse)
+def change_password(
+    request: ChangePasswordRequest,
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)]
+):
+    """
+    Change password for authenticated user.
+    """
+    # Verify current password
+    if not verify_password(request.current_password, current_user.hashed_password):
+        raise HTTPException(status_code=400, detail="Current password is incorrect")
+    
+    # Update password
+    current_user.hashed_password = hash_password(request.new_password)
+    db.commit()
+    
+    return {"message": "Password changed successfully"}
+
+@router.delete("/delete-account", response_model=MsgResponse)
+def delete_account(
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)]
+):
+    """
+    Delete user account and associated company data.
+    """
+    from app.models.user import Subscription
+    
+    company_id = current_user.company_id
+    
+    # Delete subscriptions first
+    db.query(Subscription).filter(Subscription.company_id == company_id).delete()
+    
+    # Delete all users associated with the company
+    db.query(User).filter(User.company_id == company_id).delete()
+    
+    # Delete the company
+    company = db.query(Company).filter(Company.id == company_id).first()
+    if company:
+        db.delete(company)
+    
+    db.commit()
+    
+    return {"message": "Account deleted successfully"}

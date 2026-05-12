@@ -40,6 +40,7 @@ export function Topbar({ pageTitle }: TopbarProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<Route[]>([]);
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
 
   const routes: Route[] = [
     { label: "Genel Bakış", href: "/dashboard", icon: ArrowRight },
@@ -71,13 +72,47 @@ export function Topbar({ pageTitle }: TopbarProps) {
   }, [router]);
 
   useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const res = await fetchWithAuth("/settings/user-settings");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.notifications_enabled !== undefined) {
+            setNotificationsEnabled(data.notifications_enabled);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load notifications setting:", err);
+      }
+    };
+    loadSettings();
+
+    // Listen for settings updates
+    const handleSettingsUpdate = () => {
+      loadSettings();
+    };
+
+    window.addEventListener("settings-updated", handleSettingsUpdate);
+
+    return () => {
+      window.removeEventListener("settings-updated", handleSettingsUpdate);
+    };
+  }, []);
+
+  useEffect(() => {
     loadNotifications();
-    const interval = setInterval(loadNotifications, 30000); // Refresh every 30s
+    const interval = setInterval(() => {
+      if (notificationsEnabled) {
+        loadNotifications();
+      }
+    }, 30000); // Refresh every 30s only if enabled
     
     // Listen for custom notification refresh events
     const handleNotificationRefresh = (event: any) => {
       console.log("Notification refresh event received:", event.detail);
-      loadNotifications();
+      if (notificationsEnabled) {
+        loadNotifications();
+      }
     };
     
     window.addEventListener("notification-refresh", handleNotificationRefresh);
@@ -86,7 +121,7 @@ export function Topbar({ pageTitle }: TopbarProps) {
       clearInterval(interval);
       window.removeEventListener("notification-refresh", handleNotificationRefresh);
     };
-  }, []);
+  }, [notificationsEnabled]);
 
   const loadNotifications = async () => {
     try {
@@ -351,9 +386,15 @@ export function Topbar({ pageTitle }: TopbarProps) {
             <div className="text-xs text-muted-foreground">{user?.email || ""}</div>
           </div>
           <DropdownMenuSeparator />
-          <DropdownMenuItem>Profil</DropdownMenuItem>
-          <DropdownMenuItem>Ayarlar</DropdownMenuItem>
-          <DropdownMenuItem>Faturalandırma</DropdownMenuItem>
+          <DropdownMenuItem onClick={() => router.push("/dashboard/settings?tab=profile")}>
+            Profil
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => router.push("/dashboard/settings?tab=settings")}>
+            Ayarlar
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => router.push("/dashboard/settings?tab=billing")}>
+            Faturalandırma
+          </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem 
             className="text-destructive focus:text-destructive cursor-pointer"

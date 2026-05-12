@@ -1,19 +1,75 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useTheme } from "next-themes";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Check, User, Settings, CreditCard, AlertTriangle } from "lucide-react";
+import { Check, User, Settings, CreditCard, AlertTriangle, Edit2, Save, GripVertical } from "lucide-react";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { fetchWithAuth } from "@/lib/api";
 import { toast } from "sonner";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 export default function SettingsPage() {
+  const searchParams = useSearchParams();
+  const tabParam = searchParams.get("tab");
+  const [activeTab, setActiveTab] = useState(tabParam || "profile");
+  const { setTheme: setAppTheme } = useTheme();
+  
   const [profileData, setProfileData] = useState<any>(null);
   const [settingsData, setSettingsData] = useState<any>(null);
   const [billingData, setBillingData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [editingCompany, setEditingCompany] = useState(false);
+  const [companyForm, setCompanyForm] = useState({ name: "", tax_number: "", address: "" });
+  const [saving, setSaving] = useState(false);
+  
+  // Settings state
+  const [theme, setTheme] = useState("light");
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const [newLabel, setNewLabel] = useState("");
+  const [labels, setLabels] = useState<string[]>(["Önemli", "Acil", "Normal"]);
+
+  const sidebarItems = [
+    { id: 1, label: "Genel Bakış", href: "/dashboard", enabled: true, group: "Temel" },
+    { id: 2, label: "YZ Asistanı", href: "/dashboard/ai-assistant", enabled: true, group: "Temel" },
+    { id: 3, label: "Siparişler", href: "/dashboard/orders", enabled: true, group: "Temel" },
+    { id: 4, label: "Envanter", href: "/dashboard/inventory", enabled: true, group: "Temel" },
+    { id: 5, label: "Kargolar", href: "/dashboard/shipments", enabled: true, group: "Temel" },
+    { id: 6, label: "İş Akışları", href: "/dashboard/workflows", enabled: true, group: "Temel" },
+    { id: 7, label: "Analitik", href: "/dashboard/analytics", enabled: true, group: "İçgörüler" },
+    { id: 8, label: "Bildirimler", href: "/dashboard/notifications", enabled: true, group: "İçgörüler" },
+    { id: 9, label: "Entegrasyonlar", href: "/dashboard/integrations", enabled: true, group: "Yönetim" },
+    { id: 10, label: "Ekip", href: "/dashboard/team", enabled: true, group: "Yönetim" },
+    { id: 11, label: "Ayarlar", href: "/dashboard/settings", enabled: true, group: "Yönetim" },
+    { id: 12, label: "Test Simülatörü", href: "/dashboard/test", enabled: true, group: "Geliştirici Araçları" },
+  ];
+  const [sidebarEnabled, setSidebarEnabled] = useState<number[]>([]);
+  const [sidebarOrder, setSidebarOrder] = useState<number[]>([]);
+  const [draggedItem, setDraggedItem] = useState<number | null>(null);
+  const [settingsLoaded, setSettingsLoaded] = useState(false);
+
+  // Password reset modal
+  const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  
+  // Account deletion modal
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteConfirmation, setDeleteConfirmation] = useState("");
 
   useEffect(() => {
     loadAllData();
@@ -27,14 +83,230 @@ export default function SettingsPage() {
         fetchWithAuth("/settings/billing"),
       ]);
 
-      if (profileRes.ok) setProfileData(await profileRes.json());
-      if (settingsRes.ok) setSettingsData(await settingsRes.json());
+      if (profileRes.ok) {
+        const data = await profileRes.json();
+        setProfileData(data);
+        setCompanyForm({
+          name: data.company?.name || "",
+          tax_number: data.company?.tax_number || "",
+          address: data.company?.address || "",
+        });
+      }
+      if (settingsRes.ok) {
+        const data = await settingsRes.json();
+        setSettingsData(data);
+        if (data.theme) {
+          setTheme(data.theme);
+          setAppTheme(data.theme);
+        }
+        if (data.sidebar_enabled && data.sidebar_enabled.length > 0) {
+          setSidebarEnabled(data.sidebar_enabled);
+        } else {
+          setSidebarEnabled(sidebarItems.filter((i) => i.enabled).map((i) => i.id));
+        }
+        if (data.sidebar_order && data.sidebar_order.length > 0) {
+          // Merge backend order with any missing IDs from sidebarItems
+          const backendOrder = data.sidebar_order;
+          const allIds = sidebarItems.map((i) => i.id);
+          const missingIds = allIds.filter(id => !backendOrder.includes(id));
+          setSidebarOrder([...backendOrder, ...missingIds]);
+        } else {
+          setSidebarOrder(sidebarItems.map((i) => i.id));
+        }
+        if (data.notifications_enabled !== undefined) setNotificationsEnabled(data.notifications_enabled);
+        if (data.labels) setLabels(data.labels);
+        setSettingsLoaded(true);
+      } else {
+        // If settings endpoint fails, still set settingsLoaded to show default values
+        setSidebarEnabled(sidebarItems.filter((i) => i.enabled).map((i) => i.id));
+        setSidebarOrder(sidebarItems.map((i) => i.id));
+        setSettingsLoaded(true);
+      }
       if (billingRes.ok) setBillingData(await billingRes.json());
     } catch (err) {
       console.error("Failed to load settings data:", err);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSaveCompany = async () => {
+    setSaving(true);
+    try {
+      const res = await fetchWithAuth("/settings/profile/company", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(companyForm),
+      });
+
+      if (res.ok) {
+        toast.success("Şirket bilgileri güncellendi");
+        loadAllData();
+        setEditingCompany(false);
+      } else {
+        toast.error("Güncelleme başarısız");
+      }
+    } catch (err) {
+      console.error("Failed to update company:", err);
+      toast.error("Güncelleme başarısız");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handlePasswordReset = async () => {
+    if (newPassword !== confirmPassword) {
+      toast.error("Şifreler eşleşmiyor");
+      return;
+    }
+
+    try {
+      const res = await fetchWithAuth("/auth/change-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          current_password: currentPassword,
+          new_password: newPassword,
+        }),
+      });
+
+      if (res.ok) {
+        toast.success("Şifre başarıyla değiştirildi");
+        setPasswordDialogOpen(false);
+        setCurrentPassword("");
+        setNewPassword("");
+        setConfirmPassword("");
+      } else {
+        const error = await res.json();
+        toast.error(error.detail || "Şifre değiştirme başarısız");
+      }
+    } catch (err) {
+      console.error("Failed to reset password:", err);
+      toast.error("Şifre değiştirme başarısız");
+    }
+  };
+
+  const handleAccountDeletion = async () => {
+    if (deleteConfirmation !== "HESABIMI SİL") {
+      toast.error("Onay metni eşleşmiyor");
+      return;
+    }
+
+    try {
+      const res = await fetchWithAuth("/auth/delete-account", {
+        method: "DELETE",
+      });
+
+      if (res.ok) {
+        toast.success("Hesap başarıyla silindi");
+        // Redirect to home or login page
+        window.location.href = "/login";
+      } else {
+        toast.error("Hesap silme başarısız");
+      }
+    } catch (err) {
+      console.error("Failed to delete account:", err);
+      toast.error("Hesap silme başarısız");
+    }
+  };
+
+  const handleSaveSettings = async () => {
+    try {
+      const res = await fetchWithAuth("/settings/user-settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          theme,
+          notifications_enabled: notificationsEnabled,
+          labels,
+          sidebar_enabled: sidebarEnabled,
+          sidebar_order: sidebarOrder,
+        }),
+      });
+
+      if (res.ok) {
+        toast.success("Ayarlar kaydedildi");
+        // Trigger sidebar refresh
+        window.dispatchEvent(new CustomEvent("settings-updated"));
+      } else {
+        toast.error("Kaydetme başarısız");
+      }
+    } catch (err) {
+      console.error("Failed to save settings:", err);
+      toast.error("Kaydetme başarısız");
+    }
+  };
+
+  const handleThemeChange = (newTheme: string) => {
+    setTheme(newTheme);
+    setAppTheme(newTheme);
+    // Auto-save theme
+    fetchWithAuth("/settings/user-settings", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ theme: newTheme }),
+    }).catch(console.error);
+  };
+
+  const handleNotificationsToggle = () => {
+    const newValue = !notificationsEnabled;
+    setNotificationsEnabled(newValue);
+    // Auto-save notifications
+    fetchWithAuth("/settings/user-settings", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ notifications_enabled: newValue }),
+    }).catch(console.error);
+  };
+
+  const handleDragStart = (id: number) => {
+    setDraggedItem(id);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+  };
+
+  const handleDrop = (dropId: number) => {
+    if (draggedItem === null) return;
+    
+    const draggedItemObj = sidebarItems.find((i) => i.id === draggedItem);
+    const dropItemObj = sidebarItems.find((i) => i.id === dropId);
+    
+    // Only allow reordering within the same group
+    if (!draggedItemObj || !dropItemObj || draggedItemObj.group !== dropItemObj.group) {
+      setDraggedItem(null);
+      return;
+    }
+    
+    const newOrder = [...sidebarOrder];
+    const draggedIndex = newOrder.indexOf(draggedItem);
+    const dropIndex = newOrder.indexOf(dropId);
+    
+    if (draggedIndex !== -1 && dropIndex !== -1) {
+      newOrder.splice(draggedIndex, 1);
+      newOrder.splice(dropIndex, 0, draggedItem);
+      setSidebarOrder(newOrder);
+      // Auto-save order
+      fetchWithAuth("/settings/user-settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sidebar_order: newOrder }),
+      }).catch(console.error);
+    }
+    
+    setDraggedItem(null);
+  };
+
+  const handleAddLabel = () => {
+    if (newLabel.trim() && !labels.includes(newLabel.trim())) {
+      setLabels([...labels, newLabel.trim()]);
+      setNewLabel("");
+    }
+  };
+
+  const handleRemoveLabel = (labelToRemove: string) => {
+    setLabels(labels.filter((label) => label !== labelToRemove));
   };
 
   const plans = [
@@ -98,20 +370,6 @@ export default function SettingsPage() {
     },
   ];
 
-  const sidebarItems = [
-    { id: 1, label: "Genel Bakış", href: "/dashboard", enabled: true },
-    { id: 2, label: "YZ Asistanı", href: "/dashboard/ai-assistant", enabled: true },
-    { id: 3, label: "Siparişler", href: "/dashboard/orders", enabled: true },
-    { id: 4, label: "Envanter", href: "/dashboard/inventory", enabled: true },
-    { id: 5, label: "Kargolar", href: "/dashboard/shipments", enabled: true },
-    { id: 6, label: "İş Akışları", href: "/dashboard/workflows", enabled: true },
-    { id: 7, label: "Analitik", href: "/dashboard/analytics", enabled: true },
-    { id: 8, label: "Bildirimler", href: "/dashboard/notifications", enabled: true },
-    { id: 9, label: "Entegrasyonlar", href: "/dashboard/integrations", enabled: true },
-    { id: 10, label: "Ekip", href: "/dashboard/team", enabled: true },
-    { id: 11, label: "Ayarlar", href: "/dashboard/settings", enabled: true },
-  ];
-
   if (loading) {
     return (
       <div className="space-y-6 max-w-7xl mx-auto">
@@ -127,7 +385,7 @@ export default function SettingsPage() {
         description="Profilinizi, site ayarlarını ve faturalandırma bilginizi yönetin"
       />
 
-      <Tabs defaultValue="profile" className="w-full">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-3 lg:w-[400px]">
           <TabsTrigger value="profile" className="flex items-center gap-2">
             <User className="h-4 w-4" />
@@ -176,27 +434,87 @@ export default function SettingsPage() {
 
               {/* Company Info Section */}
               <div className="space-y-4">
-                <h4 className="text-sm font-semibold">Şirket Bilgileri</h4>
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-semibold">Şirket Bilgileri</h4>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      if (editingCompany) {
+                        setEditingCompany(false);
+                        setCompanyForm({
+                          name: profileData?.company?.name || "",
+                          tax_number: profileData?.company?.tax_number || "",
+                          address: profileData?.company?.address || "",
+                        });
+                      } else {
+                        setEditingCompany(true);
+                      }
+                    }}
+                  >
+                    {editingCompany ? (
+                      <>İptal</>
+                    ) : (
+                      <>
+                        <Edit2 className="h-4 w-4 mr-1" />
+                        Düzenle
+                      </>
+                    )}
+                  </Button>
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Organizasyon Adı</label>
-                    <div className={`p-3 bg-muted rounded-lg text-sm ${!profileData?.company?.name ? "border border-dashed" : ""}`}>
-                      {profileData?.company?.name || <span className="text-muted-foreground">Henüz girilmedi</span>}
-                    </div>
+                    <Label htmlFor="company-name">Organizasyon Adı</Label>
+                    {editingCompany ? (
+                      <Input
+                        id="company-name"
+                        value={companyForm.name}
+                        onChange={(e) => setCompanyForm({ ...companyForm, name: e.target.value })}
+                        placeholder="Organizasyon adı girin"
+                      />
+                    ) : (
+                      <div className={`p-3 bg-muted rounded-lg text-sm ${!profileData?.company?.name ? "border border-dashed" : ""}`}>
+                        {profileData?.company?.name || <span className="text-muted-foreground">Henüz girilmedi</span>}
+                      </div>
+                    )}
                   </div>
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Vergi Numarası</label>
-                    <div className={`p-3 bg-muted rounded-lg text-sm ${!profileData?.company?.tax_number ? "border border-dashed" : ""}`}>
-                      {profileData?.company?.tax_number || <span className="text-muted-foreground">Henüz girilmedi</span>}
-                    </div>
+                    <Label htmlFor="tax-number">Vergi Numarası</Label>
+                    {editingCompany ? (
+                      <Input
+                        id="tax-number"
+                        value={companyForm.tax_number}
+                        onChange={(e) => setCompanyForm({ ...companyForm, tax_number: e.target.value })}
+                        placeholder="Vergi numarası girin"
+                      />
+                    ) : (
+                      <div className={`p-3 bg-muted rounded-lg text-sm ${!profileData?.company?.tax_number ? "border border-dashed" : ""}`}>
+                        {profileData?.company?.tax_number || <span className="text-muted-foreground">Henüz girilmedi</span>}
+                      </div>
+                    )}
                   </div>
                   <div className="space-y-2 md:col-span-2">
-                    <label className="text-sm font-medium">Adres</label>
-                    <div className={`p-3 bg-muted rounded-lg text-sm ${!profileData?.company?.address ? "border border-dashed" : ""}`}>
-                      {profileData?.company?.address || <span className="text-muted-foreground">Henüz girilmedi</span>}
-                    </div>
+                    <Label htmlFor="address">Adres</Label>
+                    {editingCompany ? (
+                      <Input
+                        id="address"
+                        value={companyForm.address}
+                        onChange={(e) => setCompanyForm({ ...companyForm, address: e.target.value })}
+                        placeholder="Adres girin"
+                      />
+                    ) : (
+                      <div className={`p-3 bg-muted rounded-lg text-sm ${!profileData?.company?.address ? "border border-dashed" : ""}`}>
+                        {profileData?.company?.address || <span className="text-muted-foreground">Henüz girilmedi</span>}
+                      </div>
+                    )}
                   </div>
                 </div>
+                {editingCompany && (
+                  <Button onClick={handleSaveCompany} disabled={saving}>
+                    <Save className="h-4 w-4 mr-1" />
+                    {saving ? "Kaydediliyor..." : "Kaydet"}
+                  </Button>
+                )}
               </div>
 
               {/* Danger Zone */}
@@ -206,14 +524,102 @@ export default function SettingsPage() {
                   Tehlikeli Bölge
                 </h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <button className="p-3 bg-muted rounded-lg text-sm text-left hover:bg-muted/80 transition-colors">
-                    <p className="font-medium">Şifre Değiştir</p>
-                    <p className="text-xs text-muted-foreground mt-1">Hesap şifrenizi değiştirin</p>
-                  </button>
-                  <button className="p-3 bg-destructive/10 rounded-lg text-sm text-left hover:bg-destructive/20 transition-colors text-destructive">
-                    <p className="font-medium">Hesabı Sil</p>
-                    <p className="text-xs text-destructive/80 mt-1">Hesabınızı kalıcı olarak silin</p>
-                  </button>
+                  <Dialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen}>
+                    <button
+                      onClick={() => setPasswordDialogOpen(true)}
+                      className="p-3 bg-muted rounded-lg text-sm text-left hover:bg-muted/80 transition-colors"
+                    >
+                      <p className="font-medium">Şifre Değiştir</p>
+                      <p className="text-xs text-muted-foreground mt-1">Hesap şifrenizi değiştirin</p>
+                    </button>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Şifre Değiştir</DialogTitle>
+                        <DialogDescription>
+                          Yeni şifrenizi girin. En az 6 karakter olmalıdır.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="current-password">Mevcut Şifre</Label>
+                          <Input
+                            id="current-password"
+                            type="password"
+                            value={currentPassword}
+                            onChange={(e) => setCurrentPassword(e.target.value)}
+                            placeholder="Mevcut şifrenizi girin"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="new-password">Yeni Şifre</Label>
+                          <Input
+                            id="new-password"
+                            type="password"
+                            value={newPassword}
+                            onChange={(e) => setNewPassword(e.target.value)}
+                            placeholder="Yeni şifrenizi girin"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="confirm-password">Şifre Onayla</Label>
+                          <Input
+                            id="confirm-password"
+                            type="password"
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
+                            placeholder="Şifrenizi tekrar girin"
+                          />
+                        </div>
+                      </div>
+                      <DialogFooter>
+                        <Button variant="outline" onClick={() => setPasswordDialogOpen(false)}>
+                          İptal
+                        </Button>
+                        <Button onClick={handlePasswordReset}>
+                          Şifre Değiştir
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                  
+                  <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+                    <button
+                      onClick={() => setDeleteDialogOpen(true)}
+                      className="p-3 bg-destructive/10 rounded-lg text-sm text-left hover:bg-destructive/20 transition-colors text-destructive"
+                    >
+                      <p className="font-medium">Hesabı Sil</p>
+                      <p className="text-xs text-destructive/80 mt-1">Hesabınızı kalıcı olarak silin</p>
+                    </button>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle className="text-destructive">Hesabı Sil</DialogTitle>
+                        <DialogDescription>
+                          Bu işlem geri alınamaz. Hesabınızı silmek istediğinizden emin misiniz?
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="delete-confirmation">
+                            Onaylamak için <span className="font-bold">HESABIMI SİL</span> yazın
+                          </Label>
+                          <Input
+                            id="delete-confirmation"
+                            value={deleteConfirmation}
+                            onChange={(e) => setDeleteConfirmation(e.target.value)}
+                            placeholder="HESABIMI SİL"
+                          />
+                        </div>
+                      </div>
+                      <DialogFooter>
+                        <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+                          İptal
+                        </Button>
+                        <Button variant="destructive" onClick={handleAccountDeletion}>
+                          Hesabı Sil
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
                 </div>
               </div>
             </div>
@@ -223,7 +629,12 @@ export default function SettingsPage() {
         {/* Settings Tab */}
         <TabsContent value="settings" className="space-y-6 mt-6">
           <Card className="p-6">
-            <h3 className="text-lg font-semibold mb-6">Site Ayarları</h3>
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-semibold">Site Ayarları</h3>
+              <Button onClick={handleSaveSettings} size="sm">
+                Kaydet
+              </Button>
+            </div>
             
             <div className="space-y-6">
               {/* Theme Setting */}
@@ -232,28 +643,140 @@ export default function SettingsPage() {
                   <p className="font-medium text-sm">Tema</p>
                   <p className="text-xs text-muted-foreground mt-1">Açık veya koyu tema seçin</p>
                 </div>
-                <Badge variant="secondary">{settingsData?.theme || "Açık"}</Badge>
+                <div className="flex gap-2">
+                  <Button
+                    variant={theme === "light" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => handleThemeChange("light")}
+                  >
+                    Açık
+                  </Button>
+                  <Button
+                    variant={theme === "dark" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => handleThemeChange("dark")}
+                  >
+                    Koyu
+                  </Button>
+                </div>
+              </div>
+
+              {/* Notification Settings */}
+              <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
+                <div>
+                  <p className="font-medium text-sm">Bildirimler</p>
+                  <p className="text-xs text-muted-foreground mt-1">Bildirimleri açın veya kapatın</p>
+                </div>
+                <Button
+                  variant={notificationsEnabled ? "default" : "outline"}
+                  size="sm"
+                  onClick={handleNotificationsToggle}
+                >
+                  {notificationsEnabled ? "Açık" : "Kapalı"}
+                </Button>
+              </div>
+
+              {/* Label Management */}
+              <div className="space-y-4">
+                <h4 className="text-sm font-semibold">Etiketler</h4>
+                <div className="space-y-3">
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="Yeni etiket ekle"
+                      value={newLabel}
+                      onChange={(e) => setNewLabel(e.target.value)}
+                      onKeyPress={(e) => e.key === "Enter" && handleAddLabel()}
+                    />
+                    <Button onClick={handleAddLabel}>Ekle</Button>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {labels.map((label) => (
+                      <Badge
+                        key={label}
+                        variant="secondary"
+                        className="cursor-pointer hover:bg-destructive hover:text-destructive-foreground"
+                        onClick={() => handleRemoveLabel(label)}
+                      >
+                        {label} ×
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
               </div>
 
               {/* Sidebar Management */}
               <div className="space-y-4">
                 <h4 className="text-sm font-semibold">Yan Menü Öğeleri</h4>
-                <div className="space-y-2">
-                  {sidebarItems.map((item) => (
-                    <div
-                      key={item.id}
-                      className="flex items-center justify-between p-3 bg-muted rounded-lg"
-                    >
-                      <span className="text-sm">{item.label}</span>
-                      <Badge variant={item.enabled ? "default" : "secondary"}>
-                        {item.enabled ? "Aktif" : "Pasif"}
-                      </Badge>
-                    </div>
-                  ))}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Öğeleri sürükleyip bırakarak sıralayabilirsiniz (yakında)
-                </p>
+                {!settingsLoaded ? (
+                  <p className="text-xs text-muted-foreground">Yükleniyor...</p>
+                ) : (
+                  <>
+                    {["Temel", "İçgörüler", "Yönetim", "Geliştirici Araçları"].map((groupName) => (
+                      <div key={groupName} className="space-y-2">
+                        <h5 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                          {groupName}
+                        </h5>
+                        <div className="space-y-2">
+                          {sidebarOrder
+                            .map((id) => sidebarItems.find((i) => i.id === id))
+                            .filter((item): item is NonNullable<typeof item> => item?.group === groupName)
+                            .map((item) => {
+                              const isEnabled = sidebarEnabled.includes(item.id);
+                              return (
+                                <div
+                                  key={item.id}
+                                  draggable
+                                  onDragStart={() => handleDragStart(item.id)}
+                                  onDragOver={handleDragOver}
+                                  onDrop={() => handleDrop(item.id)}
+                                  className={`flex items-center justify-between p-3 bg-muted rounded-lg cursor-move ${
+                                    draggedItem === item.id ? "opacity-50" : ""
+                                  }`}
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <GripVertical className="h-4 w-4 text-muted-foreground" />
+                                    <span className="text-sm">{item.label}</span>
+                                  </div>
+                                  <Button
+                                    variant={isEnabled ? "default" : "outline"}
+                                    size="sm"
+                                    onClick={() => {
+                                      if (isEnabled) {
+                                        setSidebarEnabled(sidebarEnabled.filter((id) => id !== item.id));
+                                        // Auto-save
+                                        fetchWithAuth("/settings/user-settings", {
+                                          method: "PUT",
+                                          headers: { "Content-Type": "application/json" },
+                                          body: JSON.stringify({
+                                            sidebar_enabled: sidebarEnabled.filter((id) => id !== item.id),
+                                          }),
+                                        }).catch(console.error);
+                                      } else {
+                                        setSidebarEnabled([...sidebarEnabled, item.id]);
+                                        // Auto-save
+                                        fetchWithAuth("/settings/user-settings", {
+                                          method: "PUT",
+                                          headers: { "Content-Type": "application/json" },
+                                          body: JSON.stringify({
+                                            sidebar_enabled: [...sidebarEnabled, item.id],
+                                          }),
+                                        }).catch(console.error);
+                                      }
+                                    }}
+                                  >
+                                    {isEnabled ? "Aktif" : "Pasif"}
+                                  </Button>
+                                </div>
+                              );
+                            })}
+                        </div>
+                      </div>
+                    ))}
+                    <p className="text-xs text-muted-foreground">
+                      Öğeleri sürükleyip bırakarak sıralayabilirsiniz (gruplar arası sıralama yok)
+                    </p>
+                  </>
+                )}
               </div>
             </div>
           </Card>

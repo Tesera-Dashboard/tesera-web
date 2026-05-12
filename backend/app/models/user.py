@@ -39,6 +39,8 @@ class UserSettings(Base):
     theme = Column(String, default="light")
     sidebar_order = Column(JSON, nullable=True)
     sidebar_enabled = Column(JSON, nullable=True)
+    notifications_enabled = Column(Boolean, default=True)
+    labels = Column(JSON, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 

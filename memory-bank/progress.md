@@ -224,16 +224,34 @@ Frontend dev server running at http://localhost:3000
   - Profile tab: User info display, profile completion percentage, company info (organization name, tax number, address), password reset and account deletion buttons
   - Settings tab: Theme setting display, sidebar item management (enable/disable status)
   - Billing tab: Pricing plans from landing page (Ücretsiz Deneme, Başlangıç, Büyüme, Kurumsal), free tier selected by default, other plans marked as "Yakında", trial days remaining display
+- [x] **Settings Page Backend Integration**: Connected all settings tabs to backend API:
+  - Profile tab: Editable company info form with save functionality, password reset dialog, account deletion dialog with confirmation
+  - Settings tab: Theme toggle (light/dark) with immediate application and auto-save, notifications toggle with auto-save, label management (add/remove), sidebar item management (enable/disable with auto-save), drag-and-drop reordering within groups (Temel, İçgörüler, Yönetim, Geliştirici Araçları)
+  - Topbar navigation to settings page with tab query params (profile, settings, billing)
 - [x] **Backend Models**: Extended user and company models:
   - Added `tax_number` and `address` fields to Company model
-  - Created UserSettings model (theme, sidebar_order, sidebar_enabled)
+  - Created UserSettings model (theme, sidebar_order, sidebar_enabled, notifications_enabled, labels)
   - Created Subscription model (plan, status, trial_ends_at, cancelled_at)
 - [x] **Backend API**: Created settings API endpoints:
   - GET /settings/profile - User and company info with completion percentage
   - PUT /settings/profile/company - Update company information
-  - GET /settings/user-settings - User theme and sidebar preferences
+  - GET /settings/user-settings - User theme, sidebar preferences, notifications, and labels
   - PUT /settings/user-settings - Update user settings
   - GET /settings/billing - Subscription info and days remaining
+- [x] **Backend Auth API**: Added user management endpoints:
+  - POST /auth/change-password - Change user password with current password verification
+  - DELETE /auth/delete-account - Delete user account with cascading delete of company, subscriptions, and users
+- [x] **Sidebar Settings Integration**: Connected sidebar to user settings:
+  - Sidebar loads user settings from backend on mount
+  - Sidebar items filtered based on sidebar_enabled array
+  - Sidebar groups hidden if all items in group are disabled
+  - Sidebar refreshes when settings are saved via custom event
+  - Test Simulator (id: 12) added to Geliştirici Araçları group
+- [x] **Topbar Settings Integration**: Connected topbar to user settings:
+  - Notifications setting loaded from backend
+  - Notifications polling only runs when notifications_enabled is true
+  - Topbar refreshes notifications setting when settings are saved via custom event
+  - Topbar navigation menu (Profil, Ayarlar, Faturalandırma) routes to settings page with appropriate tab
 
 ### Phase 6
 - [ ] Docker Compose (frontend + backend + postgres + redis)
