@@ -51,6 +51,7 @@ export function ProductSheet({ isOpen, onClose, item, onSave }: ProductSheetProp
         sku,
         category,
         quantity: parseInt(stock) || 0,
+        minStock: parseInt(minStock) || 0,
         price: parseFloat(price) || 0
       };
 

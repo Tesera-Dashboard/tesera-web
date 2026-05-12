@@ -45,6 +45,7 @@ class InventoryItemCreate(BaseModel):
     name: str
     sku: str
     quantity: int
+    minStock: int = 10
     price: float
     category: str
 

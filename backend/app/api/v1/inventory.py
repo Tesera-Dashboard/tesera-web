@@ -4,6 +4,7 @@ from typing import List, Optional
 import uuid
 import csv
 import io
+from datetime import datetime
 
 from app.core.database import get_db
 from app.models.inventory import InventoryItem as InventoryModel
@@ -53,13 +54,23 @@ def create_inventory_item(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
+    status = "Stokta"
+    if item.quantity == 0:
+        status = "Tükendi"
+    elif item.quantity <= item.minStock:
+        status = "Azalıyor"
+
     db_item = InventoryModel(
+        id=f"INV-{uuid.uuid4().hex[:8]}",
         company_id=current_user.company_id,
         name=item.name,
         sku=item.sku,
         stock=item.quantity,  # quantity from schema maps to stock in model
+        minStock=item.minStock,
         price=item.price,
-        category=item.category
+        category=item.category,
+        status=status,
+        lastRestocked=datetime.now().strftime("%Y-%m-%d")
     )
     db.add(db_item)
     db.commit()
@@ -101,8 +112,17 @@ def update_inventory_item(
     item.name = item_update.name
     item.sku = item_update.sku
     item.stock = item_update.quantity  # quantity from schema maps to stock in model
+    item.minStock = item_update.minStock
     item.price = item_update.price
     item.category = item_update.category
+
+    if item.stock == 0:
+        item.status = "Tükendi"
+    elif item.stock <= item.minStock:
+        item.status = "Azalıyor"
+    else:
+        item.status = "Stokta"
+
     db.commit()
     db.refresh(item)
 
