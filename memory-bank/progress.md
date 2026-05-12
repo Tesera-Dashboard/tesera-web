@@ -199,6 +199,27 @@ Frontend dev server running at http://localhost:3000
   - All cards marked as "Yakında" (Coming soon)
   - Responsive grid layout with hover effects
   - Turkish descriptions for each integration
+- [x] **Team Page**: Created team management coming soon page:
+  - Added large ekip.png illustration
+  - Coming soon badge and message
+  - Feature cards: Ekip Üyeleri, Kişisel İş Akışları, Rol Yönetimi, İzinler
+  - Turkish descriptions for each feature
+- [x] **Sidebar Updates**: Added "Yakında" badges:
+  - Added badges to Entegrasyonlar and Ekip navigation items
+  - Small rounded badge with primary color styling
+  - Only visible when sidebar is expanded
+- [x] **Topbar Improvements**: Enhanced navigation and search:
+  - Removed default "Panel" text, only show pageTitle when provided
+  - Moved search bar from right to left
+  - Added spacer to push right elements (notifications, theme, profile) to the right
+  - Implemented endpoint search with dropdown:
+    - Searches dashboard routes (12 pages)
+    - Filters by label and URL
+    - Shows dropdown with matching results
+    - Enter key navigates to first result
+    - Click navigates to selected route
+    - Highlights current page in dropdown
+    - Closes when clicking outside
 
 ### Phase 6
 - [ ] Docker Compose (frontend + backend + postgres + redis)

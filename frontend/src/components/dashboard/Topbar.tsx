@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Bell, Search, Sun, Moon, Package, Truck, Workflow, AlertCircle, CheckCircle, Trash2, Box } from "lucide-react";
+import { Bell, Search, Sun, Moon, Package, Truck, Workflow, AlertCircle, CheckCircle, Trash2, Box, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useTheme } from "next-themes";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { logout, getCurrentUser } from "@/lib/auth";
 import { fetchWithAuth } from "@/lib/api";
 import { toast } from "sonner";
@@ -24,12 +24,37 @@ interface TopbarProps {
   pageTitle?: string;
 }
 
+interface Route {
+  label: string;
+  href: string;
+  icon: any;
+}
+
 export function Topbar({ pageTitle }: TopbarProps) {
   const { theme, setTheme } = useTheme();
   const router = useRouter();
+  const pathname = usePathname();
   const [user, setUser] = useState<any>(null);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<Route[]>([]);
+  const [showSearchDropdown, setShowSearchDropdown] = useState(false);
+
+  const routes: Route[] = [
+    { label: "Genel Bakış", href: "/dashboard", icon: ArrowRight },
+    { label: "YZ Asistanı", href: "/dashboard/ai-assistant", icon: ArrowRight },
+    { label: "Siparişler", href: "/dashboard/orders", icon: ArrowRight },
+    { label: "Envanter", href: "/dashboard/inventory", icon: ArrowRight },
+    { label: "Kargolar", href: "/dashboard/shipments", icon: ArrowRight },
+    { label: "İş Akışları", href: "/dashboard/workflows", icon: ArrowRight },
+    { label: "Analitik", href: "/dashboard/analytics", icon: ArrowRight },
+    { label: "Bildirimler", href: "/dashboard/notifications", icon: ArrowRight },
+    { label: "Entegrasyonlar", href: "/dashboard/integrations", icon: ArrowRight },
+    { label: "Ekip", href: "/dashboard/team", icon: ArrowRight },
+    { label: "Ayarlar", href: "/dashboard/settings", icon: ArrowRight },
+    { label: "Test Simülatörü", href: "/dashboard/test", icon: ArrowRight },
+  ];
 
   useEffect(() => {
     getCurrentUser().then(data => {
@@ -145,25 +170,99 @@ export function Topbar({ pageTitle }: TopbarProps) {
     router.push("/login");
   };
 
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchResults.length > 0) {
+      router.push(searchResults[0].href);
+      setSearchQuery("");
+      setSearchResults([]);
+      setShowSearchDropdown(false);
+    }
+  };
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const query = e.target.value;
+    setSearchQuery(query);
+    
+    if (query.length > 0) {
+      const filtered = routes.filter(
+        (route) =>
+          route.label.toLowerCase().includes(query.toLowerCase()) ||
+          route.href.toLowerCase().includes(query.toLowerCase())
+      );
+      setSearchResults(filtered);
+      setShowSearchDropdown(filtered.length > 0);
+    } else {
+      setSearchResults([]);
+      setShowSearchDropdown(false);
+    }
+  };
+
+  const handleRouteSelect = (href: string) => {
+    router.push(href);
+    setSearchQuery("");
+    setSearchResults([]);
+    setShowSearchDropdown(false);
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest('.search-container')) {
+        setShowSearchDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   const initials = user?.full_name
     ? user.full_name.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase()
     : "U";
 
   return (
     <header className="sticky top-0 z-40 h-16 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex items-center px-6 gap-4">
-      {/* Title */}
-      <h1 className="text-base font-semibold mr-auto">{pageTitle ?? "Panel"}</h1>
-
-      {/* Search */}
-      <div className="relative hidden md:block w-56">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-        <Input
-          placeholder="Ara..."
-          className="pl-9 h-8 text-sm bg-muted/50 border-0 focus-visible:ring-1"
-        />
+      {/* Search - left side */}
+      <div className="relative hidden md:block w-56 search-container">
+        <form onSubmit={handleSearch}>
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+          <Input
+            placeholder="Sayfa ara..."
+            value={searchQuery}
+            onChange={handleSearchChange}
+            onFocus={() => setShowSearchDropdown(searchResults.length > 0)}
+            className="pl-9 h-8 text-sm bg-muted/50 border-0 focus-visible:ring-1"
+          />
+        </form>
+        
+        {/* Search Results Dropdown */}
+        {showSearchDropdown && searchResults.length > 0 && (
+          <div className="absolute top-full left-0 right-0 mt-1 bg-background border rounded-lg shadow-lg z-50 max-h-80 overflow-y-auto">
+            {searchResults.map((route) => (
+              <button
+                key={route.href}
+                onClick={() => handleRouteSelect(route.href)}
+                className={`w-full text-left px-3 py-2 hover:bg-accent flex items-center gap-2 transition-colors ${
+                  pathname === route.href ? "bg-accent" : ""
+                }`}
+              >
+                <route.icon className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm">{route.label}</span>
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
-      {/* Notifications */}
+      {/* Title - only show if provided */}
+      {pageTitle && <h1 className="text-base font-semibold">{pageTitle}</h1>}
+
+      {/* Spacer to push right elements to the right */}
+      <div className="flex-1" />
+
+      {/* Notifications - right side */}
       <DropdownMenu>
         <DropdownMenuTrigger className="relative h-8 w-8 p-0 border-0 bg-transparent hover:bg-accent rounded-md flex items-center justify-center">
           <Bell className="h-4 w-4" />
@@ -227,7 +326,7 @@ export function Topbar({ pageTitle }: TopbarProps) {
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {/* Theme toggle */}
+      {/* Theme toggle - right side */}
       <Button
         variant="ghost"
         size="icon"
@@ -239,7 +338,7 @@ export function Topbar({ pageTitle }: TopbarProps) {
         <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
       </Button>
 
-      {/* User menu */}
+      {/* User menu - far right */}
       <DropdownMenu>
         <DropdownMenuTrigger>
           <Avatar className="h-8 w-8 cursor-pointer" aria-label="User menu">
