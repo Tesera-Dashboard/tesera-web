@@ -136,9 +136,27 @@ Frontend dev server running at http://localhost:3000
 - [x] **Backend Fixes**: Fixed inventory PUT endpoint to use string IDs instead of UUID conversion, fixed SQLAlchemy JSON query for SQLite compatibility
 - [x] **Backend API Routes**: Added `/api/v1/notifications/delete-all` DELETE endpoint for bulk deletion
 
-### Phase 5
-- [ ] Analytics charts (Recharts or similar)
-- [ ] Insights dashboard
+### ✅ Phase 5 – Analytics & Insights
+- [x] **Backend Analytics API**: Created `/api/v1/analytics` router with endpoints:
+  - `/overview` - Returns overview stats (total orders, revenue, inventory, low stock, active shipments, delayed shipments, pending orders)
+  - `/orders/trends` - Returns order trends over time (date, count, revenue) with configurable days parameter
+  - `/inventory/by-category` - Returns inventory statistics grouped by category (total stock, item count, total value)
+  - `/shipments/status` - Returns shipment status distribution
+- [x] **Frontend Analytics Page**: Built complete analytics page at `/dashboard/analytics` with:
+  - Line chart showing order trends (count and revenue) over last 30 days
+  - Bar chart showing inventory by category (total stock and item count)
+  - Pie chart showing shipment status distribution
+  - Bar chart showing inventory value by category
+  - Responsive charts using Recharts library
+  - Loading states and error handling
+  - Turkish localization
+- [x] **Frontend Insights Dashboard**: Updated `/dashboard` overview page to show real-time KPIs:
+  - Total orders with pending orders count
+  - Critical stock items count
+  - Active shipments with delayed count
+  - Total revenue
+  - Real-time data from analytics overview endpoint
+  - Loading states with "..." placeholder
 
 ### Phase 6
 - [ ] Docker Compose (frontend + backend + postgres + redis)

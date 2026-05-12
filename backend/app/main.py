@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
-from app.api.v1 import auth, orders, inventory, shipments, ai, test, workflows, notifications
+from app.api.v1 import auth, orders, inventory, shipments, ai, test, workflows, notifications, analytics
 from app.core.database import engine, Base
 
 # Create tables
@@ -30,6 +30,7 @@ app.include_router(ai.router, prefix="/api/v1/ai", tags=["ai"])
 app.include_router(test.router, prefix="/api/v1/test", tags=["test"])
 app.include_router(workflows.router, prefix="/api/v1/workflows", tags=["workflows"])
 app.include_router(notifications.router, prefix="/api/v1/notifications", tags=["notifications"])
+app.include_router(analytics.router, prefix="/api/v1/analytics", tags=["analytics"])
 
 @app.get("/")
 def read_root():
