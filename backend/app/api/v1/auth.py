@@ -62,7 +62,7 @@ def reset_password(request: ResetPasswordRequest, db: Annotated[Session, Depends
     email = decode_token(request.token, "reset")
     user = db.query(User).filter(User.email == email).first()
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=404, detail="Kullanıcı bulunamadı")
     
     user.hashed_password = hash_password(request.new_password)
     db.commit()
@@ -73,7 +73,7 @@ def verify_email(request: VerifyEmailRequest, db: Annotated[Session, Depends(get
     email = decode_token(request.token, "verification")
     user = db.query(User).filter(User.email == email).first()
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=404, detail="Kullanıcı bulunamadı")
     
     if user.is_verified:
         return {"message": "Email already verified"}
@@ -102,7 +102,7 @@ def change_password(
     """
     # Verify current password
     if not verify_password(request.current_password, current_user.hashed_password):
-        raise HTTPException(status_code=400, detail="Current password is incorrect")
+        raise HTTPException(status_code=400, detail="Mevcut şifre yanlış")
     
     # Update password
     current_user.hashed_password = hash_password(request.new_password)

@@ -34,7 +34,7 @@ export default function RegisterPage() {
       await login(email, password);
       router.push(`/pending-verification?email=${encodeURIComponent(email)}`);
     } catch (error: any) {
-      toast.error(error.message || "Failed to create account");
+      toast.error(error.message || "Hesap oluşturulamadı");
 
     } finally {
       setIsLoading(false);

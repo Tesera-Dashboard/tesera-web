@@ -24,7 +24,7 @@ export default function LoginPage() {
 
     try {
       await login(email, password);
-      toast.success("Successfully logged in");
+      toast.success("Başarıyla giriş yapıldı");
       
       // Check if user has completed onboarding
       try {
@@ -46,7 +46,7 @@ export default function LoginPage() {
       
       router.push("/dashboard");
     } catch (error: any) {
-      toast.error(error.message || "Failed to log in");
+      toast.error(error.message || "Giriş başarısız");
 
     } finally {
       setIsLoading(false);

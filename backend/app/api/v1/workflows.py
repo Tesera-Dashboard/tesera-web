@@ -57,13 +57,13 @@ def read_workflow(
     try:
         workflow_uuid = UUID(workflow_id)
     except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid workflow ID format")
+        raise HTTPException(status_code=400, detail="Geçersiz iş akışı ID formatı")
     workflow = db.query(WorkflowModel).filter(
         WorkflowModel.id == workflow_uuid,
         WorkflowModel.company_id == current_user.company_id
     ).first()
     if not workflow:
-        raise HTTPException(status_code=404, detail="Workflow not found")
+        raise HTTPException(status_code=404, detail="İş akışı bulunamadı")
     return workflow
 
 @router.post("/", response_model=Workflow)
@@ -129,13 +129,13 @@ def update_workflow(
     try:
         workflow_uuid = UUID(workflow_id)
     except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid workflow ID format")
+        raise HTTPException(status_code=400, detail="Geçersiz iş akışı ID formatı")
     db_workflow = db.query(WorkflowModel).filter(
         WorkflowModel.id == workflow_uuid,
         WorkflowModel.company_id == current_user.company_id
     ).first()
     if not db_workflow:
-        raise HTTPException(status_code=404, detail="Workflow not found")
+        raise HTTPException(status_code=404, detail="İş akışı bulunamadı")
 
     try:
         if workflow.name is not None:
@@ -199,7 +199,7 @@ def delete_workflow(
     try:
         workflow_uuid = UUID(workflow_id)
     except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid workflow ID format")
+        raise HTTPException(status_code=400, detail="Geçersiz iş akışı ID formatı")
 
     workflow = db.query(WorkflowModel).filter(
         WorkflowModel.id == workflow_uuid,
@@ -207,7 +207,7 @@ def delete_workflow(
     ).first()
 
     if not workflow:
-        raise HTTPException(status_code=404, detail="Workflow not found")
+        raise HTTPException(status_code=404, detail="İş akışı bulunamadı")
 
     workflow_name = workflow.name
 

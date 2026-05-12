@@ -128,7 +128,7 @@ class UpdateShipmentRequest(BaseModel):
 def simulate_update_shipment(req: UpdateShipmentRequest, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     shipment = db.query(Shipment).filter(Shipment.id == req.shipment_id, Shipment.company_id == current_user.company_id).first()
     if not shipment:
-        raise HTTPException(status_code=404, detail="Shipment not found")
+        raise HTTPException(status_code=404, detail="Kargo bulunamadı")
 
     old_status = shipment.status
     old_is_delayed = shipment.isDelayed

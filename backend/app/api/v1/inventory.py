@@ -215,11 +215,11 @@ async def import_inventory(
     try:
         # Check file extension
         if file.filename and not file.filename.lower().endswith('.csv'):
-            raise HTTPException(status_code=400, detail="Only CSV files are allowed")
+            raise HTTPException(status_code=400, detail="Sadece CSV dosyaları kabul edilir")
         
         # Validate mode
         if mode not in ["overwrite", "reset"]:
-            raise HTTPException(status_code=400, detail="Invalid mode. Must be 'overwrite' or 'reset'")
+            raise HTTPException(status_code=400, detail="Geçersiz mod. 'overwrite' veya 'reset' olmalı")
         
         # If reset mode, delete all existing inventory items
         if mode == "reset":
@@ -231,7 +231,7 @@ async def import_inventory(
         # Read and parse CSV
         contents = await file.read()
         if not contents:
-            raise HTTPException(status_code=400, detail="File is empty")
+            raise HTTPException(status_code=400, detail="Dosya boş")
         
         csv_file = io.StringIO(contents.decode('utf-8'))
         csv_reader = csv.DictReader(csv_file)

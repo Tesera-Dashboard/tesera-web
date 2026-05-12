@@ -49,12 +49,12 @@ def decode_token(token: str, expected_type: str) -> str:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Invalid token type. Expected {expected_type}")
         subject: Optional[str] = payload.get("sub")
         if subject is None:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token payload")
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Geçersiz token yükü")
         return subject
     except JWTError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Could not validate credentials",
+            detail="Kimlik bilgileri doğrulanamadı",
             headers={"WWW-Authenticate": "Bearer"},
         )
 

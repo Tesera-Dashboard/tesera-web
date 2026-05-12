@@ -21,9 +21,9 @@ export default function ForgotPasswordPage() {
     try {
       await forgotPassword(email);
       setIsSent(true);
-      toast.success("Password reset link sent to your email!");
+      toast.success("Şifre sıfırlama bağlantısı e-postanıza gönderildi!");
     } catch (error: any) {
-      toast.error(error.message || "Failed to send reset link");
+      toast.error(error.message || "Sıfırlama bağlantısı gönderilemedi");
     } finally {
       setIsLoading(false);
     }

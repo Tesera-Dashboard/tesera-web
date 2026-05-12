@@ -19,18 +19,18 @@ function VerifyEmailContent() {
   useEffect(() => {
     if (!token) {
       setStatus("error");
-      setErrorMessage("No verification token provided.");
+      setErrorMessage("Doğrulama token'ı sağlanmadı.");
       return;
     }
 
     verifyEmail(token)
       .then(() => {
         setStatus("success");
-        toast.success("Email verified successfully!");
+        toast.success("E-posta başarıyla doğrulandı!");
       })
       .catch((err) => {
         setStatus("error");
-        setErrorMessage(err.message || "Failed to verify email.");
+        setErrorMessage(err.message || "E-posta doğrulanamadı.");
       });
   }, [token]);
 

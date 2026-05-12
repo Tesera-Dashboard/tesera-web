@@ -20,7 +20,7 @@ function PendingVerificationContent() {
     setIsLoading(true);
     try {
       await resendVerification();
-      toast.success("Verification email sent successfully!");
+      toast.success("Doğrulama e-postası başarıyla gönderildi!");
       setCountdown(60);
       
       const interval = setInterval(() => {
@@ -33,7 +33,7 @@ function PendingVerificationContent() {
         });
       }, 1000);
     } catch (error: any) {
-      toast.error(error.message || "Failed to resend email.");
+      toast.error(error.message || "E-posta tekrar gönderilemedi.");
     } finally {
       setIsLoading(false);
     }

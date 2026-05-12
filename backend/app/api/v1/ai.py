@@ -420,6 +420,7 @@ def get_predictions(
             status_code=500,
             detail="YZ öngörüleri oluşturulurken beklenmeyen bir hata oluştu."
         )
+@router.get("/recommendations", response_model=RecommendationsResponse)
 def get_recommendations(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)

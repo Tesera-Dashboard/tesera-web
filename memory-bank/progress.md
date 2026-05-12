@@ -287,7 +287,9 @@ Frontend dev server running at http://localhost:3000
 - [x] **Database Schema Fixes**: Changed UserSettings user_id from INTEGER to UUID to match User model
 - [x] **Account Deletion Fix**: Updated delete-account endpoint to properly cascade delete all related data (notifications, AI conversations, workflows, orders, inventory, shipments, subscriptions)
 - [x] **AI Chat Improvements**: Updated system instruction to prevent AI from asking clarifying questions and added conversation history summary to maintain context while optimizing token usage
-- [x] **AI Predictions Feature**: Added AI-powered predictions endpoint and integrated it into analytics page with sticky sidebar showing business summary, performance analysis, forecasts, and profit/loss predictions
+- [x] **AI Predictions Feature**: Added AI-powered predictions endpoint and integrated it into analytics page with sticky sidebar showing business summary, performance analysis, forecasts, and profit/loss predictions with markdown support and regenerate button
+- [x] **Error Message Translation**: Translated all user-facing error messages to Turkish in auth pages (login, register, forgot-password, reset-password, verify-email, pending-verification) and backend API endpoints
+- [x] **AI Recommendations Fix**: Added missing route decorator to fix 404 error for AI recommendations endpoint
 
 ### Phase 6
 - [ ] Docker Compose (frontend + backend + postgres + redis)

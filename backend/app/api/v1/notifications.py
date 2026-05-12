@@ -51,7 +51,7 @@ def read_notification(
     try:
         notification_uuid = UUID(notification_id)
     except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid notification ID format")
+        raise HTTPException(status_code=400, detail="Geçersiz bildirim ID formatı")
     
     notification = db.query(NotificationModel).filter(
         NotificationModel.id == notification_uuid,
@@ -59,7 +59,7 @@ def read_notification(
     ).first()
     
     if not notification:
-        raise HTTPException(status_code=404, detail="Notification not found")
+        raise HTTPException(status_code=404, detail="Bildirim bulunamadı")
     
     return notification
 
@@ -95,7 +95,7 @@ def mark_notification_read(
     try:
         notification_uuid = UUID(notification_id)
     except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid notification ID format")
+        raise HTTPException(status_code=400, detail="Geçersiz bildirim ID formatı")
     
     notification = db.query(NotificationModel).filter(
         NotificationModel.id == notification_uuid,
@@ -103,7 +103,7 @@ def mark_notification_read(
     ).first()
     
     if not notification:
-        raise HTTPException(status_code=404, detail="Notification not found")
+        raise HTTPException(status_code=404, detail="Bildirim bulunamadı")
     
     notification.is_read = True
     notification.read_at = datetime.utcnow()
@@ -151,7 +151,7 @@ def delete_notification(
     try:
         notification_uuid = UUID(notification_id)
     except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid notification ID format")
+        raise HTTPException(status_code=400, detail="Geçersiz bildirim ID formatı")
     
     notification = db.query(NotificationModel).filter(
         NotificationModel.id == notification_uuid,
@@ -159,7 +159,7 @@ def delete_notification(
     ).first()
     
     if not notification:
-        raise HTTPException(status_code=404, detail="Notification not found")
+        raise HTTPException(status_code=404, detail="Bildirim bulunamadı")
     
     try:
         db.delete(notification)

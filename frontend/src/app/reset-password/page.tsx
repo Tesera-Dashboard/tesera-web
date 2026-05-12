@@ -23,17 +23,17 @@ function ResetPasswordForm() {
     e.preventDefault();
 
     if (!token) {
-      toast.error("Invalid or missing reset token");
+      toast.error("Geçersiz veya eksik sıfırlama token'ı");
       return;
     }
 
     if (password !== confirmPassword) {
-      toast.error("Passwords do not match");
+      toast.error("Şifreler eşleşmiyor");
       return;
     }
 
     if (password.length < 8) {
-      toast.error("Password must be at least 8 characters long");
+      toast.error("Şifre en az 8 karakter olmalı");
       return;
     }
 
@@ -41,10 +41,10 @@ function ResetPasswordForm() {
 
     try {
       await resetPassword(token, password);
-      toast.success("Password reset successfully. You can now log in.");
+      toast.success("Şifre başarıyla sıfırlandı. Artık giriş yapabilirsiniz.");
       router.push("/login");
     } catch (error: any) {
-      toast.error(error.message || "Failed to reset password");
+      toast.error(error.message || "Şifre sıfırlanamadı");
     } finally {
       setIsLoading(false);
     }
