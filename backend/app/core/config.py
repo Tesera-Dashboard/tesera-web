@@ -23,6 +23,7 @@ class Settings(BaseSettings):
     EMAILS_FROM_EMAIL: Optional[str] = None
     EMAILS_FROM_NAME: Optional[str] = "Tesera"
     FRONTEND_URL: str = "http://localhost:3000"
+    USE_GMAIL_SMTP: bool = False  # Set to True to use Gmail SMTP instead of Brevo
 
     # AI
     GEMINI_API_KEY: Optional[str] = None

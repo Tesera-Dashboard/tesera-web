@@ -55,6 +55,32 @@ def authenticate_user(db: Session, request: LoginRequest) -> Token:
 
 def send_email(email_to: str, subject: str, html_content: str):
     import os
+    
+    # Use Gmail SMTP if configured
+    if settings.USE_GMAIL_SMTP:
+        if not settings.SMTP_HOST or not settings.SMTP_USER or not settings.SMTP_PASSWORD:
+            print(f"Mock Email to {email_to}: {subject}")
+            print("Gmail SMTP not configured properly")
+            return
+        
+        try:
+            msg = EmailMessage()
+            msg["From"] = settings.EMAILS_FROM_EMAIL or settings.SMTP_USER
+            msg["To"] = email_to
+            msg["Subject"] = subject
+            msg.set_content(html_content, subtype="html")
+            
+            with smtplib.SMTP(settings.SMTP_HOST, settings.SMTP_PORT) as server:
+                if settings.SMTP_TLS:
+                    server.starttls()
+                server.login(settings.SMTP_USER, settings.SMTP_PASSWORD)
+                server.send_message(msg)
+            print(f"Email sent via Gmail SMTP to {email_to}")
+        except Exception as e:
+            print(f"Error sending email via Gmail SMTP: {e}")
+            return
+    
+    # Use Brevo API (default)
     import httpx
     
     api_key = os.getenv("BREVO_API_KEY")
