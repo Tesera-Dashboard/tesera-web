@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime
-from sqlalchemy import Column, String, DateTime, ForeignKey, Boolean, Uuid
+from sqlalchemy import Column, String, DateTime, ForeignKey, Boolean, Uuid, Integer, Text, JSON
 from sqlalchemy.orm import relationship
 from app.core.database import Base
 
@@ -9,6 +9,8 @@ class Company(Base):
 
     id = Column(Uuid(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name = Column(String, index=True, nullable=False)
+    tax_number = Column(String, nullable=True)
+    address = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
@@ -28,3 +30,30 @@ class User(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
     company = relationship("Company", back_populates="users")
+
+class UserSettings(Base):
+    __tablename__ = "user_settings"
+
+    id = Column(Uuid(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(Uuid(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    theme = Column(String, default="light")
+    sidebar_order = Column(JSON, nullable=True)
+    sidebar_enabled = Column(JSON, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+    user = relationship("User", backref="settings")
+
+class Subscription(Base):
+    __tablename__ = "subscriptions"
+
+    id = Column(Uuid(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    company_id = Column(Uuid(as_uuid=True), ForeignKey("companies.id"), nullable=False)
+    plan = Column(String, default="free")
+    status = Column(String, default="active")
+    trial_ends_at = Column(DateTime, nullable=True)
+    cancelled_at = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+    company = relationship("Company", backref="subscription")

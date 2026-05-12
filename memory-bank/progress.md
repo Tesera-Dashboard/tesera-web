@@ -217,9 +217,23 @@ Frontend dev server running at http://localhost:3000
     - Filters by label and URL
     - Shows dropdown with matching results
     - Enter key navigates to first result
-    - Click navigates to selected route
-    - Highlights current page in dropdown
-    - Closes when clicking outside
+  - Click navigates to selected route
+  - Highlights current page in dropdown
+  - Closes when clicking outside
+- [x] **Settings Page**: Created unified settings page with three tabs:
+  - Profile tab: User info display, profile completion percentage, company info (organization name, tax number, address), password reset and account deletion buttons
+  - Settings tab: Theme setting display, sidebar item management (enable/disable status)
+  - Billing tab: Pricing plans from landing page (Ücretsiz Deneme, Başlangıç, Büyüme, Kurumsal), free tier selected by default, other plans marked as "Yakında", trial days remaining display
+- [x] **Backend Models**: Extended user and company models:
+  - Added `tax_number` and `address` fields to Company model
+  - Created UserSettings model (theme, sidebar_order, sidebar_enabled)
+  - Created Subscription model (plan, status, trial_ends_at, cancelled_at)
+- [x] **Backend API**: Created settings API endpoints:
+  - GET /settings/profile - User and company info with completion percentage
+  - PUT /settings/profile/company - Update company information
+  - GET /settings/user-settings - User theme and sidebar preferences
+  - PUT /settings/user-settings - Update user settings
+  - GET /settings/billing - Subscription info and days remaining
 
 ### Phase 6
 - [ ] Docker Compose (frontend + backend + postgres + redis)
