@@ -6,12 +6,35 @@ from datetime import datetime, timedelta
 
 from app.core.database import get_db
 from app.api.deps import get_current_user
-from app.models.user import User
+from app.models.user import User, UserSettings
 from app.models.order import Order
 from app.models.inventory import InventoryItem
 from app.models.shipment import Shipment
+from app.models.notification import Notification as NotificationModel
 
 router = APIRouter()
+
+def create_notification_if_enabled(db: Session, company_id, user_id, title, message, notification_type, priority="info", meta_data=None):
+    """Helper function to create notifications - checks if notifications are enabled"""
+    # Check if user has notifications enabled
+    user_settings = db.query(UserSettings).filter(UserSettings.user_id == user_id).first()
+    if user_settings and user_settings.notifications_enabled == False:
+        return None
+    
+    notification = NotificationModel(
+        id=uuid.uuid4(),
+        company_id=company_id,
+        user_id=user_id,
+        title=title,
+        message=message,
+        type=notification_type,
+        priority=priority,
+        meta_data=meta_data,
+        is_read=False
+    )
+    db.add(notification)
+    db.commit()
+    return notification
 
 @router.post("/seed")
 def seed_mock_data(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
@@ -64,9 +87,6 @@ class CreateOrderRequest(BaseModel):
 
 @router.post("/orders/create")
 def simulate_create_order(req: CreateOrderRequest, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    from app.models.notification import Notification as NotificationModel
-    import uuid
-
     order_id = f"ORD-{random.randint(2000, 9999)}"
     new_order = Order(
         id=order_id,
@@ -85,19 +105,16 @@ def simulate_create_order(req: CreateOrderRequest, db: Session = Depends(get_db)
     db.commit()
 
     # Create notification for new order
-    notification = NotificationModel(
-        id=uuid.uuid4(),
-        company_id=current_user.company_id,
-        user_id=current_user.id,
-        title="Yeni Sipariş Oluşturuldu",
-        message=f"{req.product} ürününden {req.quantity} adet sipariş oluşturuldu. Sipariş ID: {order_id}",
-        type="order",
-        priority="info",
-        meta_data={"order_id": order_id},
-        is_read=False
+    create_notification_if_enabled(
+        db,
+        current_user.company_id,
+        current_user.id,
+        "Yeni Sipariş Oluşturuldu",
+        f"{req.product} ürününden {req.quantity} adet sipariş oluşturuldu. Sipariş ID: {order_id}",
+        "order",
+        "info",
+        {"order_id": order_id}
     )
-    db.add(notification)
-    db.commit()
 
     return {"message": "Order created", "order_id": order_id}
 
@@ -109,9 +126,6 @@ class UpdateShipmentRequest(BaseModel):
 
 @router.post("/shipments/update")
 def simulate_update_shipment(req: UpdateShipmentRequest, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    from app.models.notification import Notification as NotificationModel
-    import uuid
-
     shipment = db.query(Shipment).filter(Shipment.id == req.shipment_id, Shipment.company_id == current_user.company_id).first()
     if not shipment:
         raise HTTPException(status_code=404, detail="Shipment not found")
@@ -130,45 +144,36 @@ def simulate_update_shipment(req: UpdateShipmentRequest, db: Session = Depends(g
 
     # Create notification if status changed
     if old_status != req.status:
-        notification = NotificationModel(
-            id=uuid.uuid4(),
-            company_id=current_user.company_id,
-            user_id=current_user.id,
-            title="Kargo Durumu Değişti",
-            message=f"Kargo {shipment.trackingCode} durumu: {old_status} -> {req.status}",
-            type="shipment",
-            priority="info",
-            meta_data={"shipment_id": shipment.id},
-            is_read=False
+        create_notification_if_enabled(
+            db,
+            current_user.company_id,
+            current_user.id,
+            "Kargo Durumu Değişti",
+            f"Kargo {shipment.trackingCode} durumu: {old_status} -> {req.status}",
+            "shipment",
+            "info",
+            {"shipment_id": shipment.id}
         )
-        db.add(notification)
-        db.commit()
 
     # Create notification if delay status changed
     if old_is_delayed != req.is_delayed:
         priority = "warning" if req.is_delayed else "info"
         message = f"Kargo {shipment.trackingCode} gecikmeli olarak işaretlendi" if req.is_delayed else f"Kargo {shipment.trackingCode} gecikme durumu kaldırıldı"
-        notification = NotificationModel(
-            id=uuid.uuid4(),
-            company_id=current_user.company_id,
-            user_id=current_user.id,
-            title="Kargo Gecikme Durumu",
-            message=message,
-            type="shipment",
-            priority=priority,
-            meta_data={"shipment_id": shipment.id},
-            is_read=False
+        create_notification_if_enabled(
+            db,
+            current_user.company_id,
+            current_user.id,
+            "Kargo Gecikme Durumu",
+            message,
+            "shipment",
+            priority,
+            {"shipment_id": shipment.id}
         )
-        db.add(notification)
-        db.commit()
 
     return {"message": f"Shipment {req.shipment_id} updated"}
 
 @router.post("/inventory/create")
 def simulate_create_inventory_item(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    from app.models.notification import Notification as NotificationModel
-    import uuid
-
     item_id = f"INV-{random.randint(1000, 9999)}"
     categories = ["Reçel", "Turşu", "Bal", "Zeytin", "Süt Ürünleri", "Kuru Gıda"]
     names = ["Ayva Reçeli", "Ceviz Reçeli", "Gül Reçeli", "Domates Turşusu", "Salatalık Turşusu", "Kabak Turşusu", "Çam Balı", "Çiçek Balı", "Karaca Balı", "Siyah Zeytin", "Yeşil Zeytin", "Üzüm Zeytini", "Beyaz Peynir", "Kaşar Peyniri", "Tulum Peyniri", "Köy Yoğurdu", "Ayran", "Nohut", "Mercimek", "Bulgur", "Pirinç"]
@@ -190,19 +195,16 @@ def simulate_create_inventory_item(db: Session = Depends(get_db), current_user: 
 
     # Create notification for new inventory item
     priority = "warning" if new_item.status in ["Azalıyor", "Tükendi"] else "info"
-    notification = NotificationModel(
-        id=uuid.uuid4(),
-        company_id=current_user.company_id,
-        user_id=current_user.id,
-        title="Yeni Ürün Eklendi",
-        message=f"{new_item.name} ürünü envantere eklendi. Stok: {new_item.stock}, Durum: {new_item.status}",
-        type="inventory",
-        priority=priority,
-        meta_data={"item_id": item_id},
-        is_read=False
+    create_notification_if_enabled(
+        db,
+        current_user.company_id,
+        current_user.id,
+        "Yeni Ürün Eklendi",
+        f"{new_item.name} ürünü envantere eklendi. Stok: {new_item.stock}, Durum: {new_item.status}",
+        "inventory",
+        priority,
+        {"item_id": item_id}
     )
-    db.add(notification)
-    db.commit()
 
     return {"message": "Mock ürün başarıyla oluşturuldu", "item": new_item.name}
 
@@ -311,24 +313,21 @@ def create_test_workflow(db: Session = Depends(get_db), current_user: User = Dep
 # Notification test endpoints
 @router.post("/notifications/create")
 def create_test_notification(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    from app.models.notification import Notification
-    import uuid
-
     notification_types = ["order", "shipment", "inventory", "workflow", "system"]
     notification_type = notification_types[hash(str(current_user.company_id)) % len(notification_types)]
 
-    notification = Notification(
-        id=uuid.uuid4(),
-        company_id=current_user.company_id,
-        user_id=current_user.id,
-        title="Test Bildirimi",
-        message=f"Bu bir {notification_type} tipinde test bildirimidir",
-        type=notification_type,
-        priority="info",
-        meta_data={"test": True},
-        is_read=False
+    notification = create_notification_if_enabled(
+        db,
+        current_user.company_id,
+        current_user.id,
+        "Test Bildirimi",
+        f"Bu bir {notification_type} tipinde test bildirimidir",
+        notification_type,
+        "info",
+        {"test": True}
     )
 
-    db.add(notification)
-    db.commit()
+    if not notification:
+        return {"message": "Bildirimler kapalı, test bildirimi oluşturulmadı"}
+
     return {"message": "Test bildirimi başarıyla oluşturuldu", "notification_id": str(notification.id)}

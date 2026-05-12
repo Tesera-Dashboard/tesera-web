@@ -9,13 +9,18 @@ from app.core.database import get_db
 from app.models.workflow import Workflow as WorkflowModel, WorkflowStep as WorkflowStepModel
 from app.schemas.domain import Workflow, WorkflowCreate, WorkflowUpdate
 from app.api.deps import get_current_user
-from app.models.user import User
+from app.models.user import User, UserSettings
 from app.models.notification import Notification as NotificationModel
 
 router = APIRouter()
 
 def create_notification(db: Session, company_id, user_id, title, message, notification_type, priority="info", meta_data=None):
-    """Helper function to create notifications"""
+    """Helper function to create notifications - checks if notifications are enabled"""
+    # Check if user has notifications enabled
+    user_settings = db.query(UserSettings).filter(UserSettings.user_id == user_id).first()
+    if user_settings and user_settings.notifications_enabled == False:
+        return None
+    
     notification = NotificationModel(
         id=uuid.uuid4(),
         company_id=company_id,
@@ -29,6 +34,7 @@ def create_notification(db: Session, company_id, user_id, title, message, notifi
     )
     db.add(notification)
     db.commit()
+    return notification
 
 @router.get("/", response_model=List[Workflow])
 def read_workflows(
