@@ -202,7 +202,7 @@ export function Topbar({ pageTitle }: TopbarProps) {
   const handleLogout = () => {
     logout();
     toast.success("Başarıyla çıkış yapıldı");
-    router.push("/login");
+    router.push("/");
   };
 
   const handleSearch = (e: React.FormEvent) => {
