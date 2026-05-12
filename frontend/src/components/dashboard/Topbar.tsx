@@ -48,7 +48,18 @@ export function Topbar({ pageTitle }: TopbarProps) {
   useEffect(() => {
     loadNotifications();
     const interval = setInterval(loadNotifications, 30000); // Refresh every 30s
-    return () => clearInterval(interval);
+    
+    // Listen for custom notification refresh events
+    const handleNotificationRefresh = () => {
+      loadNotifications();
+    };
+    
+    window.addEventListener("notification-refresh", handleNotificationRefresh);
+    
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("notification-refresh", handleNotificationRefresh);
+    };
   }, []);
 
   const loadNotifications = async () => {
@@ -56,11 +67,19 @@ export function Topbar({ pageTitle }: TopbarProps) {
       const res = await fetchWithAuth("/notifications?limit=5");
       if (res.ok) {
         const data = await res.json();
-        setNotifications(data);
-        setUnreadCount(data.filter((n: Notification) => !n.is_read).length);
+        if (Array.isArray(data)) {
+          setNotifications(data);
+          setUnreadCount(data.filter((n: Notification) => !n.is_read).length);
+        } else {
+          console.error("Unexpected data format:", data);
+          setNotifications([]);
+          setUnreadCount(0);
+        }
       }
     } catch (err) {
       console.error("Notifications load error:", err);
+      setNotifications([]);
+      setUnreadCount(0);
     }
   };
 
@@ -75,11 +94,22 @@ export function Topbar({ pageTitle }: TopbarProps) {
 
   const handleMarkAllAsRead = async () => {
     try {
-      await fetchWithAuth("/notifications/mark-all-read", { method: "PUT" });
-      loadNotifications();
-      toast.success("Tüm bildirimler okundu işaretlendi");
+      const res = await fetchWithAuth("/notifications/mark-all-read", { method: "PUT" });
+      if (res.ok) {
+        // Immediately update unread count to 0 for instant UI feedback
+        setUnreadCount(0);
+        // Mark all current notifications as read locally
+        setNotifications(notifications.map(n => ({ ...n, is_read: true })));
+        toast.success("Tüm bildirimler okundu işaretlendi");
+        // Reload from server to ensure consistency
+        await loadNotifications();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.detail || data.message || "İşlem başarısız");
+      }
     } catch (err) {
       console.error("Mark all as read error:", err);
+      toast.error("Tüm bildirimler okundu işaretlenemedi");
     }
   };
 

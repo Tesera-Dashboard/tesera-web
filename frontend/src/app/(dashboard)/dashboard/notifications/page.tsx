@@ -9,10 +9,12 @@ import { Bell, CheckCheck, Trash2, Package, Truck, AlertCircle, CheckCircle, Inf
 import { toast } from "sonner";
 import { Notification } from "@/types/notification";
 import { Badge } from "@/components/ui/badge";
+import { AlertModal } from "@/components/ui/AlertModal";
 
 export default function NotificationsPage() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
 
   const loadNotifications = useCallback(async () => {
     try {
@@ -78,6 +80,29 @@ export default function NotificationsPage() {
     }
   };
 
+  const handleDeleteAllNotifications = async () => {
+    try {
+      const res = await fetchWithAuth("/notifications/delete-all", {
+        method: "DELETE",
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.detail || errorData.message || "Tüm bildirimler silinemedi");
+      }
+
+      toast.success("Tüm bildirimler başarıyla silindi");
+      loadNotifications();
+      // Trigger notification refresh
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("notification-refresh"));
+      }
+    } catch (err: any) {
+      console.error("Delete all error:", err);
+      toast.error(`Tüm bildirimler silinemedi: ${err.message}`);
+    }
+  };
+
   const handleDeleteNotification = async (notificationId: string) => {
     try {
       const res = await fetchWithAuth(`/notifications/${notificationId}`, {
@@ -136,12 +161,20 @@ export default function NotificationsPage() {
           title="Bildirimler"
           description={`${notifications.length} bildirim (${unreadCount} okunmamış)`}
         />
-        {unreadCount > 0 && (
-          <Button onClick={handleMarkAllAsRead} variant="outline" size="sm">
-            <CheckCheck className="h-4 w-4 mr-2" />
-            Tümünü Okundu İşaretle
-          </Button>
-        )}
+        <div className="flex gap-2">
+          {unreadCount > 0 && (
+            <Button onClick={handleMarkAllAsRead} variant="outline" size="sm">
+              <CheckCheck className="h-4 w-4 mr-2" />
+              Tümünü Okundu İşaretle
+            </Button>
+          )}
+          {notifications.length > 0 && (
+            <Button onClick={() => setIsDeleteAlertOpen(true)} variant="outline" size="sm" className="text-red-600 hover:text-red-700 hover:bg-red-50">
+              <Trash2 className="h-4 w-4 mr-2" />
+              Tümünü Sil
+            </Button>
+          )}
+        </div>
       </div>
 
       {isLoading ? (
@@ -211,6 +244,18 @@ export default function NotificationsPage() {
           ))}
         </div>
       )}
+
+      {/* Delete All Alert Modal */}
+      <AlertModal
+        isOpen={isDeleteAlertOpen}
+        onClose={() => setIsDeleteAlertOpen(false)}
+        onConfirm={handleDeleteAllNotifications}
+        title="Tüm Bildirimleri Sil"
+        description="Tüm bildirimleri silmek istediğinize emin misiniz? Bu işlem geri alınamaz."
+        confirmText="Evet, Sil"
+        cancelText="İptal"
+        variant="danger"
+      />
     </div>
   );
 }

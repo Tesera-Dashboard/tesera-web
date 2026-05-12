@@ -49,7 +49,7 @@ def create_inventory_item(
         company_id=current_user.company_id,
         name=item.name,
         sku=item.sku,
-        quantity=item.quantity,
+        stock=item.quantity,  # quantity from schema maps to stock in model
         price=item.price,
         category=item.category
     )
@@ -78,30 +78,29 @@ def update_inventory_item(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    try:
-        item_uuid = uuid.UUID(item_id)
-    except ValueError:
-        return {"error": "Invalid item ID"}
-
+    # Inventory ID is a string (e.g., "INV-001"), not a UUID
     item = db.query(InventoryModel).filter(
-        InventoryModel.id == item_uuid,
+        InventoryModel.id == item_id,
         InventoryModel.company_id == current_user.company_id
     ).first()
 
     if not item:
         return {"error": "Item not found"}
 
-    old_quantity = item.quantity
+    old_quantity = item.stock
 
-    # Update fields
+    # Update fields - use correct field names from model
     item.name = item_update.name
     item.sku = item_update.sku
-    item.quantity = item_update.quantity
+    item.stock = item_update.quantity  # quantity from schema maps to stock in model
     item.price = item_update.price
     item.category = item_update.category
     db.commit()
+    db.refresh(item)
 
-    # Create notification if quantity decreased significantly
+    print(f"Updated item: {item.id}, stock changed from {old_quantity} to {item.stock}")
+
+    # Create notification if quantity decreased
     if old_quantity > item_update.quantity:
         decrease = old_quantity - item_update.quantity
         create_notification(
@@ -115,7 +114,35 @@ def update_inventory_item(
             {"item_id": str(item.id)}
         )
 
-    return item
+    # Create notification if stock is below critical level (minStock)
+    if item.stock <= item.minStock:
+        # Check if there's already a recent low stock notification for this specific item
+        # Load notifications and check in memory since SQLite doesn't support JSON queries well
+        all_notifications = db.query(NotificationModel).filter(
+            NotificationModel.company_id == current_user.company_id,
+            NotificationModel.type == "inventory",
+            NotificationModel.title == "Kritik Stok Seviyesi"
+        ).all()
+
+        existing_notification = None
+        for notif in all_notifications:
+            if notif.meta_data and notif.meta_data.get("item_id") == str(item.id):
+                existing_notification = notif
+                break
+
+        if not existing_notification:
+            create_notification(
+                db,
+                current_user.company_id,
+                current_user.id,
+                "Kritik Stok Seviyesi",
+                f"{item.name} stok seviyesi kritik seviyenin altında! Mevcut: {item.stock}, Minimum: {item.minStock}",
+                "inventory",
+                "error",
+                {"item_id": str(item.id)}
+            )
+
+    return {"message": "Item updated successfully", "item": item}
 
 @router.put("/{item_id}/check-stock")
 def check_low_stock(

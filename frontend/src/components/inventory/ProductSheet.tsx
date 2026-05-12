@@ -54,13 +54,20 @@ export function ProductSheet({ isOpen, onClose, item, onSave }: ProductSheetProp
         price: parseFloat(price) || 0
       };
 
+      console.log("Saving inventory item:", { isEditing, itemId: item?.id, payload });
+
       if (isEditing && item) {
         // Update existing item
         const res = await fetchWithAuth(`/inventory/${item.id}`, {
           method: "PUT",
           body: JSON.stringify(payload)
         });
-        if (!res.ok) throw new Error("Güncelleme başarısız");
+        const data = await res.json();
+        console.log("Update response:", data);
+
+        if (!res.ok) {
+          throw new Error(data.detail || data.error || "Güncelleme başarısız");
+        }
         toast.success("Ürün başarıyla güncellendi");
       } else {
         // Create new item
@@ -68,15 +75,26 @@ export function ProductSheet({ isOpen, onClose, item, onSave }: ProductSheetProp
           method: "POST",
           body: JSON.stringify(payload)
         });
-        if (!res.ok) throw new Error("Oluşturma başarısız");
+        const data = await res.json();
+        console.log("Create response:", data);
+
+        if (!res.ok) {
+          throw new Error(data.detail || data.error || "Oluşturma başarısız");
+        }
         toast.success("Ürün başarıyla eklendi");
       }
 
       if (onSave) onSave();
+      
+      // Trigger notification refresh across the app
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("notification-refresh"));
+      }
+      
       onClose();
-    } catch (err) {
+    } catch (err: any) {
       console.error("Save error:", err);
-      toast.error("İşlem başarısız");
+      toast.error(`İşlem başarısız: ${err.message}`);
     } finally {
       setIsSaving(false);
     }

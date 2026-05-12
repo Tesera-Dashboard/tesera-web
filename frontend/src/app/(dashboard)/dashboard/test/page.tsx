@@ -64,6 +64,10 @@ export default function UnifiedTestSimulator() {
       if (!res.ok) throw new Error(data.detail || "Hata oluştu");
       toast.success(data.message);
       loadData();
+      // Trigger notification refresh
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("notification-refresh"));
+      }
     } catch (err: any) {
       toast.error(`Seed başarısız: ${err.message}`);
     }
@@ -78,6 +82,10 @@ export default function UnifiedTestSimulator() {
       const data = await res.json();
       toast.success(`${data.message}: ${data.item}`);
       loadData();
+      // Trigger notification refresh
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("notification-refresh"));
+      }
     } catch (err) {
       toast.error("Ürün oluşturulamadı");
     }
@@ -93,6 +101,11 @@ export default function UnifiedTestSimulator() {
       });
       const data = await res.json();
       toast.success(`Sipariş oluşturuldu: ${data.order_id}`);
+      loadData();
+      // Trigger notification refresh
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("notification-refresh"));
+      }
     } catch (err) {
       toast.error("Sipariş oluşturulamadı");
     }
@@ -113,6 +126,10 @@ export default function UnifiedTestSimulator() {
       const data = await res.json();
       toast.success(data.message);
       loadData();
+      // Trigger notification refresh
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("notification-refresh"));
+      }
     } catch (err) {
       toast.error("Güncelleme başarısız");
     }
@@ -126,6 +143,10 @@ export default function UnifiedTestSimulator() {
       const data = await res.json();
       toast.success(`${data.message}: ${data.shipment_id} (${data.carrier})`);
       loadData();
+      // Trigger notification refresh
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("notification-refresh"));
+      }
     } catch (err) {
       toast.error("Kargo oluşturulamadı");
     }
@@ -144,6 +165,10 @@ export default function UnifiedTestSimulator() {
       setShipments([]);
       setAiMessages([]);
       loadData();
+      // Trigger notification refresh
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("notification-refresh"));
+      }
     } catch (err) {
       toast.error("Veriler temizlenemedi");
     }
@@ -184,6 +209,10 @@ export default function UnifiedTestSimulator() {
       const data = await res.json();
       toast.success(`${data.message}: ${data.workflow_id}`);
       loadData();
+      // Trigger notification refresh
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("notification-refresh"));
+      }
     } catch (err) {
       toast.error("İş akışı oluşturulamadı");
     }
@@ -198,6 +227,10 @@ export default function UnifiedTestSimulator() {
       const data = await res.json();
       toast.success(`${data.message}: ${data.notification_id}`);
       loadData();
+      // Trigger notification refresh
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("notification-refresh"));
+      }
     } catch (err) {
       toast.error("Bildirim oluşturulamadı");
     }

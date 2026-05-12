@@ -97,10 +97,10 @@ Frontend dev server running at http://localhost:3000
 - [x] **Error Handling**: Added detailed error handling for all workflow operations (create, update, delete, toggle) with console logging and user-friendly toast messages showing actual backend error details.
 - [x] **Module Integration**: Added automatic notification creation to all core modules:
   - **Orders**: Notification created when new order is received (success priority) + PUT endpoint creates notification when order status changes (info priority) + deadline check endpoint to create warning notifications when order delivery date is approaching
-  - **Shipments**: Notification created when new shipment is created (success priority) + delay check endpoint to create warning notifications when shipment is past estimated delivery date + PUT endpoint creates notification when shipment status changes (info priority)
-  - **Inventory**: Notification created when new item is added (success priority) + low stock check endpoint to create warning notifications when stock falls below threshold + PUT endpoint creates notification when inventory quantity decreases (warning priority)
+  - **Shipments**: Notification created when new shipment is created (success priority) + delay check endpoint to create warning notifications when shipment is past estimated delivery date + PUT endpoint creates notification when shipment status changes (info priority) + test update endpoint with status change notification
+  - **Inventory**: Notification created when new item is added (success priority) + low stock check endpoint to create warning notifications when stock falls below threshold + PUT endpoint creates notification when inventory quantity decreases (warning priority) + automatic critical stock notification when stock <= minStock (error priority)
   - **Workflows**: Notification created when workflow is created/updated/deleted (success/info/warning priorities)
-  - **Test**: Fixed test notification endpoint to work without authentication for easier testing
+  - **Test**: Fixed test notification endpoint to require authentication for proper user association
 - [x] **Backend Clear Function**: Updated test clear endpoint to also delete workflow data alongside inventory, orders, shipments, and AI chat history.
 
 ### ✅ Phase 4 – Notification Center
@@ -115,20 +115,26 @@ Frontend dev server running at http://localhost:3000
   - Mark as read functionality with button
   - Mark all as read functionality (shown when unread count > 0)
   - Delete notification with trash icon
+  - Delete all notifications with danger alert modal (warning.png image)
   - Empty state with bell icon
   - Turkish localization throughout
 - [x] **Navbar Notification Dropdown**: Added notification dropdown to dashboard topbar with:
-  - Badge showing unread count
+  - Badge showing unread count (only when unread > 0)
   - Dropdown with recent notifications (last 5)
   - Auto-refresh every 30 seconds
   - Click to mark as read
-  - "Tümünü Oku" button when unread count > 0
+  - "Tümünü Oku" button when unread count > 0 (immediate UI update)
   - "Tüm Bildirimleri Gör" link to notification center
   - Type icons matching notification center
   - Unread indicator dots
 - [x] **Test Simulator Integration**: Added **Module 7 – Bildirim Testi** to the Unified Test Simulator at `/dashboard/test` for quickly generating sample notifications with random types.
 - [x] **Backend Clear Function**: Updated test clear endpoint to also delete notification data alongside inventory, orders, shipments, workflows, and AI chat history.
 - [x] **Error Handling**: Added detailed error handling for all notification operations with console logging and user-friendly toast messages showing actual backend error details.
+- [x] **UI Components**: Created AlertModal and SuccessModal components with warning.png and success.png images for better user feedback
+- [x] **Inventory Delete**: Replaced confirm() with AlertModal in inventory page for delete confirmation
+- [x] **Real-time Notification Sync**: Added custom event system for immediate notification refresh across app (inventory updates, test simulator changes)
+- [x] **Backend Fixes**: Fixed inventory PUT endpoint to use string IDs instead of UUID conversion, fixed SQLAlchemy JSON query for SQLite compatibility
+- [x] **Backend API Routes**: Added `/api/v1/notifications/delete-all` DELETE endpoint for bulk deletion
 
 ### Phase 5
 - [ ] Analytics charts (Recharts or similar)
