@@ -23,6 +23,8 @@ import { InventoryTable } from "@/components/inventory/InventoryTable";
 import { ReorderDialog } from "@/components/inventory/ReorderDialog";
 import { ProductSheet } from "@/components/inventory/ProductSheet";
 import { Button } from "@/components/ui/button";
+import { AlertModal } from "@/components/ui/AlertModal";
+import { SuccessModal } from "@/components/ui/SuccessModal";
 
 // Stok seviyesi filtreleri
 type StockFilter = StockLevel | "Tümü";
@@ -47,19 +49,33 @@ export default function InventoryPage() {
   const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Alert modal states
+  const [isAlertOpen, setIsAlertOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<InventoryItem | null>(null);
+  const [successMessage, setSuccessMessage] = useState("");
+  const [isSuccessOpen, setIsSuccessOpen] = useState(false);
+
   // API'den stokları çek
-  useEffect(() => {
-    fetchWithAuth("/inventory")
-      .then((res) => res.json())
-      .then((data) => {
+  const loadInventory = useCallback(async () => {
+    try {
+      const res = await fetchWithAuth("/inventory");
+      const data = await res.json();
+      if (Array.isArray(data)) {
         setInventoryItems(data);
-        setIsLoading(false);
-      })
-      .catch((err) => {
-        console.error("API hatası:", err);
-        setIsLoading(false);
-      });
+      } else {
+        setInventoryItems([]);
+      }
+    } catch (err) {
+      console.error("API hatası:", err);
+      setInventoryItems([]);
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    loadInventory();
+  }, [loadInventory]);
 
   // ── Uyarı sayıları (sadece bir kez hesaplanır) ────────────
   const { lowCount, outCount } = useMemo(() => ({
@@ -143,10 +159,8 @@ export default function InventoryPage() {
         onReorder={setReorderItem}
         onEdit={(item) => { setEditItem(item); setIsProductSheetOpen(true); }}
         onDelete={(item) => {
-          if (confirm(`${item.name} ürününü silmek istediğinize emin misiniz?`)) {
-            // Demo delete behavior
-            setInventoryItems(prev => prev.filter(i => i.id !== item.id));
-          }
+          setItemToDelete(item);
+          setIsAlertOpen(true);
         }}
       />
 
@@ -161,6 +175,35 @@ export default function InventoryPage() {
         isOpen={isProductSheetOpen}
         onClose={() => setIsProductSheetOpen(false)}
         item={editItem}
+        onSave={loadInventory}
+      />
+
+      {/* Alert Modal for Delete Confirmation */}
+      <AlertModal
+        isOpen={isAlertOpen}
+        onClose={() => setIsAlertOpen(false)}
+        onConfirm={() => {
+          if (itemToDelete) {
+            setInventoryItems(prev => prev.filter(i => i.id !== itemToDelete.id));
+            setSuccessMessage(`${itemToDelete.name} ürünü başarıyla silindi`);
+            setIsSuccessOpen(true);
+            setItemToDelete(null);
+          }
+        }}
+        title="Ürünü Sil"
+        description={`${itemToDelete?.name || "Bu ürün"}ü silmek istediğinize emin misiniz? Bu işlem geri alınamaz.`}
+        confirmText="Evet, Sil"
+        cancelText="İptal"
+        variant="danger"
+      />
+
+      {/* Success Modal */}
+      <SuccessModal
+        isOpen={isSuccessOpen}
+        onClose={() => setIsSuccessOpen(false)}
+        title="İşlem Başarılı"
+        description={successMessage}
+        confirmText="Tamam"
       />
 
     </div>

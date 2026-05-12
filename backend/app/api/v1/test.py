@@ -90,18 +90,40 @@ class UpdateShipmentRequest(BaseModel):
 
 @router.post("/shipments/update")
 def simulate_update_shipment(req: UpdateShipmentRequest, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    from app.models.notification import Notification as NotificationModel
+    import uuid
+
     shipment = db.query(Shipment).filter(Shipment.id == req.shipment_id, Shipment.company_id == current_user.company_id).first()
     if not shipment:
         raise HTTPException(status_code=404, detail="Shipment not found")
-    
+
+    old_status = shipment.status
+
     shipment.status = req.status
     shipment.isDelayed = req.is_delayed
     if req.is_delayed:
         shipment.delayReason = req.delay_reason
     else:
         shipment.delayReason = ""
-        
+
     db.commit()
+
+    # Create notification if status changed
+    if old_status != req.status:
+        notification = NotificationModel(
+            id=uuid.uuid4(),
+            company_id=current_user.company_id,
+            user_id=current_user.id,
+            title="Kargo Durumu Değişti",
+            message=f"Kargo {shipment.trackingCode} durumu: {old_status} -> {req.status}",
+            type="shipment",
+            priority="info",
+            meta_data={"shipment_id": shipment.id},
+            is_read=False
+        )
+        db.add(notification)
+        db.commit()
+
     return {"message": f"Shipment {req.shipment_id} updated"}
 
 @router.post("/inventory/create")
@@ -230,23 +252,17 @@ def create_test_workflow(db: Session = Depends(get_db), current_user: User = Dep
 
 # Notification test endpoints
 @router.post("/notifications/create")
-def create_test_notification(db: Session = Depends(get_db)):
+def create_test_notification(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     from app.models.notification import Notification
-    from app.models.user import User
     import uuid
 
-    # Get first user for testing
-    user = db.query(User).first()
-    if not user:
-        return {"error": "No user found"}
-
     notification_types = ["order", "shipment", "inventory", "workflow", "system"]
-    notification_type = notification_types[hash(str(user.company_id)) % len(notification_types)]
+    notification_type = notification_types[hash(str(current_user.company_id)) % len(notification_types)]
 
     notification = Notification(
         id=uuid.uuid4(),
-        company_id=user.company_id,
-        user_id=user.id,
+        company_id=current_user.company_id,
+        user_id=current_user.id,
         title="Test Bildirimi",
         message=f"Bu bir {notification_type} tipinde test bildirimidir",
         type=notification_type,

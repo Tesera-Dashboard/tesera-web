@@ -22,9 +22,15 @@ export default function NotificationsPage() {
         throw new Error(errorData.detail || errorData.message || "Bildirimler yüklenirken hata oluştu");
       }
       const data = await res.json();
-      setNotifications(data);
+      if (Array.isArray(data)) {
+        setNotifications(data);
+      } else {
+        console.error("Unexpected data format:", data);
+        setNotifications([]);
+      }
     } catch (err) {
       console.error("Bildirimler yüklenirken hata:", err);
+      setNotifications([]);
     } finally {
       setIsLoading(false);
     }

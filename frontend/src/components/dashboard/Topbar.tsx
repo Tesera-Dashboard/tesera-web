@@ -124,7 +124,7 @@ export function Topbar({ pageTitle }: TopbarProps) {
 
       {/* Notifications */}
       <DropdownMenu>
-        <DropdownMenuTrigger className="relative h-8 w-8 p-0 border-0 bg-transparent hover:bg-accent">
+        <DropdownMenuTrigger className="relative h-8 w-8 p-0 border-0 bg-transparent hover:bg-accent rounded-md flex items-center justify-center">
           <Bell className="h-4 w-4" />
           {unreadCount > 0 && (
             <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs">
