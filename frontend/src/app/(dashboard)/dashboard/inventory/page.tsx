@@ -12,6 +12,7 @@
 import { useMemo, useState, useCallback, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { fetchWithAuth } from "@/lib/api";
+import { toast } from "sonner";
 import { Plus, Download, Upload, FileSpreadsheet, X, UploadCloud } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 
@@ -58,6 +59,78 @@ export default function InventoryPage() {
 
   // Import/Export states
   const [isImportSheetOpen, setIsImportSheetOpen] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [importing, setImporting] = useState(false);
+  const [importMode, setImportMode] = useState<"overwrite" | "reset">("overwrite");
+  const [isResetWarningOpen, setIsResetWarningOpen] = useState(false);
+
+  // Handle file selection
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && file.type === "text/csv") {
+      setSelectedFile(file);
+    } else {
+      toast.error("Lütfen CSV dosyası seçin");
+    }
+  };
+
+  // Handle CSV import
+  const handleImport = async () => {
+    if (!selectedFile) {
+      toast.error("Lütfen bir dosya seçin");
+      return;
+    }
+
+    if (importMode === "reset") {
+      setIsResetWarningOpen(true);
+      return;
+    }
+
+    await performImport();
+  };
+
+  const performImport = async () => {
+    if (!selectedFile) {
+      toast.error("Lütfen bir dosya seçin");
+      return;
+    }
+
+    setImporting(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", selectedFile);
+      formData.append("mode", importMode);
+
+      const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+
+      const res = await fetch(`${API_URL}/inventory/import`, {
+        method: "POST",
+        body: formData,
+        headers: {
+          ...(token ? { "Authorization": `Bearer ${token}` } : {}),
+        },
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        toast.success("İçe aktarma başarılı");
+        setIsImportSheetOpen(false);
+        setSelectedFile(null);
+        setIsResetWarningOpen(false);
+        loadInventory();
+      } else {
+        const errorData = await res.json().catch(() => ({}));
+        console.error("Import error:", errorData);
+        toast.error(`İçe aktarma başarısız: ${errorData.detail || errorData.message || "Bilinmeyen hata"}`);
+      }
+    } catch (err) {
+      console.error("Import error:", err);
+      toast.error("İçe aktarma sırasında hata oluştu");
+    } finally {
+      setImporting(false);
+    }
+  };
 
   // API'den stokları çek
   const loadInventory = useCallback(async () => {
@@ -242,9 +315,21 @@ export default function InventoryPage() {
         confirmText="Tamam"
       />
 
+      {/* Reset Warning Modal */}
+      <AlertModal
+        isOpen={isResetWarningOpen}
+        onClose={() => setIsResetWarningOpen(false)}
+        onConfirm={performImport}
+        title="Envanteri Resetle ve Aktar"
+        description="Tüm mevcut envanter ürünleri silinecek ve yeni envanter CSV dosyasından oluşturulacak. Bu işlem geri alınamaz. Devam etmek istiyor musunuz?"
+        confirmText="Evet, Resetle ve Aktar"
+        cancelText="İptal"
+        variant="danger"
+      />
+
       {/* Import Sheet */}
       <Sheet open={isImportSheetOpen} onOpenChange={setIsImportSheetOpen}>
-        <SheetContent className="sm:max-w-lg">
+        <SheetContent className="sm:max-w-lg p-6 overflow-y-auto">
           <SheetHeader>
             <SheetTitle className="flex items-center gap-2">
               <UploadCloud className="h-5 w-5" />
@@ -254,7 +339,7 @@ export default function InventoryPage() {
               CSV formatındaki envanter dosyanızı yükleyin
             </SheetDescription>
           </SheetHeader>
-          <div className="mt-6 space-y-6">
+          <div className="mt-6 space-y-6 pb-6">
             {/* Instructions */}
             <div className="space-y-4">
               <h4 className="font-semibold text-sm flex items-center gap-2">
@@ -290,19 +375,84 @@ BAL-003,Çam Balı,Bal,20,10,120.00,Tükendi,2024-03-10`}</pre>
             {/* Upload Area */}
             <div className="space-y-2">
               <h4 className="font-semibold text-sm">Dosya Yükle</h4>
-              <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center hover:border-primary/50 transition-colors cursor-pointer">
+              <input
+                type="file"
+                accept=".csv"
+                onChange={handleFileSelect}
+                className="hidden"
+                id="file-upload"
+              />
+              <div
+                onClick={() => document.getElementById("file-upload")?.click()}
+                className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center hover:border-primary/50 transition-colors cursor-pointer"
+              >
                 <UploadCloud className="h-12 w-12 mx-auto mb-3 text-muted-foreground" />
                 <p className="text-sm text-muted-foreground mb-2">
                   CSV dosyasını sürükleyip bırakın veya seçin
                 </p>
-                <Button variant="outline" size="sm" className="pointer-events-none">
+                <Button variant="outline" size="sm">
                   Dosya Seç
                 </Button>
               </div>
-              <p className="text-xs text-muted-foreground">
-                Not: İçe aktarma özelliği şu an için görsel olarak hazırlanmıştır. Backend entegrasyonu yakında eklenecektir.
-              </p>
+              {selectedFile && (
+                <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <FileSpreadsheet className="h-4 w-4 text-primary" />
+                    <span className="text-sm font-medium">{selectedFile.name}</span>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setSelectedFile(null)}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
             </div>
+
+            {/* Import Mode Selection */}
+            <div className="space-y-2">
+              <h4 className="font-semibold text-sm">İçe Aktarma Modu</h4>
+              <div className="space-y-2">
+                <label className="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors">
+                  <input
+                    type="radio"
+                    name="importMode"
+                    value="overwrite"
+                    checked={importMode === "overwrite"}
+                    onChange={(e) => setImportMode(e.target.value as "overwrite" | "reset")}
+                    className="w-4 h-4"
+                  />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">Üstüne Yaz</p>
+                    <p className="text-xs text-muted-foreground">Mevcut ürünleri günceller, aynı SKU'lu ürünleri atlar</p>
+                  </div>
+                </label>
+                <label className="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors">
+                  <input
+                    type="radio"
+                    name="importMode"
+                    value="reset"
+                    checked={importMode === "reset"}
+                    onChange={(e) => setImportMode(e.target.value as "overwrite" | "reset")}
+                    className="w-4 h-4"
+                  />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">Envanteri Resetle ve Aktar</p>
+                    <p className="text-xs text-muted-foreground">Tüm mevcut ürünleri siler ve yeni envanter oluşturur</p>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <Button
+              onClick={handleImport}
+              disabled={!selectedFile || importing}
+              className="w-full"
+            >
+              {importing ? "İçe Aktarılıyor..." : "İçe Aktar"}
+            </Button>
           </div>
         </SheetContent>
       </Sheet>
