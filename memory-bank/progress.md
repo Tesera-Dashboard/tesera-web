@@ -286,6 +286,8 @@ Frontend dev server running at http://localhost:3000
 - [x] **Email Template Updates**: Changed email templates to use mini-logo.png with "Tesera" text in primary color
 - [x] **Database Schema Fixes**: Changed UserSettings user_id from INTEGER to UUID to match User model
 - [x] **Account Deletion Fix**: Updated delete-account endpoint to properly cascade delete all related data (notifications, AI conversations, workflows, orders, inventory, shipments, subscriptions)
+- [x] **AI Chat Improvements**: Updated system instruction to prevent AI from asking clarifying questions and added conversation history summary to maintain context while optimizing token usage
+- [x] **AI Predictions Feature**: Added AI-powered predictions endpoint and integrated it into analytics page with sticky sidebar showing business summary, performance analysis, forecasts, and profit/loss predictions
 
 ### Phase 6
 - [ ] Docker Compose (frontend + backend + postgres + redis)

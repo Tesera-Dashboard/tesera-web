@@ -168,8 +168,9 @@ def call_chat_completion(
     return message
 
 
-def _build_system_instruction(db: Session, company_id) -> str:
+def _build_system_instruction(db: Session, company_id, conversation_summary: str = "") -> str:
     company_context = build_company_context(db, company_id)
+    conversation_context = f"\n\nÖnceki Konuşma Özeti:\n{conversation_summary}" if conversation_summary else ""
     return (
         "Sen Tesera'nın YZ Asistanısın. KOBİ'lerin envanter, kargo, sipariş ve operasyon yönetiminde "
         "yardımcı oluyorsun. Türkçe yanıt ver — yanıtların kısa, profesyonel ve yardımsever olsun. "
@@ -177,7 +178,11 @@ def _build_system_instruction(db: Session, company_id) -> str:
         "Kullanıcı stok, sipariş, kargo veya operasyon durumu sorduğunda aşağıdaki Tesera operasyon verilerini esas al. "
         "Veri varsa 'erişimim yok' deme; eldeki veriye göre özet, kritik noktalar ve önerilen aksiyonları ver. "
         "Veri yoksa bunu açıkça söyle ve ilgili modüle veri eklenmesini öner. "
-        "Yanıtlarında uydurma müşteri, ürün, adet, tarih veya tutar üretme.\n\n"
+        "Yanıtlarında uydurma müşteri, ürün, adet, tarih veya tutar üretme.\n"
+        "ÖNEMLİ: Kullanıcının sorusuna doğrudan cevap ver. Kesinlikle kendi sorunu sorma, "
+        "aydınlatıcı soru sorma veya daha fazla bilgi iste. Sadece verilen bilgiye göre yanıt ver. "
+        "Bilgi yoksa 'bu konuda veri bulunamıyor' de ve geç."
+        f"{conversation_context}\n\n"
         f"{company_context}"
     )
 
@@ -228,11 +233,24 @@ def ai_chat(
         ))
 
         # Build LLM messages from full conversation history
-        system_instruction = _build_system_instruction(db, current_user.company_id)
+        # Generate conversation summary (keep it concise)
+        conversation_messages = list(db.query(AIMessage).filter(AIMessage.conversation_id == conversation.id).order_by(AIMessage.created_at).all())
+        if len(conversation_messages) > 4:
+            # Summarize older messages if there are more than 4 messages
+            older_messages = conversation_messages[:-4]
+            summary_parts = []
+            for msg in older_messages:
+                role = "Kullanıcı" if msg.role == "user" else "Asistan"
+                summary_parts.append(f"{role}: {msg.content[:100]}...")
+            conversation_summary = " | ".join(summary_parts)
+        else:
+            conversation_summary = ""
+        
+        system_instruction = _build_system_instruction(db, current_user.company_id, conversation_summary)
         llm_messages = [{"role": "system", "content": system_instruction}]
 
-        # Add all messages from this conversation (already in DB) + the new user message
-        for msg in db.query(AIMessage).filter(AIMessage.conversation_id == conversation.id).order_by(AIMessage.created_at):
+        # Add only the last 4 messages to maintain context
+        for msg in conversation_messages[-4:]:
             role = "assistant" if msg.role == "model" else "user"
             llm_messages.append({"role": role, "content": msg.content})
 
@@ -342,7 +360,66 @@ def delete_conversation(
     return {"message": "Konuşma silindi."}
 
 
-@router.get("/recommendations", response_model=RecommendationsResponse)
+@router.get("/predictions")
+def get_predictions(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    if not settings.GEMINI_API_KEY and not settings.OPENAI_API_KEY:
+        raise HTTPException(
+            status_code=503,
+            detail="YZ Asistanı şu anda kullanılamıyor. Lütfen backend .env dosyasına GEMINI_API_KEY veya OPENAI_API_KEY ekleyin."
+        )
+
+    try:
+        company_context = build_company_context(db, current_user.company_id)
+        system_instruction = (
+            "Sen Tesera'nın YZ Analitik Asistanısın. Aşağıdaki operasyonel verilere dayanarak "
+            "şirket için detaylı bir öngörü ve özet üret. Yanıt şu formatta olmalı:\n\n"
+            "## İşletme Özeti\n"
+            "[Kısa, 2-3 cümlelik işletme durumu özeti]\n\n"
+            "## Performans Analizi\n"
+            "- Sipariş trendleri: [analiz]\n"
+            "- Stok durumu: [analiz]\n"
+            "- Kargo performansı: [analiz]\n\n"
+            "## Öngörüler\n"
+            "- Kısa vadeli (1 ay): [öngörü]\n"
+            "- Orta vadeli (3 ay): [öngörü]\n"
+            "- Uzun vadeli (6 ay): [öngörü]\n\n"
+            "## Kar/Zarar Tahminleri\n"
+            "- Beklenen kar: [tahmin]\n"
+            "- Risk faktörleri: [riskler]\n"
+            "- Önerilen aksiyonlar: [aksiyonlar]\n\n"
+            "Yanıtlarında uydurma veri üretme. Eldeki veriye dayanarak mantıklı tahminler yap.\n\n"
+            f"Veriler:\n{company_context}"
+        )
+
+        llm_messages = [
+            {"role": "system", "content": system_instruction},
+            {"role": "user", "content": "Şirketin güncel durumuna göre detaylı öngörü ve analiz ver."}
+        ]
+
+        with httpx.Client(timeout=60.0) as client:
+            raw = _call_llm_with_fallback(client, llm_messages)
+
+        return {"predictions": raw}
+
+    except HTTPException:
+        raise
+    except LLMProviderError as e:
+        if e.status_code == 401:
+            raise HTTPException(status_code=503, detail=f"{e.provider} API anahtarı geçersiz veya eksik.")
+        if e.status_code == 402:
+            raise HTTPException(status_code=502, detail=f"{e.provider} bakiyesi yetersiz.")
+        if e.status_code == 429:
+            raise HTTPException(status_code=429, detail=f"{e.provider} hız limiti veya kotası aşıldı.")
+        raise HTTPException(status_code=502, detail=f"{e.provider} servisinden geçerli bir yanıt alınamadı.")
+    except Exception as e:
+        logger.error(f"Predictions API Error: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail="YZ öngörüleri oluşturulurken beklenmeyen bir hata oluştu."
+        )
 def get_recommendations(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
