@@ -48,7 +48,7 @@ def seed_mock_data(db: Session = Depends(get_db), current_user: User = Depends(g
         ("İncir Reçeli",      "Reçel",          55.00,  "REC"),
         ("Domates Turşusu",   "Turşu",          35.00,  "TUR"),
         ("Salatalık Turşusu", "Turşu",          40.00,  "TUR"),
-        ("Kabak Turşusu",     "Turşu",          38.00,  "TUR"),
+        ("Süt Reçeli",        "Reçel",          50.00,  "REC"),
         ("Biber Turşusu",     "Turşu",          42.00,  "TUR"),
         ("Çam Balı",          "Bal",            120.00, "BAL"),
         ("Çiçek Balı",        "Bal",             95.00, "BAL"),
@@ -64,7 +64,8 @@ def seed_mock_data(db: Session = Depends(get_db), current_user: User = Depends(g
         ("Pirinç",            "Kuru Gıda",        35.00, "KGD"),
     ]
 
-    # 1. Seed Inventory - 5 random distinct items
+    # 1. Envanter Seed — katalogdan rastgele 5 farklı ürün seçilir.
+    #    Her çalıştırmada farklı ürün/stok kombinasyonu üretilir.
     selected_products = random.sample(products_catalog, 5)
     inventory_items = []
     for prod in selected_products:
@@ -93,7 +94,8 @@ def seed_mock_data(db: Session = Depends(get_db), current_user: User = Depends(g
     for item in inventory_items:
         db.add(item)
 
-    # 2. Seed Orders - 6 random unique customer+product combos
+    # 2. Sipariş Seed — 6 benzersiz müşteri+ürün kombinasyonu eklenir.
+    #    Rastgele statüler seçilir (İşleniyor, Kargoda, Gecikti, Teslim Edildi vb.).
     now = datetime.utcnow()
 
     customers = [
@@ -139,7 +141,10 @@ def seed_mock_data(db: Session = Depends(get_db), current_user: User = Depends(g
     for o in orders:
         db.add(o)
 
-    # 3. Seed Shipments - linked to kargoda/gecikti/teslim orders
+    # 3. Kargo Seed — Sipariş statüsüne göre kargo kayıtları oluşturulur:
+    #    - "Kargoda" ve "Gecikti" siparişleri → "Yolda" statüsünde kargo
+    #    - "Teslim Edildi" siparişleri      → "Teslim Edildi" statüsünde kargo
+    #    Kargo sayısı, rastgele seçilen sipariş statülerine bağlı olarak değişir.
     kargoda_orders = [o for o in orders if o.status in ("Kargoda", "Gecikti")]
     teslim_orders  = [o for o in orders if o.status == "Teslim Edildi"]
     carriers = ["Yurtiçi Kargo", "Aras Kargo", "MNG Kargo", "PTT Kargo", "Sürat Kargo"]

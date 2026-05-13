@@ -289,7 +289,7 @@ export default function UnifiedTestSimulator() {
             <h3 className="text-lg font-semibold">1. Toplu Veri (Seed)</h3>
           </div>
           <p className="text-sm text-muted-foreground h-10">
-            Sisteme rastgele id'lerle 4 ürün, 3 sipariş ve 2 kargo yükler. İstediğiniz kadar basabilirsiniz.
+            Sisteme rastgele id'lerle 5 ürün, 6 sipariş ve sipariş statüsüne bağlı değişken sayıda kargo yükler. İstediğiniz kadar basabilirsiniz.
           </p>
           <Button onClick={handleSeed} disabled={loadingSeed} className="w-full">
             {loadingSeed ? "Yükleniyor..." : "Veritabanını Doldur"}
