@@ -27,7 +27,7 @@ function SettingsContent() {
   const searchParams = useSearchParams();
   const tabParam = searchParams.get("tab");
   const [activeTab, setActiveTab] = useState(tabParam || "profile");
-  const { theme: currentAppTheme, setTheme: setAppTheme } = useTheme();
+  const { resolvedTheme, setTheme: setAppTheme } = useTheme();
   
   const [profileData, setProfileData] = useState<any>(null);
   const [settingsData, setSettingsData] = useState<any>(null);
@@ -37,8 +37,15 @@ function SettingsContent() {
   const [companyForm, setCompanyForm] = useState({ name: "", tax_number: "", address: "" });
   const [saving, setSaving] = useState(false);
   
-  // Settings state — initialize from current app theme instead of hardcoding "light"
-  const [theme, setTheme] = useState(currentAppTheme || "light");
+  // Settings state — initialize from resolvedTheme or fallback to current state
+  const [theme, setTheme] = useState(resolvedTheme || "light");
+  
+  // Sync local theme state when resolvedTheme changes (e.g., after hydration)
+  useEffect(() => {
+    if (resolvedTheme && !settingsLoaded) {
+      setTheme(resolvedTheme);
+    }
+  }, [resolvedTheme, settingsLoaded]);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
 
   const sidebarItems = [
@@ -96,7 +103,10 @@ function SettingsContent() {
         setSettingsData(data);
         if (data.theme) {
           setTheme(data.theme);
-          setAppTheme(data.theme);
+          // Only call setAppTheme if it's different to avoid redundant re-renders
+          if (data.theme !== resolvedTheme) {
+            setAppTheme(data.theme);
+          }
         }
         if (data.sidebar_enabled && data.sidebar_enabled.length > 0) {
           setSidebarEnabled(data.sidebar_enabled);
