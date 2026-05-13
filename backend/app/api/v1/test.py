@@ -422,11 +422,19 @@ def clear_all_test_data(db: Session = Depends(get_db), current_user: User = Depe
     db.query(InventoryItem).filter(InventoryItem.company_id == company_id).delete(synchronize_session=False)
 
     # Also clear AI chat history for this company/user
-    from app.models.ai_chat import AIConversation
+    # IMPORTANT: Delete child rows (AIMessage) BEFORE parent rows (AIConversation)
+    # because bulk .delete() bypasses ORM cascade and raw SQL FK constraints apply.
+    from app.models.ai_chat import AIConversation, AIMessage
+    conversation_ids = [c.id for c in db.query(AIConversation.id).filter(AIConversation.company_id == company_id).all()]
+    if conversation_ids:
+        db.query(AIMessage).filter(AIMessage.conversation_id.in_(conversation_ids)).delete(synchronize_session=False)
     db.query(AIConversation).filter(AIConversation.company_id == company_id).delete(synchronize_session=False)
 
-    # Clear workflows
-    from app.models.workflow import Workflow
+    # Clear workflows — delete child steps before parent workflows
+    from app.models.workflow import Workflow, WorkflowStep
+    workflow_ids = [w.id for w in db.query(Workflow.id).filter(Workflow.company_id == company_id).all()]
+    if workflow_ids:
+        db.query(WorkflowStep).filter(WorkflowStep.workflow_id.in_(workflow_ids)).delete(synchronize_session=False)
     db.query(Workflow).filter(Workflow.company_id == company_id).delete(synchronize_session=False)
 
     # Clear notifications

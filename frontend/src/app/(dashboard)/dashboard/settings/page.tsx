@@ -27,7 +27,7 @@ function SettingsContent() {
   const searchParams = useSearchParams();
   const tabParam = searchParams.get("tab");
   const [activeTab, setActiveTab] = useState(tabParam || "profile");
-  const { setTheme: setAppTheme } = useTheme();
+  const { theme: currentAppTheme, setTheme: setAppTheme } = useTheme();
   
   const [profileData, setProfileData] = useState<any>(null);
   const [settingsData, setSettingsData] = useState<any>(null);
@@ -37,8 +37,8 @@ function SettingsContent() {
   const [companyForm, setCompanyForm] = useState({ name: "", tax_number: "", address: "" });
   const [saving, setSaving] = useState(false);
   
-  // Settings state
-  const [theme, setTheme] = useState("light");
+  // Settings state — initialize from current app theme instead of hardcoding "light"
+  const [theme, setTheme] = useState(currentAppTheme || "light");
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
 
   const sidebarItems = [

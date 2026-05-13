@@ -1,4 +1,4 @@
-from pydantic import BaseModel, field_serializer
+from pydantic import BaseModel, Field, field_serializer
 from typing import Optional, List, Dict, Any
 from datetime import datetime
 import uuid
@@ -44,9 +44,9 @@ class InventoryItem(InventoryItemBase):
 class InventoryItemCreate(BaseModel):
     name: str
     sku: str
-    quantity: int
-    minStock: int = 10
-    price: float
+    quantity: int = Field(..., ge=0, description="Stok miktarı negatif olamaz")
+    minStock: int = Field(default=10, ge=0, description="Minimum stok negatif olamaz")
+    price: float = Field(..., ge=0, description="Fiyat negatif olamaz")
     category: str
 
 class ShipmentBase(BaseModel):

@@ -44,15 +44,20 @@ export function ProductSheet({ isOpen, onClose, item, onSave }: ProductSheetProp
   }, [item, isOpen]);
 
   const handleSave = async () => {
+    // Validate non-negative values before saving
+    const qty = Math.max(0, parseInt(stock) || 0);
+    const min = Math.max(0, parseInt(minStock) || 0);
+    const prc = Math.max(0, parseFloat(price) || 0);
+
     setIsSaving(true);
     try {
       const payload = {
         name,
         sku,
         category,
-        quantity: parseInt(stock) || 0,
-        minStock: parseInt(minStock) || 0,
-        price: parseFloat(price) || 0
+        quantity: qty,
+        minStock: min,
+        price: prc
       };
 
       console.log("Saving inventory item:", { isEditing, itemId: item?.id, payload });
@@ -128,16 +133,16 @@ export function ProductSheet({ isOpen, onClose, item, onSave }: ProductSheetProp
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">{isEditing ? "Mevcut Stok" : "Başlangıç Stoğu"}</label>
-              <Input type="number" placeholder="0" value={stock} onChange={e => setStock(e.target.value)} />
+              <Input type="number" min="0" placeholder="0" value={stock} onChange={e => { const v = e.target.value; setStock(v === '' ? '' : String(Math.max(0, parseInt(v) || 0))); }} />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">Kritik Stok (min)</label>
-              <Input type="number" placeholder="10" value={minStock} onChange={e => setMinStock(e.target.value)} />
+              <Input type="number" min="0" placeholder="10" value={minStock} onChange={e => { const v = e.target.value; setMinStock(v === '' ? '' : String(Math.max(0, parseInt(v) || 0))); }} />
             </div>
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium">Birim Fiyat (₺)</label>
-            <Input type="number" placeholder="0.00" value={price} onChange={e => setPrice(e.target.value)} />
+            <Input type="number" min="0" step="0.01" placeholder="0.00" value={price} onChange={e => { const v = e.target.value; setPrice(v === '' ? '' : String(Math.max(0, parseFloat(v) || 0))); }} />
           </div>
         </div>
         <SheetFooter>

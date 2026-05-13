@@ -5,11 +5,13 @@
 // "Sipariş Ver" butonuna tıklanınca açılır.
 // Mevcut stok, minimum stok ve önerilen sipariş miktarını gösterir.
 // Kullanıcı miktarı değiştirip onaylayabilir.
-// Onaylanınca Sonner toast gösterilir (şimdilik mock — ileride API).
+// Onaylanınca /test/orders/create API'sine POST atılır ve
+// sipariş veritabanına kaydedilir.
 // ============================================================
 
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
+import { fetchWithAuth } from "@/lib/api";
 
 import {
   Dialog,
@@ -43,19 +45,40 @@ export function ReorderDialog({ item, onClose }: ReorderDialogProps) {
     if (item) setQuantity(Math.max(item.minStock * 3 - item.stock, item.minStock));
   }, [item]);
 
-  function handleConfirm() {
+  async function handleConfirm() {
     if (!item || quantity < 1) return;
 
     setIsLoading(true);
 
-    // Gerçek API'ye bağlanana kadar 800ms gecikme simüle ediyoruz
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      const res = await fetchWithAuth("/test/orders/create", {
+        method: "POST",
+        body: JSON.stringify({
+          product: item.name,
+          quantity: quantity,
+        }),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.detail || "Sipariş oluşturulamadı");
+      }
+
       onClose();
       toast.success("Sipariş oluşturuldu!", {
         description: `${item.name} için ${quantity} adet sipariş verildi.`,
       });
-    }, 800);
+
+      // Trigger notification refresh
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("notification-refresh"));
+      }
+    } catch (err: any) {
+      console.error("Order creation error:", err);
+      toast.error(`Sipariş hatası: ${err.message}`);
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
