@@ -36,6 +36,7 @@ function SettingsContent() {
   const [editingCompany, setEditingCompany] = useState(false);
   const [companyForm, setCompanyForm] = useState({ name: "", tax_number: "", address: "" });
   const [saving, setSaving] = useState(false);
+  const [settingsLoaded, setSettingsLoaded] = useState(false);
   
   // Settings state — initialize from resolvedTheme or fallback to current state
   const [theme, setTheme] = useState(resolvedTheme || "light");
@@ -46,6 +47,7 @@ function SettingsContent() {
       setTheme(resolvedTheme);
     }
   }, [resolvedTheme, settingsLoaded]);
+
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
 
   const sidebarItems = [
@@ -65,7 +67,6 @@ function SettingsContent() {
   const [sidebarEnabled, setSidebarEnabled] = useState<number[]>([]);
   const [sidebarOrder, setSidebarOrder] = useState<number[]>([]);
   const [draggedItem, setDraggedItem] = useState<number | null>(null);
-  const [settingsLoaded, setSettingsLoaded] = useState(false);
 
   // Password reset modal
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
