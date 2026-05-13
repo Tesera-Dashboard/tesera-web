@@ -8,12 +8,10 @@
 
 | | |
 |---|---|
-| 🌐 **Live Demo** | [LIVE_DEMO_URL] |
-| 🎥 **Demo Video** | [VIDEO_URL] |
-| 📊 **Presentation** | [PRESENTATION_URL] |
-| 📖 **API Docs (Swagger)** | `http://localhost:8000/docs` |
-| 📖 **API Docs (ReDoc)** | `http://localhost:8000/redoc` |
-
+| 🌐 **Live Demo** | [https://tesera-web.vercel.app](https://tesera-web.vercel.app) |
+| 🎥 **Demo Video** | [Google Drive Video Link](https://drive.google.com/file/d/1xisDqejk_MWVO1EUmceJxuoAiPLB2b2j/view?usp=sharing) |
+| 📊 **Presentation** | [Google Drive Pitch Link](https://drive.google.com/file/d/1sq4lMJRWWO1K2O9CKxLIAF5rlpSACqxX/view?usp=sharing) |
+| 📖 **API Docs (Swagger)** | [https://tesera-web.onrender.com/docs](https://tesera-web.onrender.com/docs) |
 ---
 
 ## ✨ Features
