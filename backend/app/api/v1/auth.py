@@ -115,36 +115,71 @@ def delete_account(
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)]
 ):
-    from app.models.user import Subscription
+    from app.models.user import UserSettings, Subscription
     from app.models.notification import Notification
     from app.models.ai_chat import AIConversation, AIMessage
-    from app.models.workflow import Workflow
+    from app.models.workflow import Workflow, WorkflowStep
     from app.models.order import Order
     from app.models.inventory import InventoryItem
     from app.models.shipment import Shipment
 
     company_id = current_user.company_id
 
-    db.query(Notification).filter(Notification.company_id == company_id).delete(synchronize_session=False)
+    try:
+        # ── 1. Yaprak tablolar (başka tabloya referans veren child yok) ──
 
-    # Önce mesajları sil, sonra konuşmaları
-    db.query(AIMessage).filter(
-        AIMessage.conversation_id.in_(
-            db.query(AIConversation.id).filter(AIConversation.company_id == company_id)
+        # notifications → users & companies
+        db.query(Notification).filter(Notification.company_id == company_id).delete(synchronize_session=False)
+
+        # ai_messages → ai_conversations (önce mesajlar silinmeli)
+        db.query(AIMessage).filter(
+            AIMessage.conversation_id.in_(
+                db.query(AIConversation.id).filter(AIConversation.company_id == company_id)
+            )
+        ).delete(synchronize_session=False)
+
+        # workflow_steps → workflows (önce adımlar silinmeli)
+        db.query(WorkflowStep).filter(
+            WorkflowStep.workflow_id.in_(
+                db.query(Workflow.id).filter(Workflow.company_id == company_id)
+            )
+        ).delete(synchronize_session=False)
+
+        # user_settings → users (önce ayarlar silinmeli)
+        db.query(UserSettings).filter(
+            UserSettings.user_id.in_(
+                db.query(User.id).filter(User.company_id == company_id)
+            )
+        ).delete(synchronize_session=False)
+
+        # ── 2. Orta seviye tablolar (artık child'ları temizlendi) ──
+
+        db.query(AIConversation).filter(AIConversation.company_id == company_id).delete(synchronize_session=False)
+        db.query(Workflow).filter(Workflow.company_id == company_id).delete(synchronize_session=False)
+
+        # ── 3. Doğrudan company'ye bağlı bağımsız tablolar ──
+
+        db.query(Order).filter(Order.company_id == company_id).delete(synchronize_session=False)
+        db.query(InventoryItem).filter(InventoryItem.company_id == company_id).delete(synchronize_session=False)
+        db.query(Shipment).filter(Shipment.company_id == company_id).delete(synchronize_session=False)
+        db.query(Subscription).filter(Subscription.company_id == company_id).delete(synchronize_session=False)
+
+        # ── 4. Users (child'ları olan user_settings ve notifications zaten silindi) ──
+
+        db.query(User).filter(User.company_id == company_id).delete(synchronize_session=False)
+
+        # ── 5. Company (en son, tüm referanslar temizlendi) ──
+
+        company = db.query(Company).filter(Company.id == company_id).first()
+        if company:
+            db.delete(company)
+
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Hesap silinirken bir hata oluştu. Lütfen tekrar deneyin."
         )
-    ).delete(synchronize_session=False)
-    db.query(AIConversation).filter(AIConversation.company_id == company_id).delete(synchronize_session=False)
 
-    db.query(Workflow).filter(Workflow.company_id == company_id).delete(synchronize_session=False)
-    db.query(Order).filter(Order.company_id == company_id).delete(synchronize_session=False)
-    db.query(InventoryItem).filter(InventoryItem.company_id == company_id).delete(synchronize_session=False)
-    db.query(Shipment).filter(Shipment.company_id == company_id).delete(synchronize_session=False)
-    db.query(Subscription).filter(Subscription.company_id == company_id).delete(synchronize_session=False)
-    db.query(User).filter(User.company_id == company_id).delete(synchronize_session=False)
-
-    company = db.query(Company).filter(Company.id == company_id).first()
-    if company:
-        db.delete(company)
-
-    db.commit()
     return {"message": "Account deleted successfully"}
