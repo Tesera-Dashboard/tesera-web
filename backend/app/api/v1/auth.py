@@ -115,49 +115,36 @@ def delete_account(
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)]
 ):
-    """
-    Delete user account and associated company data.
-    """
     from app.models.user import Subscription
     from app.models.notification import Notification
-    from app.models.ai_chat import AIConversation
+    from app.models.ai_chat import AIConversation, AIMessage
     from app.models.workflow import Workflow
     from app.models.order import Order
     from app.models.inventory import InventoryItem
     from app.models.shipment import Shipment
-    
+
     company_id = current_user.company_id
-    
-    # Delete all related data first to avoid constraint violations
-    # Delete notifications
-    db.query(Notification).filter(Notification.company_id == company_id).delete(synchronize_session="fetch")
-    
-    # Delete AI conversations
-    db.query(AIConversation).filter(AIConversation.company_id == company_id).delete(synchronize_session="fetch")
-    
-    # Delete workflows
-    db.query(Workflow).filter(Workflow.company_id == company_id).delete(synchronize_session="fetch")
-    
-    # Delete orders
-    db.query(Order).filter(Order.company_id == company_id).delete(synchronize_session="fetch")
-    
-    # Delete inventory items
-    db.query(InventoryItem).filter(InventoryItem.company_id == company_id).delete(synchronize_session="fetch")
-    
-    # Delete shipments
-    db.query(Shipment).filter(Shipment.company_id == company_id).delete(synchronize_session="fetch")
-    
-    # Delete subscriptions
-    db.query(Subscription).filter(Subscription.company_id == company_id).delete(synchronize_session="fetch")
-    
-    # Delete all users associated with the company
-    db.query(User).filter(User.company_id == company_id).delete(synchronize_session="fetch")
-    
-    # Delete the company
+
+    db.query(Notification).filter(Notification.company_id == company_id).delete(synchronize_session=False)
+
+    # Önce mesajları sil, sonra konuşmaları
+    db.query(AIMessage).filter(
+        AIMessage.conversation_id.in_(
+            db.query(AIConversation.id).filter(AIConversation.company_id == company_id)
+        )
+    ).delete(synchronize_session=False)
+    db.query(AIConversation).filter(AIConversation.company_id == company_id).delete(synchronize_session=False)
+
+    db.query(Workflow).filter(Workflow.company_id == company_id).delete(synchronize_session=False)
+    db.query(Order).filter(Order.company_id == company_id).delete(synchronize_session=False)
+    db.query(InventoryItem).filter(InventoryItem.company_id == company_id).delete(synchronize_session=False)
+    db.query(Shipment).filter(Shipment.company_id == company_id).delete(synchronize_session=False)
+    db.query(Subscription).filter(Subscription.company_id == company_id).delete(synchronize_session=False)
+    db.query(User).filter(User.company_id == company_id).delete(synchronize_session=False)
+
     company = db.query(Company).filter(Company.id == company_id).first()
     if company:
         db.delete(company)
-    
+
     db.commit()
-    
     return {"message": "Account deleted successfully"}
