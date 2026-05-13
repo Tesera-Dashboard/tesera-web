@@ -87,6 +87,15 @@ export default function OnboardingPage() {
   };
 
   const handleSkip = () => {
+    // Mark onboarding as completed when skipped
+    fetchWithAuth("/settings/user-settings", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ onboarding_completed: true }),
+    }).catch((error) => console.error("Failed to mark onboarding as completed:", error));
+    
     router.push("/dashboard");
   };
 
@@ -163,8 +172,7 @@ export default function OnboardingPage() {
             <div className="flex gap-4 w-full max-w-md">
               <Button
                 variant="outline"
-                onClick={handlePrevious}
-                disabled={currentStep === 0}
+                onClick={currentStep === 0 ? handleSkip : handlePrevious}
                 className="flex-1"
               >
                 {currentStep === 0 ? "Atla" : "Geri"}

@@ -40,44 +40,150 @@ def create_notification_if_enabled(db: Session, company_id, user_id, title, mess
 def seed_mock_data(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     company_id = current_user.company_id
 
-    # 1. Seed Inventory
-    inv_id1, inv_id2, inv_id3, inv_id4 = f"INV-{random.randint(10000,99999)}", f"INV-{random.randint(10000,99999)}", f"INV-{random.randint(10000,99999)}", f"INV-{random.randint(10000,99999)}"
-
-    inventory_items = [
-        InventoryItem(id=inv_id1, company_id=company_id, name="Ayva Reçeli", sku=f"REC-{random.randint(1000,9999)}", category="Reçel", stock=150, minStock=20, price=45.00, status="Stokta", lastRestocked="2024-01-15"),
-        InventoryItem(id=inv_id2, company_id=company_id, name="Çam Balı", sku=f"BAL-{random.randint(1000,9999)}", category="Bal", stock=85, minStock=15, price=120.00, status="Stokta", lastRestocked="2024-02-20"),
-        InventoryItem(id=inv_id3, company_id=company_id, name="Domates Turşusu", sku=f"TUR-{random.randint(1000,9999)}", category="Turşu", stock=12, minStock=50, price=35.00, status="Azalıyor", lastRestocked="2024-03-10"),
-        InventoryItem(id=inv_id4, company_id=company_id, name="Siyah Zeytin", sku=f"ZEY-{random.randint(1000,9999)}", category="Zeytin", stock=0, minStock=10, price=55.00, status="Tükendi", lastRestocked="2024-01-20"),
+    # Shared catalog used across inventory and orders
+    products_catalog = [
+        ("Ayva Reçeli",       "Reçel",          45.00,  "REC"),
+        ("Ceviz Reçeli",      "Reçel",          75.00,  "REC"),
+        ("Gül Reçeli",        "Reçel",          65.00,  "REC"),
+        ("İncir Reçeli",      "Reçel",          55.00,  "REC"),
+        ("Domates Turşusu",   "Turşu",          35.00,  "TUR"),
+        ("Salatalık Turşusu", "Turşu",          40.00,  "TUR"),
+        ("Kabak Turşusu",     "Turşu",          38.00,  "TUR"),
+        ("Biber Turşusu",     "Turşu",          42.00,  "TUR"),
+        ("Çam Balı",          "Bal",            120.00, "BAL"),
+        ("Çiçek Balı",        "Bal",             95.00, "BAL"),
+        ("Kestane Balı",      "Bal",            110.00, "BAL"),
+        ("Siyah Zeytin",      "Zeytin",          55.00, "ZEY"),
+        ("Yeşil Zeytin",      "Zeytin",          50.00, "ZEY"),
+        ("Beyaz Peynir",      "Süt Ürünleri",    85.00, "PEY"),
+        ("Tulum Peyniri",     "Süt Ürünleri",   130.00, "PEY"),
+        ("Köy Yoğurdu",       "Süt Ürünleri",    45.00, "YOG"),
+        ("Nohut",             "Kuru Gıda",        30.00, "KGD"),
+        ("Mercimek",          "Kuru Gıda",        28.00, "KGD"),
+        ("Bulgur",            "Kuru Gıda",        25.00, "KGD"),
+        ("Pirinç",            "Kuru Gıda",        35.00, "KGD"),
     ]
+
+    # 1. Seed Inventory - 5 random distinct items
+    selected_products = random.sample(products_catalog, 5)
+    inventory_items = []
+    for prod in selected_products:
+        stock    = random.randint(0, 150)
+        minStock = random.randint(10, 40)
+        if stock == 0:
+            status = "Tükendi"
+        elif stock < minStock:
+            status = "Azalıyor"
+        else:
+            status = "Stokta"
+        days_since_restock = random.randint(5, 90)
+        restock_date = (datetime.utcnow() - timedelta(days=days_since_restock)).strftime("%Y-%m-%d")
+        inventory_items.append(InventoryItem(
+            id=f"INV-{random.randint(10000,99999)}",
+            company_id=company_id,
+            name=prod[0],
+            sku=f"{prod[3]}-{random.randint(1000,9999)}",
+            category=prod[1],
+            stock=stock,
+            minStock=minStock,
+            price=prod[2],
+            status=status,
+            lastRestocked=restock_date,
+        ))
     for item in inventory_items:
         db.add(item)
 
-    # 2. Seed Orders
+    # 2. Seed Orders - 6 random unique customer+product combos
     now = datetime.utcnow()
-    ord_id1, ord_id2, ord_id3 = f"ORD-{random.randint(10000,99999)}", f"ORD-{random.randint(10000,99999)}", f"ORD-{random.randint(10000,99999)}"
 
-    orders = [
-        Order(id=ord_id1, company_id=company_id, customer="Ahmet Yılmaz", email="ahmet@example.com", product="Ayva Reçeli", quantity=2, amount=90.00, status="İşleniyor", date=(now - timedelta(days=1)).isoformat(), address="Atatürk Cad. No:123, İstanbul", notes="Öğleden önce teslim"),
-        Order(id=ord_id2, company_id=company_id, customer="Ayşe Demir", email="ayse@example.com", product="Çam Balı", quantity=1, amount=120.00, status="Kargoda", date=(now - timedelta(days=2)).isoformat(), address="Bağdat Cad. No:456, İstanbul", notes=""),
-        Order(id=ord_id3, company_id=company_id, customer="Mehmet Kaya", email="mehmet@example.com", product="Domates Turşusu", quantity=5, amount=175.00, status="Teslim Edildi", date=(now - timedelta(days=5)).isoformat(), address="İstiklal Cad. No:789, İstanbul", notes="Kapıcıya bırak"),
+    customers = [
+        ("Ahmet Yılmaz",  "ahmet.yilmaz@gmail.com",    "Atatürk Cad. No:45, Beşiktaş/İstanbul"),
+        ("Ayşe Demir",    "ayse.demir@hotmail.com",     "Bağdat Cad. No:112, Kadıköy/İstanbul"),
+        ("Mehmet Kaya",   "mehmet.kaya@gmail.com",      "Cumhuriyet Mah. No:78, Keçiören/Ankara"),
+        ("Fatma Şahin",   "fatma.sahin@outlook.com",    "Alsancak Mah. No:33, Konak/İzmir"),
+        ("Ali Çelik",     "ali.celik@gmail.com",         "Konyaaltı Cad. No:55, Antalya"),
+        ("Zeynep Arslan", "zeynep.arslan@gmail.com",    "Yıldırım Mah. No:22, Osmangazi/Bursa"),
+        ("Murat Güneş",   "murat.gunes@gmail.com",      "Çankaya Mah. No:90, Çankaya/Ankara"),
+        ("Elif Yıldız",   "elif.yildiz@hotmail.com",    "Karşıyaka Mah. No:17, Karşıyaka/İzmir"),
+        ("Hasan Koç",     "hasan.koc@gmail.com",        "Bornova Mah. No:5, Bornova/İzmir"),
+        ("Merve Yıldız",  "merve.yildiz@outlook.com",   "Selçuklu Mah. No:28, Selçuklu/Konya"),
     ]
+
+    statuses = ["İşleniyor", "İşleniyor", "Kargoda", "Kargoda", "Teslim Edildi", "Gecikti", "İptal"]
+    notes_options = ["Öğleden önce teslim", "Kapıcıya bırak", "", "Kırılmaz ambalaj lütfen", "Hızlı teslimat", ""]
+
+    shuffled_customers = random.sample(customers, 6)
+    shuffled_products  = random.sample(products_catalog, 6)
+    shuffled_statuses  = random.sample(statuses, 6)
+
+    orders = []
+    for i in range(6):
+        cust   = shuffled_customers[i]
+        prod   = shuffled_products[i]
+        status = shuffled_statuses[i]
+        qty    = random.randint(1, 8)
+        order  = Order(
+            id=f"ORD-{random.randint(10000,99999)}",
+            company_id=company_id,
+            customer=cust[0],
+            email=cust[1],
+            product=prod[0],
+            quantity=qty,
+            amount=round(qty * prod[2], 2),
+            status=status,
+            date=(now - timedelta(days=random.randint(0, 20), hours=random.randint(0, 23))).isoformat(),
+            address=cust[2],
+            notes=random.choice(notes_options),
+        )
+        orders.append(order)
     for o in orders:
         db.add(o)
 
-    # 3. Seed Shipments
-    shipments = [
-        Shipment(id=f"SHP-{random.randint(10000,99999)}", company_id=company_id, orderId=ord_id2, carrier="Yurtiçi Kargo", trackingCode=f"TRK{random.randint(100000,999999)}", status="Yolda", origin="İstanbul Depo", destination="Bağdat Cad. No:456, İstanbul", estimatedDelivery=(now + timedelta(days=1)).isoformat(), isDelayed=False, delayReason=""),
-        Shipment(id=f"SHP-{random.randint(10000,99999)}", company_id=company_id, orderId=ord_id3, carrier="Aras Kargo", trackingCode=f"ARS{random.randint(100000,999999)}", status="Teslim Edildi", origin="İstanbul Depo", destination="İstiklal Cad. No:789, İstanbul", estimatedDelivery=(now - timedelta(days=1)).isoformat(), isDelayed=False, delayReason=""),
-    ]
+    # 3. Seed Shipments - linked to kargoda/gecikti/teslim orders
+    kargoda_orders = [o for o in orders if o.status in ("Kargoda", "Gecikti")]
+    teslim_orders  = [o for o in orders if o.status == "Teslim Edildi"]
+    carriers = ["Yurtiçi Kargo", "Aras Kargo", "MNG Kargo", "PTT Kargo", "Sürat Kargo"]
+
+    shipments = []
+    for o in kargoda_orders:
+        is_delayed = o.status == "Gecikti"
+        shipments.append(Shipment(
+            id=f"SHP-{random.randint(10000,99999)}",
+            company_id=company_id,
+            orderId=o.id,
+            carrier=random.choice(carriers),
+            trackingCode=f"TRK{random.randint(100000,999999)}",
+            status="Yolda",
+            origin=random.choice(["İstanbul Depo", "Ankara Depo", "İzmir Depo"]),
+            destination=o.address,
+            estimatedDelivery=(now + timedelta(days=random.randint(1, 4))).isoformat(),
+            isDelayed=is_delayed,
+            delayReason=random.choice(["Kötü hava koşulları", "Yoğun trafik", "Adres hatası"]) if is_delayed else "",
+        ))
+    for o in teslim_orders:
+        shipments.append(Shipment(
+            id=f"SHP-{random.randint(10000,99999)}",
+            company_id=company_id,
+            orderId=o.id,
+            carrier=random.choice(carriers),
+            trackingCode=f"ARS{random.randint(100000,999999)}",
+            status="Teslim Edildi",
+            origin=random.choice(["İstanbul Depo", "Ankara Depo", "İzmir Depo"]),
+            destination=o.address,
+            estimatedDelivery=(now - timedelta(days=random.randint(1, 3))).isoformat(),
+            isDelayed=False,
+            delayReason="",
+        ))
     for s in shipments:
         db.add(s)
-        
+
     try:
         db.commit()
         return {"message": "Veritabanı başarıyla test verileriyle dolduruldu!"}
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
+
 
 from pydantic import BaseModel
 
@@ -87,19 +193,41 @@ class CreateOrderRequest(BaseModel):
 
 @router.post("/orders/create")
 def simulate_create_order(req: CreateOrderRequest, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    order_id = f"ORD-{random.randint(2000, 9999)}"
+    order_id = f"ORD-{random.randint(10000, 99999)}"
+
+    customers = [
+        ("Ahmet Yılmaz", "ahmet.yilmaz@gmail.com", "Atatürk Cad. No:45, Beşiktaş/İstanbul"),
+        ("Ayşe Demir", "ayse.demir@hotmail.com", "Bağdat Cad. No:112, Kadıköy/İstanbul"),
+        ("Mehmet Kaya", "mehmet.kaya@gmail.com", "Cumhuriyet Mah. No:78, Keçiören/Ankara"),
+        ("Fatma Şahin", "fatma.sahin@outlook.com", "Alsancak Mah. No:33, Konak/İzmir"),
+        ("Ali Çelik", "ali.celik@gmail.com", "Konyaaltı Cad. No:55, Antalya"),
+        ("Zeynep Arslan", "zeynep.arslan@gmail.com", "Yıldırım Mah. No:22, Osmangazi/Bursa"),
+        ("Murat Güneş", "murat.gunes@gmail.com", "Çankaya Mah. No:90, Çankaya/Ankara"),
+        ("Elif Yıldız", "elif.yildiz@hotmail.com", "Karşıyaka Mah. No:17, Karşıyaka/İzmir"),
+    ]
+
+    product_prices = {
+        "Ayva Reçeli": 45.00, "Çam Balı": 120.00, "Domates Turşusu": 35.00,
+        "Siyah Zeytin": 55.00, "Gül Reçeli": 65.00, "Ceviz Reçeli": 75.00,
+        "Çiçek Balı": 95.00, "Salatalık Turşusu": 40.00,
+    }
+    notes_options = ["Öğleden önce teslim", "Kapıcıya bırak", "", "Kırılmaz ambalaj lütfen", ""]
+
+    cust = random.choice(customers)
+    unit_price = product_prices.get(req.product, 49.99)
+
     new_order = Order(
         id=order_id,
         company_id=current_user.company_id,
-        customer="Simulated Customer",
-        email="simulator@tesera.app",
+        customer=cust[0],
+        email=cust[1],
         product=req.product,
         quantity=req.quantity,
-        amount=req.quantity * 49.99, # Dummy price
-        status="Processing",
+        amount=round(req.quantity * unit_price, 2),
+        status="İşleniyor",
         date=datetime.utcnow().isoformat(),
-        address="Test Address, NY",
-        notes="Created via test simulator"
+        address=cust[2],
+        notes=random.choice(notes_options)
     )
     db.add(new_order)
     db.commit()
@@ -116,7 +244,7 @@ def simulate_create_order(req: CreateOrderRequest, db: Session = Depends(get_db)
         {"order_id": order_id}
     )
 
-    return {"message": "Order created", "order_id": order_id}
+    return {"message": "Sipariş oluşturuldu", "order_id": order_id}
 
 class UpdateShipmentRequest(BaseModel):
     shipment_id: str
@@ -174,20 +302,53 @@ def simulate_update_shipment(req: UpdateShipmentRequest, db: Session = Depends(g
 
 @router.post("/inventory/create")
 def simulate_create_inventory_item(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    item_id = f"INV-{random.randint(1000, 9999)}"
-    categories = ["Reçel", "Turşu", "Bal", "Zeytin", "Süt Ürünleri", "Kuru Gıda"]
-    names = ["Ayva Reçeli", "Ceviz Reçeli", "Gül Reçeli", "Domates Turşusu", "Salatalık Turşusu", "Kabak Turşusu", "Çam Balı", "Çiçek Balı", "Karaca Balı", "Siyah Zeytin", "Yeşil Zeytin", "Üzüm Zeytini", "Beyaz Peynir", "Kaşar Peyniri", "Tulum Peyniri", "Köy Yoğurdu", "Ayran", "Nohut", "Mercimek", "Bulgur", "Pirinç"]
+    item_id = f"INV-{random.randint(10000, 99999)}"
+    
+    products_catalog = [
+        ("Ayva Reçeli", "Reçel", 45.00),
+        ("Ceviz Reçeli", "Reçel", 75.00),
+        ("Gül Reçeli", "Reçel", 65.00),
+        ("İncir Reçeli", "Reçel", 55.00),
+        ("Domates Turşusu", "Turşu", 35.00),
+        ("Salatalık Turşusu", "Turşu", 40.00),
+        ("Kabak Turşusu", "Turşu", 38.00),
+        ("Biber Turşusu", "Turşu", 42.00),
+        ("Çam Balı", "Bal", 120.00),
+        ("Çiçek Balı", "Bal", 95.00),
+        ("Kestane Balı", "Bal", 110.00),
+        ("Siyah Zeytin", "Zeytin", 55.00),
+        ("Yeşil Zeytin", "Zeytin", 50.00),
+        ("Beyaz Peynir", "Süt Ürünleri", 85.00),
+        ("Tulum Peyniri", "Süt Ürünleri", 130.00),
+        ("Köy Yoğurdu", "Süt Ürünleri", 45.00),
+        ("Nohut", "Kuru Gıda", 30.00),
+        ("Mercimek", "Kuru Gıda", 28.00),
+        ("Bulgur", "Kuru Gıda", 25.00),
+        ("Pirinç", "Kuru Gıda", 35.00),
+    ]
+
+    prod = random.choice(products_catalog)
+    stock = random.randint(0, 120)
+    minStock = random.randint(10, 30)
+
+    # Calculate status correctly based on stock/minStock
+    if stock == 0:
+        status = "Tükendi"
+    elif stock < minStock:
+        status = "Azalıyor"
+    else:
+        status = "Stokta"
 
     new_item = InventoryItem(
         id=item_id,
         company_id=current_user.company_id,
-        name=random.choice(names),
+        name=prod[0],
         sku=f"SKU-{random.randint(10000, 99999)}",
-        category=random.choice(categories),
-        stock=random.randint(0, 100),
-        minStock=random.randint(5, 20),
-        price=round(random.uniform(20.0, 150.0), 2),
-        status=random.choice(["Stokta", "Azalıyor", "Tükendi"]),
+        category=prod[1],
+        stock=stock,
+        minStock=minStock,
+        price=prod[2],
+        status=status,
         lastRestocked=datetime.utcnow().isoformat()
     )
     db.add(new_item)
@@ -212,13 +373,21 @@ def simulate_create_inventory_item(db: Session = Depends(get_db), current_user: 
 @router.post("/shipments/create")
 def simulate_create_shipment(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     company_id = current_user.company_id
-    carriers = ["FedEx", "UPS", "DHL", "Yurtiçi Kargo", "Aras Kargo"]
-    statuses = ["Hazırlanıyor", "Kargoda", "Dağıtımda", "Teslim Edildi"]
+    carriers = ["Yurtiçi Kargo", "Aras Kargo", "MNG Kargo", "PTT Kargo", "Sürat Kargo"]
+    statuses = ["Hazırlanıyor", "Yolda", "Dağıtımda", "Teslim Edildi"]
+    destinations = [
+        "Atatürk Cad. No:45, Beşiktaş/İstanbul",
+        "Bağdat Cad. No:112, Kadıköy/İstanbul",
+        "Cumhuriyet Mah. No:78, Keçiören/Ankara",
+        "Alsancak Mah. No:33, Konak/İzmir",
+        "Konyaaltı Cad. No:55, Antalya",
+        "Yıldırım Mah. No:22, Osmangazi/Bursa",
+    ]
 
     now = datetime.utcnow()
     shipment_id = f"SHP-{random.randint(10000, 99999)}"
     order_id = f"ORD-{random.randint(10000, 99999)}"
-    is_delayed = random.choice([True, False])
+    is_delayed = random.choices([True, False], weights=[20, 80])[0]  # 20% gecikme ihtimali
 
     new_shipment = Shipment(
         id=shipment_id,
@@ -228,7 +397,7 @@ def simulate_create_shipment(db: Session = Depends(get_db), current_user: User =
         trackingCode=f"TRK{random.randint(100000, 999999)}",
         status=random.choice(statuses),
         origin="İstanbul Depo",
-        destination="Teslimat Adresi",
+        destination=random.choice(destinations),
         estimatedDelivery=(now + timedelta(days=random.randint(1, 7))).isoformat(),
         isDelayed=is_delayed,
         delayReason="Kötü hava koşulları" if is_delayed else ""

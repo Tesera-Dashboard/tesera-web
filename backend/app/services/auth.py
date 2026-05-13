@@ -1,4 +1,5 @@
 import smtplib
+import os
 from email.message import EmailMessage
 
 from sqlalchemy.orm import Session
@@ -54,8 +55,6 @@ def authenticate_user(db: Session, request: LoginRequest) -> Token:
     return Token(access_token=access_token, token_type="bearer")
 
 def send_email(email_to: str, subject: str, html_content: str):
-    import os
-    
     # Use Gmail SMTP if configured
     if settings.USE_GMAIL_SMTP:
         if not settings.SMTP_HOST or not settings.SMTP_USER or not settings.SMTP_PASSWORD:
@@ -109,13 +108,12 @@ def send_email(email_to: str, subject: str, html_content: str):
 
 def send_verification_email(email: str, token: str):
     link = f"{settings.FRONTEND_URL}/verify-email?token={token}"
-    logo_url = "https://tesera.co/mini-logo.png"
+    logo_url = "https://raw.githubusercontent.com/Tesera-Dashboard/tesera-web/main/frontend/public/logo.png"
     html = f"""
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #eaeaec; border-radius: 12px; overflow: hidden;">
         <div style="background-color: #f9fafb; padding: 32px 24px; text-align: center; border-bottom: 1px solid #eaeaec;">
-            <div style="display: flex; align-items: center; justify-content: center; gap: 12px;">
-                <img src="{logo_url}" alt="Tesera" style="height: 60px; width: auto;" />
-                <span style="font-size: 32px; font-weight: bold; color: #fa7f05;">Tesera</span>
+            <div style="display: flex; align-items: center; justify-content: center;">
+                <img src="{logo_url}" alt="Tesera" style="height: 100px; width: auto;" />
             </div>
         </div>
         <div style="padding: 32px; color: #374151;">
@@ -135,13 +133,12 @@ def send_verification_email(email: str, token: str):
 
 def send_reset_password_email(email: str, token: str):
     link = f"{settings.FRONTEND_URL}/reset-password?token={token}"
-    logo_url = "https://tesera.co/mini-logo.png"
+    logo_url = "https://raw.githubusercontent.com/Tesera-Dashboard/tesera-web/main/frontend/public/logo.png"
     html = f"""
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #eaeaec; border-radius: 12px; overflow: hidden;">
         <div style="background-color: #f9fafb; padding: 32px 24px; text-align: center; border-bottom: 1px solid #eaeaec;">
-            <div style="display: flex; align-items: center; justify-content: center; gap: 12px;">
-                <img src="{logo_url}" alt="Tesera" style="height: 60px; width: auto;" />
-                <span style="font-size: 32px; font-weight: bold; color: #fa7f05;">Tesera</span>
+            <div style="display: flex; align-items: center; justify-content: center;">
+                <img src="{logo_url}" alt="Tesera" style="height: 100px; width: auto;" />
             </div>
         </div>
         <div style="padding: 32px; color: #374151;">
