@@ -38,15 +38,17 @@ function SettingsContent() {
   const [saving, setSaving] = useState(false);
   const [settingsLoaded, setSettingsLoaded] = useState(false);
   
-  // Settings state — initialize from resolvedTheme or fallback to current state
-  const [theme, setTheme] = useState(resolvedTheme || "light");
+  // Local theme state for button display only.
+  // Always follows next-themes' resolvedTheme — never overrides it from API.
+  const [theme, setTheme] = useState("light");
   
-  // Sync local theme state when resolvedTheme changes (e.g., after hydration)
+  // Keep local button state in sync with next-themes (resolvedTheme is undefined on SSR,
+  // becomes available after hydration). This is the ONLY source of truth for display.
   useEffect(() => {
-    if (resolvedTheme && !settingsLoaded) {
+    if (resolvedTheme) {
       setTheme(resolvedTheme);
     }
-  }, [resolvedTheme, settingsLoaded]);
+  }, [resolvedTheme]);
 
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
 
@@ -102,13 +104,9 @@ function SettingsContent() {
       if (settingsRes.ok) {
         const data = await settingsRes.json();
         setSettingsData(data);
-        if (data.theme) {
-          setTheme(data.theme);
-          // Only call setAppTheme if it's different to avoid redundant re-renders
-          if (data.theme !== resolvedTheme) {
-            setAppTheme(data.theme);
-          }
-        }
+        // Theme is managed by next-themes (localStorage). We do NOT override
+        // the global theme from API data here — that caused the dark→light flash.
+        // The local `theme` state for button display follows `resolvedTheme` via useEffect.
         if (data.sidebar_enabled && data.sidebar_enabled.length > 0) {
           setSidebarEnabled(data.sidebar_enabled);
         } else {
