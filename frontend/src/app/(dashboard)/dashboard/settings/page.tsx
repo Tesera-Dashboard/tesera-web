@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Check, User, Settings, CreditCard, AlertTriangle, Edit2, Save, GripVertical } from "lucide-react";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { fetchWithAuth } from "@/lib/api";
+import { logout } from "@/lib/auth";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -196,8 +197,9 @@ function SettingsContent() {
 
       if (res.ok) {
         toast.success("Hesap başarıyla silindi");
-        // Redirect to home or login page
-        window.location.href = "/login";
+        // Clear local session and redirect to home page
+        logout();
+        window.location.href = "/";
       } else {
         toast.error("Hesap silme başarısız");
       }

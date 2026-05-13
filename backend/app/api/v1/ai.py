@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
+# ─── Schemas ──────────────────────────────────────────────────────────────────
 
 class ChatMessage(BaseModel):
     role: str  # "user" or "model"
@@ -72,6 +73,8 @@ class RecommendationsResponse(BaseModel):
     recommendations: List[RecommendationItem]
 
 
+# ─── Exceptions ───────────────────────────────────────────────────────────────
+
 class LLMProviderError(Exception):
     def __init__(self, provider: str, status_code: int, detail: str):
         self.provider = provider
@@ -80,57 +83,144 @@ class LLMProviderError(Exception):
         super().__init__(f"{provider} error {status_code}: {detail}")
 
 
+# ─── Rate Limit Tracker ───────────────────────────────────────────────────────
+
+import threading
+import time
+
+class _RateLimitTracker:
+    """
+    Bellek içi 429 sayacı. Process yeniden başladığında sıfırlanır.
+    Render free plan gibi kısa ömürlü worker'lar için yeterli.
+    """
+    def __init__(self, cooldown_seconds: int = 60):
+        self._lock = threading.Lock()
+        self._counts: dict[str, int] = {}          # provider → toplam 429 sayısı
+        self._blocked_until: dict[str, float] = {} # provider → epoch saniye
+        self._cooldown = cooldown_seconds
+
+    def record_429(self, provider: str) -> None:
+        with self._lock:
+            self._counts[provider] = self._counts.get(provider, 0) + 1
+            self._blocked_until[provider] = time.monotonic() + self._cooldown
+            logger.warning(
+                f"[RateLimitTracker] {provider} 429 kaydedildi. "
+                f"Toplam: {self._counts[provider]}. "
+                f"{self._cooldown}s cooldown başladı."
+            )
+
+    def is_blocked(self, provider: str) -> bool:
+        with self._lock:
+            until = self._blocked_until.get(provider, 0.0)
+            return time.monotonic() < until
+
+    def stats(self) -> dict:
+        with self._lock:
+            return {
+                p: {"total_429": self._counts.get(p, 0), "blocked": self.is_blocked(p)}
+                for p in set(list(self._counts.keys()) + list(self._blocked_until.keys()))
+            }
+
+
+_rate_tracker = _RateLimitTracker(cooldown_seconds=60)
+
+
+# ─── Context Builder ──────────────────────────────────────────────────────────
+
 def build_company_context(db: Session, company_id) -> str:
+    """
+    Şirkete ait operasyonel verileri tek seferde çekip yapılandırılmış bir
+    bağlam metni olarak döndürür. Her LLM çağrısı için yalnızca bir kez çalışır.
+    """
     inventory_items = db.query(InventoryModel).filter(InventoryModel.company_id == company_id).limit(100).all()
-    orders = db.query(OrderModel).filter(OrderModel.company_id == company_id).limit(100).all()
-    shipments = db.query(ShipmentModel).filter(ShipmentModel.company_id == company_id).limit(100).all()
+    orders = db.query(OrderModel).filter(OrderModel.company_id == company_id).order_by(OrderModel.date.desc()).limit(50).all()
+    shipments = db.query(ShipmentModel).filter(ShipmentModel.company_id == company_id).limit(50).all()
+
+    now_str = datetime.utcnow().strftime("%d.%m.%Y %H:%M UTC")
 
     low_stock_items = [item for item in inventory_items if item.stock <= item.minStock]
-    delayed_shipments = [shipment for shipment in shipments if shipment.isDelayed]
-    pending_orders = [order for order in orders if order.status.lower() in {"beklemede", "pending", "hazırlanıyor", "processing"}]
+    critical_items = [item for item in inventory_items if item.stock == 0]
+    delayed_shipments = [s for s in shipments if s.isDelayed]
+    pending_orders = [o for o in orders if o.status.lower() in {"beklemede", "pending", "hazırlanıyor", "processing"}]
+    completed_orders = [o for o in orders if o.status.lower() in {"teslim edildi", "delivered", "tamamlandı", "completed"}]
+    total_revenue = sum(o.amount for o in completed_orders)
     total_stock_value = sum(item.stock * item.price for item in inventory_items)
 
     inventory_lines = [
-        f"- {item.name} ({item.sku}): {item.stock} adet, minimum {item.minStock}, durum: {item.status}, kategori: {item.category}"
-        for item in inventory_items[:20]
-    ]
-    low_stock_lines = [
-        f"- {item.name} ({item.sku}): {item.stock} adet kaldı, minimum seviye {item.minStock}"
-        for item in low_stock_items[:10]
+        f"  • {item.name} ({item.sku}): {item.stock}/{item.minStock} adet [min], "
+        f"{'⚠️ KRİTİK' if item.stock == 0 else '⬇️ DÜŞÜK' if item.stock <= item.minStock else 'OK'}, "
+        f"kategori: {item.category}, fiyat: {item.price:.2f}₺"
+        for item in inventory_items[:25]
     ]
     order_lines = [
-        f"- {order.id}: {order.customer}, ürün: {order.product}, adet: {order.quantity}, tutar: {order.amount}, durum: {order.status}, tarih: {order.date}"
-        for order in orders[:15]
+        f"  • {order.id}: {order.customer} — {order.product} x{order.quantity}, "
+        f"{order.amount:.2f}₺, durum: {order.status}, tarih: {order.date}"
+        for order in orders[:20]
     ]
     shipment_lines = [
-        f"- {shipment.id}: sipariş {shipment.orderId}, taşıyıcı: {shipment.carrier}, durum: {shipment.status}, gecikme: {'evet' if shipment.isDelayed else 'hayır'}, tahmini teslimat: {shipment.estimatedDelivery}"
-        for shipment in shipments[:15]
+        f"  • {s.id} (Sipariş: {s.orderId}): {s.carrier}, durum: {s.status}, "
+        f"{'⚠️ GECİKMİŞ' if s.isDelayed else 'zamanında'}, tahmini teslimat: {s.estimatedDelivery}"
+        for s in shipments[:20]
     ]
 
-    return "\n".join([
-        "Tesera Operasyon Verileri:",
-        f"- Toplam ürün sayısı: {len(inventory_items)}",
-        f"- Toplam stok adedi: {sum(item.stock for item in inventory_items)}",
-        f"- Tahmini stok değeri: {total_stock_value:.2f}",
-        f"- Kritik/düşük stok ürün sayısı: {len(low_stock_items)}",
-        f"- Toplam sipariş sayısı: {len(orders)}",
-        f"- Bekleyen/hazırlanan sipariş sayısı: {len(pending_orders)}",
-        f"- Toplam kargo sayısı: {len(shipments)}",
-        f"- Geciken kargo sayısı: {len(delayed_shipments)}",
+    sections = [
+        f"=== TESERA OPERASYONELVERİ — {now_str} ===",
         "",
-        "Envanter örnekleri:",
-        "\n".join(inventory_lines) if inventory_lines else "- Kayıtlı envanter ürünü yok.",
+        "📊 ÖZET GÖSTERGELER:",
+        f"  • Toplam ürün çeşidi: {len(inventory_items)}",
+        f"  • Toplam stok adedi: {sum(item.stock for item in inventory_items)}",
+        f"  • Tahmini stok değeri: {total_stock_value:,.2f}₺",
+        f"  • Düşük/kritik stok ürün sayısı: {len(low_stock_items)} (sıfır stok: {len(critical_items)})",
+        f"  • Toplam sipariş: {len(orders)} (son 50)",
+        f"  • Bekleyen/işlemdeki sipariş: {len(pending_orders)}",
+        f"  • Tamamlanan sipariş cirosu: {total_revenue:,.2f}₺",
+        f"  • Toplam kargo: {len(shipments)}, geciken: {len(delayed_shipments)}",
         "",
-        "Kritik stok ürünleri:",
-        "\n".join(low_stock_lines) if low_stock_lines else "- Kritik stokta ürün yok.",
+        "📦 ENVANTER DETAYI:",
+        "\n".join(inventory_lines) if inventory_lines else "  — Kayıtlı ürün yok.",
         "",
-        "Son siparişler:",
-        "\n".join(order_lines) if order_lines else "- Kayıtlı sipariş yok.",
+        "🛒 SON SİPARİŞLER:",
+        "\n".join(order_lines) if order_lines else "  — Kayıtlı sipariş yok.",
         "",
-        "Kargo özeti:",
-        "\n".join(shipment_lines) if shipment_lines else "- Kayıtlı kargo yok.",
-    ])
+        "🚚 KARGO DURUMU:",
+        "\n".join(shipment_lines) if shipment_lines else "  — Kayıtlı kargo yok.",
+    ]
+    return "\n".join(sections)
 
+
+# ─── System Prompt ────────────────────────────────────────────────────────────
+
+def _build_system_instruction(company_context: str, conversation_summary: str = "") -> str:
+    """
+    LLM için sistem talimatı oluşturur.
+    company_context dışarıdan verilir; böylece tek DB çağrısı yeterli olur.
+    """
+    summary_block = (
+        f"\n\n--- Önceki Konuşma Özeti ---\n{conversation_summary}\n--- Özet Sonu ---"
+        if conversation_summary
+        else ""
+    )
+    return (
+        "Sen Tesera'nın YZ Operasyon Asistanısın. Görevin KOBİ'lerin envanter, "
+        "sipariş, kargo ve operasyon yönetiminde somut, veri odaklı destek sağlamak.\n\n"
+
+        "DAVRANŞ KURALLARI:\n"
+        "1. Türkçe yanıt ver. Yanıtlar kısa, net ve eyleme dönük olsun.\n"
+        "2. Aşağıda sana verilen Tesera operasyonel veriyi kullan. Bu veriler gerçektir — "
+        "'erişimim yok', 'bilmiyorum' veya 'veri yok' deme; eldeki veriye dayanarak yanıt ver.\n"
+        "3. Veri gerçekten yoksa (ör. liste boş) bunu belirt ve ilgili modüle veri eklenmesini öner.\n"
+        "4. Asla uydurma müşteri adı, ürün, tutar, tarih veya sipariş numarası üretme.\n"
+        "5. Konuşma geçmişini dikkate al; önceki mesajları tekrar etme.\n"
+        "6. Yanıtlarında başlık, madde listesi ve vurgular kullanarak okunabilirliği artır.\n"
+        "7. Kullanıcı genel bir özetisterse: kritik stok uyarıları, geciken kargolar ve "
+        "bekleyen siparişleri öne çıkar.\n\n"
+
+        f"{summary_block}\n\n"
+        f"{company_context}"
+    )
+
+
+# ─── LLM Caller ───────────────────────────────────────────────────────────────
 
 def call_chat_completion(
     client: httpx.Client,
@@ -139,19 +229,19 @@ def call_chat_completion(
     api_key: str,
     model: str,
     messages: list[dict[str, str]],
+    temperature: float = 0.4,
 ) -> str:
     response = client.post(
         f"{base_url}/chat/completions",
         headers={
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json",
-            "HTTP-Referer": settings.FRONTEND_URL,
-            "X-Title": "Tesera",
         },
         json={
             "model": model,
             "messages": messages,
             "stream": False,
+            "temperature": temperature,
         },
     )
 
@@ -168,23 +258,83 @@ def call_chat_completion(
     return message
 
 
-def _build_system_instruction(db: Session, company_id, conversation_summary: str = "") -> str:
-    company_context = build_company_context(db, company_id)
-    conversation_context = f"\n\nÖnceki Konuşma Özeti:\n{conversation_summary}" if conversation_summary else ""
-    return (
-        "Sen Tesera'nın YZ Asistanısın. KOBİ'lerin envanter, kargo, sipariş ve operasyon yönetiminde "
-        "yardımcı oluyorsun. Türkçe yanıt ver — yanıtların kısa, profesyonel ve yardımsever olsun. "
-        "Tesera'nın temel modülleri şunlardır: Siparişler, Envanter, Kargolar, İş Akışları, Analitik. "
-        "Kullanıcı stok, sipariş, kargo veya operasyon durumu sorduğunda aşağıdaki Tesera operasyon verilerini esas al. "
-        "Veri varsa 'erişimim yok' deme; eldeki veriye göre özet, kritik noktalar ve önerilen aksiyonları ver. "
-        "Veri yoksa bunu açıkça söyle ve ilgili modüle veri eklenmesini öner. "
-        "Yanıtlarında uydurma müşteri, ürün, adet, tarih veya tutar üretme.\n"
-        "ÖNEMLİ: Kullanıcının sorusuna doğrudan cevap ver. Kesinlikle kendi sorunu sorma, "
-        "aydınlatıcı soru sorma veya daha fazla bilgi iste. Sadece verilen bilgiye göre yanıt ver. "
-        "Bilgi yoksa 'bu konuda veri bulunamıyor' de ve geç."
-        f"{conversation_context}\n\n"
-        f"{company_context}"
-    )
+def _call_llm_with_fallback(
+    client: httpx.Client,
+    messages: list[dict[str, str]],
+    temperature: float = 0.4,
+) -> str:
+    """
+    Önce Gemini'yi dene; 429 veya başka hata varsa OpenAI'ye geç.
+    429 olayları _rate_tracker'a kaydedilir; cooldown süresinde provider atlanır.
+    """
+    use_gemini = bool(settings.GEMINI_API_KEY)
+    use_openai = bool(settings.OPENAI_API_KEY)
+
+    if use_gemini:
+        if _rate_tracker.is_blocked("Gemini"):
+            logger.info("[RateLimitTracker] Gemini cooldown aktif, direkt OpenAI'ye geçiliyor.")
+        else:
+            try:
+                return call_chat_completion(
+                    client=client,
+                    provider="Gemini",
+                    base_url=settings.GEMINI_BASE_URL,
+                    api_key=settings.GEMINI_API_KEY,
+                    model=settings.GEMINI_MODEL,
+                    messages=messages,
+                    temperature=temperature,
+                )
+            except LLMProviderError as gemini_error:
+                if gemini_error.status_code == 429:
+                    _rate_tracker.record_429("Gemini")
+                if not use_openai:
+                    raise gemini_error
+                logger.warning(
+                    f"Gemini hata ({gemini_error.status_code}), OpenAI fallback devrede."
+                )
+
+    if not use_openai:
+        raise LLMProviderError("OpenAI", 503, "OPENAI_API_KEY yapılandırılmamış.")
+
+    if _rate_tracker.is_blocked("OpenAI"):
+        raise LLMProviderError("OpenAI", 429, "OpenAI da rate-limit cooldown'unda. Lütfen bekleyin.")
+
+    try:
+        return call_chat_completion(
+            client=client,
+            provider="OpenAI",
+            base_url=settings.OPENAI_BASE_URL,
+            api_key=settings.OPENAI_API_KEY,
+            model=settings.OPENAI_MODEL,
+            messages=messages,
+            temperature=temperature,
+        )
+    except LLMProviderError as openai_error:
+        if openai_error.status_code == 429:
+            _rate_tracker.record_429("OpenAI")
+        raise openai_error
+
+
+# ─── Conversation Summarizer ─────────────────────────────────────────────────
+
+def _summarize_messages(messages: list) -> str:
+    """
+    Eski mesajları tek satırlık role+içerik özetine dönüştürür.
+    İlk 100 karakter alınır, fazlası kesilir.
+    """
+    parts = []
+    for msg in messages:
+        role = "Kullanıcı" if msg.role == "user" else "Asistan"
+        snippet = msg.content[:120].replace("\n", " ")
+        if len(msg.content) > 120:
+            snippet += "…"
+        parts.append(f"{role}: {snippet}")
+    return " | ".join(parts)
+
+
+# ─── Endpoints ────────────────────────────────────────────────────────────────
+
+CONTEXT_WINDOW = 8   # Son kaç mesaj tam olarak LLM'e gönderilsin
 
 
 @router.post("/chat", response_model=ChatResponse)
@@ -207,7 +357,7 @@ def ai_chat(
         raise HTTPException(status_code=400, detail="Son mesaj kullanıcıdan olmalıdır.")
 
     try:
-        # Load or create conversation
+        # ── 1. Konuşmayı yükle veya oluştur ─────────────────────────────────
         if request.conversation_id:
             conversation = db.query(AIConversation).filter(
                 AIConversation.id == request.conversation_id,
@@ -216,7 +366,7 @@ def ai_chat(
             if not conversation:
                 raise HTTPException(status_code=404, detail="Konuşma bulunamadı.")
         else:
-            title = last_user_msg.content[:50] + ("..." if len(last_user_msg.content) > 50 else "")
+            title = last_user_msg.content[:60] + ("…" if len(last_user_msg.content) > 60 else "")
             conversation = AIConversation(
                 company_id=current_user.company_id,
                 user_id=current_user.id,
@@ -225,53 +375,63 @@ def ai_chat(
             db.add(conversation)
             db.flush()
 
-        # Save user message
+        # ── 2. Kullanıcı mesajını kaydet ─────────────────────────────────────
         db.add(AIMessage(
             conversation_id=conversation.id,
             role="user",
             content=last_user_msg.content,
         ))
+        db.flush()
 
-        # Build LLM messages from full conversation history
-        # Generate conversation summary (keep it concise)
-        conversation_messages = list(db.query(AIMessage).filter(AIMessage.conversation_id == conversation.id).order_by(AIMessage.created_at).all())
-        if len(conversation_messages) > 4:
-            # Summarize older messages if there are more than 4 messages
-            older_messages = conversation_messages[:-4]
-            summary_parts = []
-            for msg in older_messages:
-                role = "Kullanıcı" if msg.role == "user" else "Asistan"
-                summary_parts.append(f"{role}: {msg.content[:100]}...")
-            conversation_summary = " | ".join(summary_parts)
+        # ── 3. Tüm konuşma geçmişini çek ─────────────────────────────────────
+        all_db_messages = (
+            db.query(AIMessage)
+            .filter(AIMessage.conversation_id == conversation.id)
+            .order_by(AIMessage.created_at)
+            .all()
+        )
+
+        # ── 4. Şirket bağlamını tek seferde oluştur ───────────────────────────
+        company_context = build_company_context(db, current_user.company_id)
+
+        # ── 5. Eski mesajları özetle, son CONTEXT_WINDOW mesajı tam gönder ───
+        if len(all_db_messages) > CONTEXT_WINDOW:
+            older = all_db_messages[:-CONTEXT_WINDOW]
+            recent = all_db_messages[-CONTEXT_WINDOW:]
+            conversation_summary = _summarize_messages(older)
         else:
+            recent = all_db_messages
             conversation_summary = ""
-        
-        system_instruction = _build_system_instruction(db, current_user.company_id, conversation_summary)
+
+        system_instruction = _build_system_instruction(company_context, conversation_summary)
         llm_messages = [{"role": "system", "content": system_instruction}]
 
-        # Add only the last 4 messages to maintain context
-        for msg in conversation_messages[-4:]:
-            role = "assistant" if msg.role == "model" else "user"
-            llm_messages.append({"role": role, "content": msg.content})
+        for msg in recent:
+            # DB'de "model" olarak saklı; OpenAI/Gemini "assistant" bekler
+            llm_role = "assistant" if msg.role == "model" else "user"
+            llm_messages.append({"role": llm_role, "content": msg.content})
 
-        # Call LLM
-        with httpx.Client(timeout=60.0) as client:
-            message = _call_llm_with_fallback(client, llm_messages)
+        # ── 6. LLM çağrısı ───────────────────────────────────────────────────
+        # Timeout: 45s — Render free plan worker'ları uzun isteklerde kesilebilir.
+        # Gemini/GPT normal yanıt süresi <10s; 45s yeterli ve güvenli margin sağlar.
+        with httpx.Client(timeout=45.0) as client:
+            ai_response = _call_llm_with_fallback(client, llm_messages, temperature=0.5)
 
-        # Save assistant message
+        # ── 7. Asistan yanıtını kaydet ────────────────────────────────────────
         db.add(AIMessage(
             conversation_id=conversation.id,
             role="model",
-            content=message,
+            content=ai_response,
         ))
         conversation.updated_at = datetime.utcnow()
         db.commit()
 
-        return ChatResponse(message=message, conversation_id=conversation.id)
+        return ChatResponse(message=ai_response, conversation_id=conversation.id)
 
     except HTTPException:
         raise
     except LLMProviderError as e:
+        db.rollback()
         if e.status_code == 401:
             raise HTTPException(status_code=503, detail=f"{e.provider} API anahtarı geçersiz veya eksik.")
         if e.status_code == 402:
@@ -280,41 +440,21 @@ def ai_chat(
             raise HTTPException(status_code=429, detail=f"{e.provider} hız limiti veya kotası aşıldı. Lütfen kısa bir süre sonra tekrar deneyin.")
         raise HTTPException(status_code=502, detail=f"{e.provider} servisinden geçerli bir yanıt alınamadı.")
     except Exception as e:
-        error_message = str(e)
-        logger.error(f"LLM API Error: {error_message}")
+        db.rollback()
+        logger.exception(f"AI chat unexpected error: {e}")
         raise HTTPException(
             status_code=500,
             detail="YZ yanıtı oluşturulurken beklenmeyen bir hata oluştu. Lütfen daha sonra tekrar deneyin."
         )
 
 
-def _call_llm_with_fallback(client: httpx.Client, messages: list[dict[str, str]]) -> str:
-    if settings.GEMINI_API_KEY:
-        try:
-            return call_chat_completion(
-                client=client,
-                provider="Gemini",
-                base_url=settings.GEMINI_BASE_URL,
-                api_key=settings.GEMINI_API_KEY,
-                model=settings.GEMINI_MODEL,
-                messages=messages,
-            )
-        except LLMProviderError as gemini_error:
-            if not settings.OPENAI_API_KEY:
-                raise gemini_error
-            logger.warning(f"Gemini failed, falling back to OpenAI: {gemini_error}")
-
-    if not settings.OPENAI_API_KEY:
-        raise LLMProviderError("OpenAI", 503, "OpenAI fallback için OPENAI_API_KEY yapılandırılmamış.")
-
-    return call_chat_completion(
-        client=client,
-        provider="OpenAI",
-        base_url=settings.OPENAI_BASE_URL,
-        api_key=settings.OPENAI_API_KEY,
-        model=settings.OPENAI_MODEL,
-        messages=messages,
-    )
+@router.get("/rate-limit-stats")
+def get_rate_limit_stats(current_user: User = Depends(get_current_user)):
+    """
+    Gemini / OpenAI 429 olaylarını ve mevcut cooldown durumunu döner.
+    Render loglarında sık 429 görülüyorsa bu endpoint ile anlık durum izlenebilir.
+    """
+    return {"providers": _rate_tracker.stats()}
 
 
 @router.get("/conversations", response_model=List[AIConversationSummary])
@@ -326,6 +466,7 @@ def list_conversations(
         AIConversation.user_id == current_user.id
     ).order_by(AIConversation.updated_at.desc()).all()
     return conversations
+
 
 
 @router.get("/conversations/{conversation_id}", response_model=AIConversationDetail)
@@ -368,7 +509,7 @@ def get_predictions(
     if not settings.GEMINI_API_KEY and not settings.OPENAI_API_KEY:
         raise HTTPException(
             status_code=503,
-            detail="YZ Asistanı şu anda kullanılamıyor. Lütfen backend .env dosyasına GEMINI_API_KEY veya OPENAI_API_KEY ekleyin."
+            detail="YZ Asistanı şu anda kullanılamıyor."
         )
 
     try:
@@ -386,12 +527,11 @@ def get_predictions(
             "- Kısa vadeli (1 ay): [öngörü]\n"
             "- Orta vadeli (3 ay): [öngörü]\n"
             "- Uzun vadeli (6 ay): [öngörü]\n\n"
-            "## Kar/Zarar Tahminleri\n"
-            "- Beklenen kar: [tahmin]\n"
+            "## Risk ve Aksiyonlar\n"
             "- Risk faktörleri: [riskler]\n"
             "- Önerilen aksiyonlar: [aksiyonlar]\n\n"
             "Yanıtlarında uydurma veri üretme. Eldeki veriye dayanarak mantıklı tahminler yap.\n\n"
-            f"Veriler:\n{company_context}"
+            f"{company_context}"
         )
 
         llm_messages = [
@@ -399,8 +539,8 @@ def get_predictions(
             {"role": "user", "content": "Şirketin güncel durumuna göre detaylı öngörü ve analiz ver."}
         ]
 
-        with httpx.Client(timeout=60.0) as client:
-            raw = _call_llm_with_fallback(client, llm_messages)
+        with httpx.Client(timeout=90.0) as client:
+            raw = _call_llm_with_fallback(client, llm_messages, temperature=0.3)
 
         return {"predictions": raw}
 
@@ -415,11 +555,13 @@ def get_predictions(
             raise HTTPException(status_code=429, detail=f"{e.provider} hız limiti veya kotası aşıldı.")
         raise HTTPException(status_code=502, detail=f"{e.provider} servisinden geçerli bir yanıt alınamadı.")
     except Exception as e:
-        logger.error(f"Predictions API Error: {e}")
+        logger.exception(f"Predictions API Error: {e}")
         raise HTTPException(
             status_code=500,
             detail="YZ öngörüleri oluşturulurken beklenmeyen bir hata oluştu."
         )
+
+
 @router.get("/recommendations", response_model=RecommendationsResponse)
 def get_recommendations(
     db: Session = Depends(get_db),
@@ -428,42 +570,53 @@ def get_recommendations(
     if not settings.GEMINI_API_KEY and not settings.OPENAI_API_KEY:
         raise HTTPException(
             status_code=503,
-            detail="YZ Asistanı şu anda kullanılamıyor. Lütfen backend .env dosyasına GEMINI_API_KEY veya OPENAI_API_KEY ekleyin."
+            detail="YZ Asistanı şu anda kullanılamıyor."
         )
 
     try:
         company_context = build_company_context(db, current_user.company_id)
         system_instruction = (
-            "Sen Tesera'nın YZ Asistanısın. Aşağıdaki operasyonel verilere dayanarak şirket için 3 adet kısa, "
-            "eyleme dönük ve profesyonel öneri üret. Her öneri şu formatta olmalı ve sadece bu 3 satırı döndür:\n"
+            "Sen Tesera'nın YZ Asistanısın. Aşağıdaki operasyonel verilere dayanarak şirket için "
+            "3 adet kısa, somut ve eyleme dönük öneri üret.\n\n"
+            "ÇIKTI FORMATI (başka hiçbir şey yazma, sadece bu 3 satır):\n"
             "type|message|action\n\n"
-            "type değerleri: stock, shipment, workflow, order\n"
-            "Örnek:\n"
-            "stock|İncir Reçeli stokları kritik seviyede. Yeniden sipariş verilmeli.|Sipariş Ver\n"
-            "shipment|2 sipariş kargo aşamasında gecikme yaşıyor.|Kargoları Gör\n"
-            "workflow|Bugün kargoya verilmesi gereken 3 yeni sipariş var.|Siparişleri Hazırla\n\n"
-            f"Veriler:\n{company_context}"
+            "Geçerli type değerleri: stock, shipment, workflow, order\n\n"
+            "Örnekler:\n"
+            "stock|Çilek Reçeli stoku kritik (2 adet kaldı, minimum 10). Acil sipariş verin.|Sipariş Ver\n"
+            "shipment|SHP-1023 nolu kargo 3 gündür gecikiyor. Kargo firmasıyla iletişime geçin.|Kargoları Gör\n"
+            "order|5 sipariş 'Beklemede' durumunda, hazırlanmayı bekliyor.|Siparişlere Git\n\n"
+            "Veri yoksa genel öneriler verme; mevcut veriden en kritik 3 öneriyi seç.\n\n"
+            f"{company_context}"
         )
 
         llm_messages = [
             {"role": "system", "content": system_instruction},
-            {"role": "user", "content": "Şirketin güncel durumuna göre 3 öneri ver."}
+            {"role": "user", "content": "Güncel veriye göre en kritik 3 öneriyi ver."}
         ]
 
         with httpx.Client(timeout=60.0) as client:
-            raw = _call_llm_with_fallback(client, llm_messages)
+            raw = _call_llm_with_fallback(client, llm_messages, temperature=0.2)
 
         recommendations: List[RecommendationItem] = []
         for line in raw.strip().splitlines():
+            line = line.strip()
+            # Boş satır, başlık veya açıklama satırlarını atla
+            if not line or line.startswith("#") or "|" not in line:
+                continue
             parts = line.split("|", 2)
             if len(parts) == 3:
+                rec_type = parts[0].strip().lower()
+                # Geçerli type değilse "order" olarak normalize et
+                if rec_type not in {"stock", "shipment", "workflow", "order"}:
+                    rec_type = "order"
                 recommendations.append(RecommendationItem(
-                    type=parts[0].strip(),
+                    type=rec_type,
                     message=parts[1].strip(),
                     action=parts[2].strip(),
                 ))
 
         if not recommendations:
+            logger.warning(f"Recommendations parse failed. Raw output: {raw}")
             raise HTTPException(status_code=502, detail="YZ önerileri ayrıştırılamadı.")
 
         return RecommendationsResponse(recommendations=recommendations[:3])
@@ -479,7 +632,7 @@ def get_recommendations(
             raise HTTPException(status_code=429, detail=f"{e.provider} hız limiti veya kotası aşıldı.")
         raise HTTPException(status_code=502, detail=f"{e.provider} servisinden geçerli bir yanıt alınamadı.")
     except Exception as e:
-        logger.error(f"Recommendations API Error: {e}")
+        logger.exception(f"Recommendations API Error: {e}")
         raise HTTPException(
             status_code=500,
             detail="YZ önerileri oluşturulurken beklenmeyen bir hata oluştu."

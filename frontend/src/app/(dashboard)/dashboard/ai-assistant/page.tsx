@@ -137,8 +137,7 @@ export default function AiAssistantPage() {
     if (!content.trim() || isLoading) return;
 
     const userMessage: Message = { role: "user", content: content.trim() };
-    const newMessages = [...messages, userMessage];
-    setMessages(newMessages);
+    setMessages((prev) => [...prev, userMessage]);
     setInput("");
     setIsLoading(true);
 
@@ -146,7 +145,8 @@ export default function AiAssistantPage() {
       const res = await fetchWithAuth("/ai/chat", {
         method: "POST",
         body: JSON.stringify({
-          messages: newMessages,
+          // Backend DB'den geçmişi kendisi çeker; sadece son mesajı gönder
+          messages: [{ role: "user", content: content.trim() }],
           conversation_id: selectedConversationId,
         }),
       });
@@ -157,13 +157,12 @@ export default function AiAssistantPage() {
       }
 
       const data = await res.json();
-      setMessages([...newMessages, { role: "model", content: data.message }]);
+      setMessages((prev) => [...prev, { role: "model", content: data.message }]);
 
       if (!selectedConversationId) {
         setSelectedConversationId(data.conversation_id);
         await loadConversations();
       } else {
-        // Update the conversation's updated_at in the list
         setConversations((prev) =>
           prev.map((c) =>
             c.id === selectedConversationId ? { ...c, updated_at: new Date().toISOString() } : c
@@ -171,12 +170,14 @@ export default function AiAssistantPage() {
         );
       }
     } catch (err: any) {
+      // Kullanıcı mesajını geri al (hata durumunda)
+      setMessages((prev) => prev.slice(0, -1));
       toast.error(err.message || "YZ yanıt oluşturamadı.");
-      setMessages(messages);
     } finally {
       setIsLoading(false);
     }
   };
+
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
